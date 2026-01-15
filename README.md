@@ -45,7 +45,7 @@ The system is optimized for **Mobile Devices** (PWA support) and **Public Librar
 
 | Home Screen (Dark) | Search & Filters |
 |:---:|:---:|
-| ![Home Screen](path/to/your/screenshot1.png) | ![Filters](path/to/your/screenshot2.png) |
+| ![Home Screen](LibNav/blob/main/Screenshot_20260116-004255.png) | ![Filters](path/to/your/screenshot2.png) |
 
 | Book Details & Map | Statistics Modal |
 |:---:|:---:|
