@@ -1,4 +1,4 @@
-/* style.css - Logo Right, Menu Left */
+/* style.css - Screensaver Fix for Light Mode */
 
 @import url('https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&family=Klee+One&display=swap');
 
@@ -42,29 +42,27 @@ body {
     overflow-x: hidden;
 }
 
-/* --- Top Bar & Navigation (UPDATED) --- */
+/* --- Top Bar & Navigation --- */
 .top-controls {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0; /* Spans full width */
+    right: 0;
     padding: 20px;
     z-index: 100;
     display: flex;
-    justify-content: space-between; /* Pushes left group and logo apart */
+    justify-content: space-between;
     align-items: center;
-    pointer-events: none; /* Allows clicking through empty space */
+    pointer-events: none; 
 }
 
-/* Container for left buttons to keep them together */
 .left-controls {
     display: flex;
     gap: 15px;
     align-items: center;
-    pointer-events: auto; /* Re-enable clicking for buttons */
+    pointer-events: auto; 
 }
 
-/* Header Logo (Now Top Right) */
 .header-logo {
     font-family: var(--font-head);
     font-size: 1.8rem;
@@ -287,9 +285,35 @@ input#search-input:focus {
 }
 .float-btn svg { width: 24px; height: 24px; fill: currentColor; }
 
-.screensaver { position: fixed; inset: 0; background: rgba(11, 17, 33, 0.95); backdrop-filter: blur(10px); z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in-out; cursor: pointer; }
+/* --- Screensaver Fix --- */
+.screensaver { 
+    position: fixed; inset: 0; 
+    /* Force dark background always */
+    background: rgba(11, 17, 33, 0.95); 
+    backdrop-filter: blur(10px); 
+    z-index: 2000; 
+    display: flex; flex-direction: column; 
+    justify-content: center; align-items: center; 
+    opacity: 0; pointer-events: none; 
+    transition: opacity 0.5s ease-in-out; 
+    cursor: pointer; 
+}
 .screensaver.active { opacity: 1; pointer-events: all; }
-.screensaver h1 { font-family: 'Gloria Hallelujah', 'Comic Sans MS', cursive; font-size: 4rem; color: var(--primary-pink); margin-bottom: 20px; text-shadow: 0 0 30px rgba(255, 196, 214, 0.5); }
+
+/* Force specific colors for screensaver elements so they don't break in Light Mode */
+.screensaver h1 { 
+    font-family: 'Gloria Hallelujah', 'Comic Sans MS', cursive; 
+    font-size: 4rem; 
+    color: #ffc4d6 !important; /* Force Pink */
+    margin-bottom: 20px; 
+    text-shadow: 0 0 30px rgba(255, 196, 214, 0.5); 
+}
+.screensaver p {
+    color: #f1f5f9 !important; /* Force White */
+    font-size: 1.5rem;
+    animation: pulse 2s infinite;
+}
 
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes menuSlide { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 0.7; } }
