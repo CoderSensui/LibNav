@@ -1,4 +1,4 @@
-/* app.js - Glows & Navigation Logic */
+/* app.js - Sidebar Logic & Back Button */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -11,10 +11,10 @@ const sideMenu = document.getElementById('side-menu');
 const sideMenuOverlay = document.getElementById('side-menu-overlay');
 const closeMenuBtn = document.getElementById('close-menu');
 
-// NEW: Explicit Home Button
+// Back Button
 const homeBtn = document.getElementById('home-btn');
 
-// Filter Dropdown
+// Filter
 const filterToggle = document.getElementById('filter-toggle'); 
 const filterMenu = document.getElementById('filter-menu');
 const checkboxes = document.querySelectorAll('.filter-option input[type="checkbox"]');
@@ -42,7 +42,7 @@ function init() {
     });
 }
 
-// --- Home Button Logic (Reset) ---
+// --- Home Button Logic ---
 homeBtn.addEventListener('click', () => {
     searchInput.value = '';
     selectedGenres.clear();
@@ -51,14 +51,12 @@ homeBtn.addEventListener('click', () => {
     
     hero.classList.remove('minimized');
     featuredContainer.style.display = 'block';
-    
-    // Hide Home Button
     homeBtn.classList.add('home-hidden');
     
     performSearch('');
 });
 
-// --- Sidebar Logic ---
+// --- Sidebar ---
 function openSidebar() {
     sideMenu.classList.add('active');
     sideMenuOverlay.classList.add('active');
@@ -72,7 +70,7 @@ hamburgerBtn.addEventListener('click', openSidebar);
 closeMenuBtn.addEventListener('click', closeSidebar);
 sideMenuOverlay.addEventListener('click', closeSidebar);
 
-// --- Filter Dropdown ---
+// --- Filter ---
 filterToggle.addEventListener('click', (e) => {
     e.stopPropagation();
     filterMenu.style.display = (filterMenu.style.display === 'flex') ? 'none' : 'flex';
@@ -113,7 +111,6 @@ quickBtns.forEach(btn => {
         const genre = btn.dataset.genre;
         searchInput.value = '';
         
-        // Hide Hero, Show Home Button
         hero.classList.add('minimized');
         featuredContainer.style.display = 'none';
         homeBtn.classList.remove('home-hidden');
@@ -134,7 +131,7 @@ quickBtns.forEach(btn => {
     });
 });
 
-// --- Checkbox Logic ---
+// --- Checkboxes ---
 checkboxes.forEach(box => {
     box.addEventListener('change', (e) => {
         const val = e.target.value;
