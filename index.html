@@ -5,7 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0b1121">
     <title>LibNav</title>
-    <link rel="stylesheet" href="style.css?v=1">
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister()
+                    .then(function() { console.log("Old Service Worker Unregistered"); });
+                }
+            });
+            caches.keys().then(function(names) {
+                for (let name of names) caches.delete(name);
+            });
+        }
+    </script>
+    <link rel="stylesheet" href="style.css?v=final">
 </head>
 <body>
 
@@ -92,7 +106,7 @@
         <p>Touch to start searching!</p>
     </div>
 
-    <script src="database.js?v=1"></script>
-    <script src="app.js?v=1"></script>
+    <script src="database.js?v=final"></script>
+    <script src="app.js?v=final"></script>
 </body>
 </html>
