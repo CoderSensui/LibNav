@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0b1121">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>LibNav</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1">
 </head>
 <body>
 
     <div class="container">
         <div id="hero" class="hero">
             <h1 class="text-pink">LibNav</h1>
-            <p style="color: var(--text-muted);">Find your way to the story.</p>
+            <p style="color: var(--text-muted);">Find the way to the story!</p>
         </div>
 
         <div class="search-wrapper">
@@ -37,8 +35,8 @@
                     <input type="checkbox" value="Favorites">
                     <span class="checkmark" style="border-color:#ef4444; color:#ef4444;"></span>
                     <span style="color:#ef4444; display:flex; align-items:center; gap:5px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#ef4444"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        My Favorites
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#ef4444"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+                        Bookmarks
                     </span>
                 </label>
                 <div style="height:1px; background:var(--border-color); margin:5px 0;"></div>
@@ -91,15 +89,10 @@
 
     <div id="screensaver" class="screensaver">
         <h1>LibNav</h1>
-        <p>Touch to Start</p>
+        <p>Touch to start searching!</p>
     </div>
 
-    <script src="database.js"></script>
-    <script src="app.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(() => console.log('Service Worker Registered'));
-        }
-    </script>
+    <script src="database.js?v=1"></script>
+    <script src="app.js?v=1"></script>
 </body>
 </html>
