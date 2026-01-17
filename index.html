@@ -7,19 +7,12 @@
     <title>LibNav</title>
 
     <meta name="description" content="Find a way to the story! A smart navigation system to help you locate books and shelves in the library instantly.">
-    
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://libnav.vercel.app/">
     <meta property="og:title" content="LibNav - Digital Library Guide">
     <meta property="og:description" content="Find a way to the story! Locate books, check shelves, and browse genres instantly.">
     <meta property="og:image" content="https://libnav.vercel.app/preview.jpg">
 
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://libnav.vercel.app/">
-    <meta property="twitter:title" content="LibNav - Digital Library Guide">
-    <meta property="twitter:description" content="Find a way to the story! Locate books, check shelves, and browse genres instantly.">
-    <meta property="twitter:image" content="https://libnav.vercel.app/assets/preview.jpg">
-    
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -31,25 +24,18 @@
         }
     </script>
 
-    <link rel="stylesheet" href="style.css?v=logo_right">
+    <link rel="stylesheet" href="style.css?v=final_v1">
 </head>
 <body>
 
     <div class="top-controls">
         <div class="left-controls">
             <button id="hamburger-btn" class="nav-btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
 
             <button id="home-btn" class="nav-btn home-hidden">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 <span style="font-size: 0.9rem; font-weight: bold;">Main Menu</span>
             </button>
         </div>
@@ -74,14 +60,19 @@
                 <button class="quick-btn wide" data-genre="History">History</button>
                 <button class="quick-btn wide" data-genre="Non-Fiction">Non-Fiction</button>
             </div>
+
+            <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                <button id="open-feedback-btn" class="quick-btn wide" style="color: var(--primary-pink); border-color: var(--primary-pink);">
+                    📝 Send Feedback
+                </button>
+            </div>
         </div>
     </div>
 
     <div class="container">
-        
         <div id="hero" class="hero">
             <h1 class="glow-text">LibNav</h1>
-            <p style="color: var(--text-muted);">Find your way to the story!</p>
+            <p style="color: var(--text-muted);">Find a way to the story!</p>
         </div>
 
         <div class="search-wrapper">
@@ -156,12 +147,31 @@
         </div>
     </div>
 
+    <div id="feedback-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal">&times;</button>
+            <h2 class="text-pink" style="margin-bottom:10px;">Send Feedback</h2>
+            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px;">
+                Found a bug or have a suggestion? Let us know!
+            </p>
+            
+            <form id="feedback-form">
+                <input type="text" id="fb-name" class="form-input" placeholder="Your Name (Optional)">
+                <input type="email" id="fb-email" class="form-input" placeholder="Your Email (Optional)">
+                <textarea id="fb-message" class="form-input" style="height:100px; resize:none;" placeholder="Your Message..." required></textarea>
+                
+                <button type="submit" class="submit-btn" id="fb-submit-btn">Send Message 🚀</button>
+                <p id="fb-status" style="margin-top:10px; font-size:0.9rem;"></p>
+            </form>
+        </div>
+    </div>
+
     <div id="screensaver" class="screensaver">
         <h1 class="glow-text">LibNav</h1>
         <p>Touch to start searching!</p>
     </div>
 
-    <script src="database.js?v=logo_right"></script>
-    <script src="app.js?v=logo_right"></script>
+    <script src="database.js?v=final_v1"></script>
+    <script src="app.js?v=final_v1"></script>
 </body>
 </html>
