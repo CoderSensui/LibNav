@@ -1,4 +1,4 @@
-/* app.js - Final Version */
+/* app.js - True Daily Pick Version */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -38,7 +38,7 @@ let idleTimeout;
 
 function init() {
     loadTheme();
-    loadFeaturedBook();
+    loadFeaturedBook(); // Now uses smart daily logic
     performSearch('');
     resetIdleTimer();
     
@@ -47,6 +47,52 @@ function init() {
             filterMenu.style.display = 'none';
         }
     });
+}
+
+// --- SMART DAILY PICK LOGIC ---
+function loadFeaturedBook() {
+    const books = LibraryDB.getBooks();
+    if(books.length === 0) return;
+
+    // 1. Get today's date string (e.g., "2026-01-18")
+    const today = new Date().toISOString().split('T')[0];
+    
+    // 2. Check stored data
+    const storedData = JSON.parse(localStorage.getItem('libnav_daily_pick'));
+    
+    let featuredBook;
+
+    // 3. If we have a stored pick AND it matches today's date, use it
+    if (storedData && storedData.date === today) {
+        // Find the book by ID to ensure it still exists in DB
+        featuredBook = books.find(b => b.id === storedData.bookId);
+        // Fallback if that book ID was deleted from DB
+        if (!featuredBook) featuredBook = books[Math.floor(Math.random() * books.length)];
+    } else {
+        // 4. Otherwise, pick a NEW random book and save it
+        // We use the date as a "seed" indirectly by saving it
+        featuredBook = books[Math.floor(Math.random() * books.length)];
+        
+        localStorage.setItem('libnav_daily_pick', JSON.stringify({
+            date: today,
+            bookId: featuredBook.id
+        }));
+    }
+    
+    // 5. Render the card
+    featuredContainer.innerHTML = `
+        <div class="featured-section">
+            <span class="featured-label">Recommended for you</span>
+            <div class="featured-card">
+                <h2 style="font-size:1.4rem; margin-bottom:5px;">${featuredBook.title}</h2>
+                <p style="color:var(--text-muted); font-size:0.95rem;">by ${featuredBook.author}</p>
+                <div style="margin-top:10px;">
+                    <span class="chip">${featuredBook.genre}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    featuredContainer.querySelector('.featured-card').addEventListener('click', () => { openModal(featuredBook); });
 }
 
 // --- Feedback Logic ---
@@ -316,20 +362,44 @@ function toggleFavorite(e, bookId) {
 function loadFeaturedBook() {
     const books = LibraryDB.getBooks();
     if(books.length === 0) return;
-    const randomBook = books[Math.floor(Math.random() * books.length)];
+
+    // --- SMART DAILY PICK LOGIC ---
+    // 1. Get today's date string (e.g., "2026-01-18")
+    const today = new Date().toISOString().split('T')[0];
+    
+    // 2. Check stored data
+    const storedData = JSON.parse(localStorage.getItem('libnav_daily_pick'));
+    
+    let featuredBook;
+
+    // 3. If we have a stored pick AND it matches today's date, use it
+    if (storedData && storedData.date === today) {
+        featuredBook = books.find(b => b.id === storedData.bookId);
+        // Safety check if ID no longer exists
+        if (!featuredBook) featuredBook = books[Math.floor(Math.random() * books.length)];
+    } else {
+        // 4. Pick a NEW random book and save it for today
+        featuredBook = books[Math.floor(Math.random() * books.length)];
+        localStorage.setItem('libnav_daily_pick', JSON.stringify({
+            date: today,
+            bookId: featuredBook.id
+        }));
+    }
+    
+    // 5. Render
     featuredContainer.innerHTML = `
         <div class="featured-section">
             <span class="featured-label">Recommended for you</span>
             <div class="featured-card">
-                <h2 style="font-size:1.4rem; margin-bottom:5px;">${randomBook.title}</h2>
-                <p style="color:var(--text-muted); font-size:0.95rem;">by ${randomBook.author}</p>
+                <h2 style="font-size:1.4rem; margin-bottom:5px;">${featuredBook.title}</h2>
+                <p style="color:var(--text-muted); font-size:0.95rem;">by ${featuredBook.author}</p>
                 <div style="margin-top:10px;">
-                    <span class="chip">${randomBook.genre}</span>
+                    <span class="chip">${featuredBook.genre}</span>
                 </div>
             </div>
         </div>
     `;
-    featuredContainer.querySelector('.featured-card').addEventListener('click', () => { openModal(randomBook); });
+    featuredContainer.querySelector('.featured-card').addEventListener('click', () => { openModal(featuredBook); });
 }
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
