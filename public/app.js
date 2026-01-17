@@ -1,4 +1,4 @@
-/* app.js - v4 (QR Code & Deep Linking) */
+/* app.js - vFinal (Restored & Fixed) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -21,33 +21,34 @@ const feedbackForm = document.getElementById('feedback-form');
 const fbStatus = document.getElementById('fb-status');
 const fbSubmitBtn = document.getElementById('fb-submit-btn');
 
+// State
 let selectedGenres = new Set(); 
 let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
 const IDLE_LIMIT = 30000;
 let idleTimeout;
 
+// --- INITIALIZATION ---
 async function init() {
     loadTheme();
-    await LibraryDB.init(); // Wait for DB to be ready
+    await LibraryDB.init(); // Wait for data
     
-    // --- DEEP LINK CHECK ---
-    // If user scanned a QR code (e.g., libnav.vercel.app/?book=5)
+    // Check for Deep Link (QR Scan)
     const urlParams = new URLSearchParams(window.location.search);
     const bookId = urlParams.get('book');
     if (bookId) {
-        // Find and open that book immediately
         const allBooks = LibraryDB.getBooks();
         const deepLinkedBook = allBooks.find(b => b.id == bookId);
         if (deepLinkedBook) {
             openModal(deepLinkedBook);
-            // Clean URL so refresh doesn't keep opening it
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     }
-    // -----------------------
 
     loadFeaturedBook(); 
-    performSearch('');
+    
+    // RESTORED: Initial clean state (Empty search = Show Hero, Hide Results)
+    performSearch(''); 
+    
     resetIdleTimer();
     
     document.addEventListener('click', (e) => {
@@ -56,6 +57,8 @@ async function init() {
         }
     });
 }
+
+// --- LOGIC ---
 
 function loadFeaturedBook() {
     const books = LibraryDB.getBooks();
@@ -82,17 +85,21 @@ function loadFeaturedBook() {
     featuredContainer.querySelector('.featured-card').addEventListener('click', () => { openModal(featuredBook); });
 }
 
+// Home Button Logic
 homeBtn.addEventListener('click', () => {
     searchInput.value = '';
     selectedGenres.clear();
     checkboxes.forEach(c => c.checked = false);
     quickBtns.forEach(b => b.classList.remove('active'));
+    
+    // RESTORED: Reset to "Hero Mode"
     hero.classList.remove('minimized');
     featuredContainer.style.display = 'block';
     homeBtn.classList.add('home-hidden');
-    performSearch('');
+    resultsArea.innerHTML = ''; // Clear books
 });
 
+// Sidebar
 function openSidebar() { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); filterMenu.style.display = 'none'; }
 function closeSidebar() { sideMenu.classList.remove('active'); sideMenuOverlay.classList.remove('active'); }
 hamburgerBtn.addEventListener('click', openSidebar);
@@ -105,15 +112,20 @@ filterToggle.addEventListener('click', (e) => {
     closeSidebar();
 });
 
+// Idle Timer
 function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(goIdle, IDLE_LIMIT); }
 function goIdle() {
     searchInput.value = '';
     selectedGenres.clear();
     checkboxes.forEach(c => c.checked = false);
     quickBtns.forEach(b => b.classList.remove('active'));
+    
+    // Reset UI
     hero.classList.remove('minimized');
     featuredContainer.style.display = 'block';
     homeBtn.classList.add('home-hidden');
+    resultsArea.innerHTML = ''; 
+    
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
     closeSidebar();
     filterMenu.style.display = 'none';
@@ -121,14 +133,17 @@ function goIdle() {
 }
 window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
 
+// Quick Buttons
 quickBtns.forEach(btn => {
     if(btn.id === 'open-feedback-btn') return;
     btn.addEventListener('click', () => {
         const genre = btn.dataset.genre;
         searchInput.value = '';
+        // UI Change
         hero.classList.add('minimized');
         featuredContainer.style.display = 'none';
         homeBtn.classList.remove('home-hidden');
+        
         selectedGenres.clear();
         selectedGenres.add(genre);
         checkboxes.forEach(box => {
@@ -142,6 +157,7 @@ quickBtns.forEach(btn => {
     });
 });
 
+// Checkboxes
 checkboxes.forEach(box => {
     box.addEventListener('change', (e) => {
         const val = e.target.value;
@@ -163,22 +179,47 @@ checkboxes.forEach(box => {
                 quickBtns.forEach(b => { if (b.dataset.genre === val) b.classList.remove('active'); });
             }
         }
-        if (selectedGenres.size > 0) { hero.classList.add('minimized'); featuredContainer.style.display = 'none'; homeBtn.classList.remove('home-hidden'); } 
-        else if (searchInput.value === '') { hero.classList.remove('minimized'); featuredContainer.style.display = 'block'; homeBtn.classList.add('home-hidden'); }
+        
+        // UI Logic
+        if (selectedGenres.size > 0) { 
+            hero.classList.add('minimized'); 
+            featuredContainer.style.display = 'none'; 
+            homeBtn.classList.remove('home-hidden'); 
+        } else if (searchInput.value === '') { 
+            // If no filters and no text, go back to Hero
+            hero.classList.remove('minimized'); 
+            featuredContainer.style.display = 'block'; 
+            homeBtn.classList.add('home-hidden'); 
+        }
         performSearch(searchInput.value);
     });
 });
 
 searchInput.addEventListener('input', (e) => {
     const term = e.target.value;
-    if (term.length > 0) { hero.classList.add('minimized'); featuredContainer.style.display = 'none'; homeBtn.classList.remove('home-hidden'); } 
-    else if (selectedGenres.size === 0) { hero.classList.remove('minimized'); featuredContainer.style.display = 'block'; homeBtn.classList.add('home-hidden'); }
+    if (term.length > 0) { 
+        hero.classList.add('minimized'); 
+        featuredContainer.style.display = 'none'; 
+        homeBtn.classList.remove('home-hidden'); 
+    } else if (selectedGenres.size === 0) { 
+        hero.classList.remove('minimized'); 
+        featuredContainer.style.display = 'block'; 
+        homeBtn.classList.add('home-hidden'); 
+    }
     performSearch(term);
 });
 
+// --- SEARCH ENGINE ---
 function performSearch(term) {
+    // RESTORED: If empty, clear results (don't show "No books found" yet)
+    if (term === '' && selectedGenres.size === 0) {
+        resultsArea.innerHTML = '';
+        return;
+    }
+
     let allBooks = LibraryDB.getBooks();
     allBooks.sort((a, b) => a.title.localeCompare(b.title));
+    
     let matches = allBooks.filter(book => {
         let textMatch = true;
         if (term && term.trim() !== '') {
@@ -201,7 +242,7 @@ function performSearch(term) {
 
 function renderResults(books) {
     resultsArea.innerHTML = '';
-    if (books.length === 0 && (searchInput.value !== '' || selectedGenres.size > 0)) {
+    if (books.length === 0) {
         resultsArea.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">No books found.</div>';
         return;
     }
@@ -230,6 +271,66 @@ function toggleFavorite(e, bookId) {
     performSearch(searchInput.value);
 }
 
+// --- RESTORED: VOICE RECOGNITION ---
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false; recognition.interimResults = false; recognition.lang = 'en-US';
+    
+    micBtn.addEventListener('click', () => {
+        if (micBtn.classList.contains('listening')) recognition.stop();
+        else recognition.start();
+    });
+    
+    recognition.onstart = () => { micBtn.classList.add('listening'); searchInput.placeholder = "Listening..."; };
+    recognition.onend = () => { micBtn.classList.remove('listening'); searchInput.placeholder = "Search title or author..."; };
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        searchInput.value = transcript;
+        
+        // Trigger search UI
+        hero.classList.add('minimized');
+        featuredContainer.style.display = 'none';
+        homeBtn.classList.remove('home-hidden');
+        
+        performSearch(transcript);
+    };
+} else { micBtn.style.display = 'none'; }
+
+// --- RESTORED: STATISTICS ---
+document.getElementById('stats-trigger').onclick = () => {
+    const books = LibraryDB.getBooks();
+    const history = JSON.parse(localStorage.getItem('search_history')) || [];
+    const genres = {};
+    books.forEach(b => genres[b.genre] = (genres[b.genre] || 0) + 1);
+    
+    let topBook = 'No searches yet';
+    let maxCount = 0;
+    if(history.length > 0) {
+        const counts = {};
+        history.forEach(h => {
+            counts[h] = (counts[h] || 0) + 1;
+            if(counts[h] > maxCount) { maxCount = counts[h]; topBook = h; }
+        });
+    }
+    const favCount = favorites.length;
+    let genreHTML = Object.entries(genres).map(([k,v]) => 
+        `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border-color);"><span>${k}</span> <span class="text-pink">${v}</span></div>`
+    ).join('');
+    
+    document.getElementById('stats-content').innerHTML = `
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:20px;">
+            <div style="background:var(--bg-chip); padding:15px; border-radius:15px; text-align:center;"><p style="color:var(--text-muted); font-size:0.8rem;">Total Books</p><h2 style="font-size:1.8rem;">${books.length}</h2></div>
+            <div style="background:var(--bg-chip); padding:15px; border-radius:15px; text-align:center;"><p style="color:var(--text-muted); font-size:0.8rem;">Bookmarks</p><h2 style="font-size:1.8rem; color:#ef4444;">${favCount}</h2></div>
+        </div>
+        <div style="margin-bottom:20px;"><p style="color:var(--text-muted); font-size:0.9rem;">👑 Most Viewed Book</p><h3 class="text-pink" style="font-size:1.3rem; margin-top:5px;">${topBook}</h3></div>
+        <div style="margin-bottom:10px;"><p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:5px;">Genre Breakdown</p>${genreHTML}</div>
+    `;
+    document.getElementById('stats-modal').classList.add('active');
+};
+function updateHistory(title) { let hist = JSON.parse(localStorage.getItem('search_history')) || []; hist.push(title); localStorage.setItem('search_history', JSON.stringify(hist)); }
+
+
 // --- MODAL & QR CODE ---
 const bookModal = document.getElementById('book-modal');
 const neighborsArea = document.getElementById('neighbors-area');
@@ -244,20 +345,17 @@ async function openModal(book) {
     document.getElementById('modal-shelf').innerText = book.shelf;
     document.getElementById('modal-genre').innerText = book.genre;
     
-    // 1. Generate QR Code
-    qrContainer.innerHTML = ''; // Clear old QR
-    // Generate URL: e.g. https://libnav.vercel.app/?book=12
+    // QR Generation
+    qrContainer.innerHTML = '';
     const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
     new QRCode(qrContainer, {
         text: deepLink,
-        width: 90,
-        height: 90,
-        colorDark : "#0b1121",
-        colorLight : "#ffffff",
+        width: 90, height: 90,
+        colorDark : "#0b1121", colorLight : "#ffffff",
         correctLevel : QRCode.CorrectLevel.L
     });
 
-    // 2. Load Map
+    // Map Loading
     try {
         const response = await fetch('map.svg');
         const svgText = await response.text();
@@ -270,9 +368,9 @@ async function openModal(book) {
             targetShelf.setAttribute('stroke', '#fff');
             targetShelf.innerHTML = `<animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />`;
         }
-    } catch (e) { console.error("Map Error", e); mapContainer.innerHTML = `<p style="color:var(--text-muted)">Map unavailable</p>`; }
+    } catch (e) { mapContainer.innerHTML = `<p style="color:var(--text-muted)">Map unavailable</p>`; }
 
-    // 3. Neighbors
+    // Neighbors logic
     const allBooks = LibraryDB.getBooks();
     const neighbors = allBooks.filter(b => b.shelf === book.shelf && b.id !== book.id);
     neighborsList.innerHTML = '';
@@ -290,7 +388,6 @@ async function openModal(book) {
     bookModal.classList.add('active');
 }
 document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
-function updateHistory(title) { let hist = JSON.parse(localStorage.getItem('search_history')) || []; hist.push(title); localStorage.setItem('search_history', JSON.stringify(hist)); }
 
 if (feedbackBtn) feedbackBtn.addEventListener('click', () => { feedbackModal.classList.add('active'); closeSidebar(); });
 if (feedbackForm) feedbackForm.addEventListener('submit', async (e) => {
@@ -305,7 +402,7 @@ if (feedbackForm) feedbackForm.addEventListener('submit', async (e) => {
     } catch { fbStatus.style.color = "#ef4444"; fbStatus.innerText = "Error."; }
     finally { fbSubmitBtn.disabled = false; fbSubmitBtn.innerText = "Send"; }
 });
-document.getElementById('stats-trigger').onclick = () => { /* Stats logic kept same */ document.getElementById('stats-modal').classList.add('active'); };
+
 const themeBtn = document.getElementById('theme-toggle');
 themeBtn.onclick = () => { document.body.classList.toggle('light-mode'); localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark'); loadTheme(); };
 function loadTheme() { themeBtn.innerHTML = document.body.classList.contains('light-mode') ? '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>' : '<svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>'; }
