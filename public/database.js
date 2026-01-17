@@ -1,41 +1,62 @@
-/* database.js - v9 (Async & Scalable) */
+/* database.js - v10 (Robust Fallback) */
 
 const LibraryDB = {
-    key: 'library_books_v9',
-    
-    // This will now be populated asynchronously
+    key: 'library_books_v10', // Updated key to force refresh
     books: [],
 
+    // Hardcoded backup in case books.json fails to load
+    backupData: [
+        { "id": 1, "title": "The Great Gatsby", "author": "F. Scott Fitzgerald", "genre": "Fiction", "shelf": "A-12" },
+        { "id": 8, "title": "To Kill a Mockingbird", "author": "Harper Lee", "genre": "Fiction", "shelf": "A-12" },
+        { "id": 5, "title": "1984", "author": "George Orwell", "genre": "Fiction", "shelf": "A-15" },
+        { "id": 9, "title": "The Catcher in the Rye", "author": "J.D. Salinger", "genre": "Fiction", "shelf": "A-15" },
+        { "id": 14, "title": "The Hobbit", "author": "J.R.R. Tolkien", "genre": "Fiction", "shelf": "A-10" },
+        { "id": 15, "title": "The Lord of the Rings", "author": "J.R.R. Tolkien", "genre": "Fiction", "shelf": "A-10" },
+        { "id": 2, "title": "Sapiens", "author": "Yuval Noah Harari", "genre": "Non-Fiction", "shelf": "B-04" },
+        { "id": 12, "title": "Educated", "author": "Tara Westover", "genre": "Non-Fiction", "shelf": "B-04" },
+        { "id": 6, "title": "Becoming", "author": "Michelle Obama", "genre": "Non-Fiction", "shelf": "B-11" },
+        { "id": 16, "title": "Atomic Habits", "author": "James Clear", "genre": "Non-Fiction", "shelf": "B-11" },
+        { "id": 3, "title": "Pride and Prejudice", "author": "Jane Austen", "genre": "Romance", "shelf": "C-01" },
+        { "id": 11, "title": "The Notebook", "author": "Nicholas Sparks", "genre": "Romance", "shelf": "C-01" },
+        { "id": 17, "title": "Romeo and Juliet", "author": "William Shakespeare", "genre": "Romance", "shelf": "C-05" },
+        { "id": 18, "title": "Little Women", "author": "Louisa May Alcott", "genre": "Romance", "shelf": "C-05" },
+        { "id": 4, "title": "A Brief History of Time", "author": "Stephen Hawking", "genre": "Science", "shelf": "D-09" },
+        { "id": 10, "title": "Silent Spring", "author": "Rachel Carson", "genre": "Science", "shelf": "D-09" },
+        { "id": 7, "title": "Dune", "author": "Frank Herbert", "genre": "Science", "shelf": "D-02" },
+        { "id": 13, "title": "Cosmos", "author": "Carl Sagan", "genre": "Science", "shelf": "D-02" },
+        { "id": 19, "title": "Guns, Germs, and Steel", "author": "Jared Diamond", "genre": "History", "shelf": "E-01" },
+        { "id": 20, "title": "The Diary of a Young Girl", "author": "Anne Frank", "genre": "History", "shelf": "E-01" }
+    ],
+
     init: async function() {
-        // Try to get from LocalStorage first for speed
-        const stored = localStorage.getItem(this.key);
-        if (stored) {
-            this.books = JSON.parse(stored);
-            console.log("Loaded books from cache.");
-        } else {
-            // Fetch from external JSON file if not in storage
-            await this.loadBooks();
-        }
+        // Clear old versions to prevent conflicts
+        if(localStorage.getItem('library_books_v9')) localStorage.removeItem('library_books_v9');
+
+        await this.loadBooks();
     },
     
     loadBooks: async function() {
         try {
+            // Try to fetch from file
             const response = await fetch('books.json');
-            if (!response.ok) throw new Error("Failed to load books.json");
-            
+            if (!response.ok) throw new Error("File fetch failed");
             this.books = await response.json();
-            localStorage.setItem(this.key, JSON.stringify(this.books));
-            console.log("Loaded books from JSON file.");
+            console.log("Loaded from books.json");
         } catch (error) {
-            console.error("Database Error:", error);
-            this.books = []; 
+            // Fallback to hardcoded data if file fails
+            console.warn("Using backup data (books.json missing or moved).");
+            this.books = this.backupData;
         }
+        
+        // Save to storage for faster next load
+        localStorage.setItem(this.key, JSON.stringify(this.books));
     },
     
     getBooks: function() {
-        return this.books;
+        // Safety check
+        return this.books.length > 0 ? this.books : this.backupData;
     }
 };
 
-// Start initialization immediately
+// Initialize immediately
 LibraryDB.init();
