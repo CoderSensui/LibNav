@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0b1121">
     <title>LibNav</title>
-
-    <meta name="description" content="Find a way to the story! A smart navigation system to help you locate books and shelves in the library instantly.">
+    <meta name="description" content="Find a way to the story! A smart navigation system.">
     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,13 +18,11 @@
             <button id="hamburger-btn" class="nav-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
-
             <button id="home-btn" class="nav-btn home-hidden">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                <span style="font-size: 0.9rem; font-weight: bold;">Main Menu</span>
+                <span>Main Menu</span>
             </button>
         </div>
-
         <h1 class="header-logo">LibNav</h1>
     </div>
 
@@ -33,22 +32,17 @@
             <h2 class="text-pink">Categories</h2>
             <button id="close-menu">&times;</button>
         </div>
-        
         <div class="menu-content">
-            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:15px;">Browse Collection:</p>
             <div class="sidebar-buttons">
-                <button class="quick-btn wide" data-genre="All" style="font-weight:bold; border-color:var(--primary-pink);">All Books (A-Z)</button>
+                <button class="quick-btn wide" data-genre="All">All Books (A-Z)</button>
                 <button class="quick-btn wide" data-genre="Fiction">Fiction</button>
                 <button class="quick-btn wide" data-genre="Romance">Romance</button>
                 <button class="quick-btn wide" data-genre="Science">Science</button>
                 <button class="quick-btn wide" data-genre="History">History</button>
                 <button class="quick-btn wide" data-genre="Non-Fiction">Non-Fiction</button>
             </div>
-
             <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-                <button id="open-feedback-btn" class="quick-btn wide" style="color: var(--primary-pink); border-color: var(--primary-pink);">
-                    📝 Send Feedback
-                </button>
+                <button id="open-feedback-btn" class="quick-btn wide" style="color: var(--primary-pink); border-color: var(--primary-pink);">📝 Send Feedback</button>
             </div>
         </div>
     </div>
@@ -64,29 +58,13 @@
             <input type="text" id="search-input" placeholder="Search title or author... (e.g. 'Atomic')">
             
             <div class="search-actions">
-                <button id="mic-btn" class="icon-btn" title="Voice Search">
-                    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-                </button>
-                <button id="filter-toggle" class="icon-btn" title="Filter Options">
-                    <svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
-                </button>
+                <button id="mic-btn" class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></button>
+                <button id="filter-toggle" class="icon-btn"><svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg></button>
             </div>
-
             <div id="filter-menu" class="filter-dropdown">
-                <label class="filter-option" style="font-weight:bold; color:var(--primary-pink);">
-                    <input type="checkbox" value="All">
-                    <span class="checkmark"></span>
-                    <span>All Genres</span>
-                </label>
+                <label class="filter-option" style="font-weight:bold; color:var(--primary-pink);"><input type="checkbox" value="All"><span class="checkmark"></span><span>All Genres</span></label>
                 <div style="height:1px; background:var(--border-color); margin:5px 0;"></div>
-                <label class="filter-option">
-                    <input type="checkbox" value="Favorites">
-                    <span class="checkmark" style="border-color:#ef4444; color:#ef4444;"></span>
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#ef4444"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
-                        <span>Bookmarks</span>
-                    </div>
-                </label>
+                <label class="filter-option"><input type="checkbox" value="Favorites"><span class="checkmark" style="border-color:#ef4444; color:#ef4444;"></span><span>Bookmarks</span></label>
                 <label class="filter-option"><input type="checkbox" value="Fiction"><span class="checkmark"></span><span>Fiction</span></label>
                 <label class="filter-option"><input type="checkbox" value="Non-Fiction"><span class="checkmark"></span><span>Non-Fiction</span></label>
                 <label class="filter-option"><input type="checkbox" value="Romance"><span class="checkmark"></span><span>Romance</span></label>
@@ -100,12 +78,8 @@
     </div>
 
     <div class="floating-actions">
-        <button id="stats-trigger" class="float-btn">
-            <svg viewBox="0 0 24 24"><path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z"/></svg>
-        </button>
-        <button id="theme-toggle" class="float-btn">
-            <svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>
-        </button>
+        <button id="stats-trigger" class="float-btn"><svg viewBox="0 0 24 24"><path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z"/></svg></button>
+        <button id="theme-toggle" class="float-btn"><svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg></button>
     </div>
 
     <div id="book-modal" class="modal-overlay">
@@ -118,6 +92,12 @@
             <div id="map-container" class="map-container"></div>
             
             <h3 style="margin-top:15px;">Shelf <span id="modal-shelf" class="text-pink">A-01</span></h3>
+            
+            <div class="qr-section">
+                <div id="qrcode"></div>
+                <p class="qr-text">Scan to take map with you</p>
+            </div>
+            
             <div id="neighbors-area" class="neighbors-area">
                 <p style="font-size:0.9rem; color:var(--text-muted);">Also on this shelf:</p>
                 <div id="neighbors-list" class="neighbors-list"></div>
@@ -136,22 +116,18 @@
     <div id="feedback-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-modal">&times;</button>
-            <h2 class="text-pink" style="margin-bottom:10px;">Send Feedback</h2>
-            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px;">Found a bug or have a suggestion? Let us know!</p>
+            <h2 class="text-pink">Send Feedback</h2>
             <form id="feedback-form">
-                <input type="text" id="fb-name" class="form-input" placeholder="Your Name (Optional)">
-                <input type="email" id="fb-email" class="form-input" placeholder="Your Email (Optional)">
-                <textarea id="fb-message" class="form-input" style="height:100px; resize:none;" placeholder="Your Message..." required></textarea>
-                <button type="submit" class="submit-btn" id="fb-submit-btn">Send Message 🚀</button>
-                <p id="fb-status" style="margin-top:10px; font-size:0.9rem;"></p>
+                <input type="text" id="fb-name" class="form-input" placeholder="Name">
+                <input type="email" id="fb-email" class="form-input" placeholder="Email">
+                <textarea id="fb-message" class="form-input" placeholder="Message..." required></textarea>
+                <button type="submit" class="submit-btn" id="fb-submit-btn">Send</button>
+                <p id="fb-status"></p>
             </form>
         </div>
     </div>
 
-    <div id="screensaver" class="screensaver">
-        <h1 class="glow-text">LibNav</h1>
-        <p>Touch to start searching!</p>
-    </div>
+    <div id="screensaver" class="screensaver"><h1 class="glow-text">LibNav</h1><p>Touch to start</p></div>
 
     <script src="database.js"></script>
     <script src="app.js"></script>
