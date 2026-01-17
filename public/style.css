@@ -150,7 +150,27 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 .modal-overlay.active { opacity: 1; pointer-events: all; }
 .modal-content { background: var(--bg-card); padding: 30px; width: 90%; max-width: 420px; border-radius: 30px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid var(--border-color); transform: scale(0.9); transition: transform 0.4s var(--ease-bounce); max-height: 90vh; overflow-y: auto; }
 .modal-overlay.active .modal-content { transform: scale(1); }
-.map-img { width: 100%; border-radius: 20px; margin: 20px 0; border: 3px solid var(--bg-chip); }
+
+/* --- NEW MAP STYLES --- */
+.map-container {
+    width: 100%;
+    margin: 20px 0;
+    border-radius: 20px;
+    border: 3px solid var(--bg-chip);
+    overflow: hidden;
+    background: var(--bg-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.map-container svg {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    display: block;
+}
+/* ----------------------- */
+
 .close-modal { position: absolute; top: 20px; right: 20px; background: var(--bg-chip); width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: none; color: var(--text-main); }
 .neighbors-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .neighbor-chip { display: inline-block; background: var(--bg-chip); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 18px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; color: var(--text-muted); }
