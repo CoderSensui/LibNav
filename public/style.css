@@ -169,6 +169,33 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
     max-height: 400px;
     display: block;
 }
+
+/* --- QR CODE STYLES --- */
+.qr-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0;
+    padding: 15px;
+    background: var(--bg-chip);
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+}
+#qrcode {
+    padding: 5px;
+    background: white; /* QR codes need high contrast (white bg) */
+    border-radius: 5px;
+}
+#qrcode img {
+    margin: 0 auto;
+}
+.qr-text {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+    font-weight: bold;
+}
 /* ----------------------- */
 
 .close-modal { position: absolute; top: 20px; right: 20px; background: var(--bg-chip); width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: none; color: var(--text-main); }
