@@ -87,8 +87,10 @@ if (feedbackForm) {
                 throw new Error('Failed');
             }
         } catch (error) {
+            console.error("Fetch error:", error);
             fbStatus.style.color = "#ef4444"; 
-            fbStatus.innerText = "Error sending message.";
+            // Try to show the specific error message if available
+            fbStatus.innerText = "Error: " + error.message;
         } finally {
             fbSubmitBtn.disabled = false;
             fbSubmitBtn.innerText = "Send Message 🚀";
