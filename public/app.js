@@ -1,4 +1,4 @@
-/* app.js - True Daily Pick Version */
+/* app.js - v2 (Fuse.js Search & SVG Map) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -32,13 +32,27 @@ const fbSubmitBtn = document.getElementById('fb-submit-btn');
 
 let selectedGenres = new Set(); 
 let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
+let fuse; // Fuse.js instance
 
 const IDLE_LIMIT = 30000;
 let idleTimeout;
 
-function init() {
+// --- INITIALIZATION ---
+async function init() {
     loadTheme();
-    loadFeaturedBook(); // Now uses smart daily logic
+    
+    // Wait for DB to load before setting up search
+    await LibraryDB.init();
+    
+    // Initialize Fuse.js for Fuzzy Search
+    const options = {
+        keys: ['title', 'author'],
+        threshold: 0.4, // Sensitivity (0.0 = perfect match, 1.0 = loose match)
+        distance: 100
+    };
+    fuse = new Fuse(LibraryDB.getBooks(), options);
+
+    loadFeaturedBook(); 
     performSearch('');
     resetIdleTimer();
     
@@ -54,32 +68,22 @@ function loadFeaturedBook() {
     const books = LibraryDB.getBooks();
     if(books.length === 0) return;
 
-    // 1. Get today's date string (e.g., "2026-01-18")
     const today = new Date().toISOString().split('T')[0];
-    
-    // 2. Check stored data
     const storedData = JSON.parse(localStorage.getItem('libnav_daily_pick'));
     
     let featuredBook;
 
-    // 3. If we have a stored pick AND it matches today's date, use it
     if (storedData && storedData.date === today) {
-        // Find the book by ID to ensure it still exists in DB
         featuredBook = books.find(b => b.id === storedData.bookId);
-        // Fallback if that book ID was deleted from DB
         if (!featuredBook) featuredBook = books[Math.floor(Math.random() * books.length)];
     } else {
-        // 4. Otherwise, pick a NEW random book and save it
-        // We use the date as a "seed" indirectly by saving it
         featuredBook = books[Math.floor(Math.random() * books.length)];
-        
         localStorage.setItem('libnav_daily_pick', JSON.stringify({
             date: today,
             bookId: featuredBook.id
         }));
     }
     
-    // 5. Render the card
     featuredContainer.innerHTML = `
         <div class="featured-section">
             <span class="featured-label">Recommended for you</span>
@@ -269,9 +273,9 @@ checkboxes.forEach(box => {
     });
 });
 
-// --- Search Logic ---
+// --- Search Logic (Updated with Fuse.js) ---
 searchInput.addEventListener('input', (e) => {
-    const term = e.target.value.toLowerCase().trim();
+    const term = e.target.value; // Don't lowercase yet, Fuse handles it
     if (term.length > 0) {
         hero.classList.add('minimized'); 
         featuredContainer.style.display = 'none';
@@ -287,34 +291,34 @@ searchInput.addEventListener('input', (e) => {
 });
 
 function performSearch(term) {
-    term = term.toLowerCase().trim();
-    if (term === '' && selectedGenres.size === 0) {
-        resultsArea.innerHTML = '';
-        return;
+    let matches;
+
+    // 1. If term exists, use Fuzzy Search
+    if (term && term.trim() !== '') {
+        const fuseResults = fuse.search(term);
+        matches = fuseResults.map(result => result.item);
+    } else {
+        // 2. If no term, start with all books
+        matches = LibraryDB.getBooks();
+        matches.sort((a, b) => a.title.localeCompare(b.title));
     }
-    let books = LibraryDB.getBooks();
-    if (selectedGenres.has('All') || term !== '') {
-        books.sort((a, b) => a.title.localeCompare(b.title));
-    }
-    let matches = books.filter(book => {
-        const titleMatch = book.title.toLowerCase().includes(term);
-        const authorMatch = book.author.toLowerCase().includes(term);
-        let genreMatch = false;
-        if (selectedGenres.has('All')) {
-            genreMatch = true;
-        } else if (selectedGenres.size > 0) {
+
+    // 3. Apply Filters
+    if (selectedGenres.size > 0 && !selectedGenres.has('All')) {
+        matches = matches.filter(book => {
             if (selectedGenres.has('Favorites')) {
-                genreMatch = favorites.includes(book.id);
+                return favorites.includes(book.id);
             }
-            if (selectedGenres.has(book.genre)) {
-                genreMatch = true;
-            }
-        } else if (term !== '') {
-            genreMatch = true;
-        }
-        return (titleMatch || authorMatch) && genreMatch;
-    });
-    renderResults(matches);
+            return selectedGenres.has(book.genre);
+        });
+    }
+
+    // 4. Render
+    if(term === '' && selectedGenres.size === 0) {
+        resultsArea.innerHTML = '';
+    } else {
+        renderResults(matches);
+    }
 }
 
 function renderResults(books) {
@@ -359,49 +363,6 @@ function toggleFavorite(e, bookId) {
     performSearch(searchInput.value);
 }
 
-function loadFeaturedBook() {
-    const books = LibraryDB.getBooks();
-    if(books.length === 0) return;
-
-    // --- SMART DAILY PICK LOGIC ---
-    // 1. Get today's date string (e.g., "2026-01-18")
-    const today = new Date().toISOString().split('T')[0];
-    
-    // 2. Check stored data
-    const storedData = JSON.parse(localStorage.getItem('libnav_daily_pick'));
-    
-    let featuredBook;
-
-    // 3. If we have a stored pick AND it matches today's date, use it
-    if (storedData && storedData.date === today) {
-        featuredBook = books.find(b => b.id === storedData.bookId);
-        // Safety check if ID no longer exists
-        if (!featuredBook) featuredBook = books[Math.floor(Math.random() * books.length)];
-    } else {
-        // 4. Pick a NEW random book and save it for today
-        featuredBook = books[Math.floor(Math.random() * books.length)];
-        localStorage.setItem('libnav_daily_pick', JSON.stringify({
-            date: today,
-            bookId: featuredBook.id
-        }));
-    }
-    
-    // 5. Render
-    featuredContainer.innerHTML = `
-        <div class="featured-section">
-            <span class="featured-label">Recommended for you</span>
-            <div class="featured-card">
-                <h2 style="font-size:1.4rem; margin-bottom:5px;">${featuredBook.title}</h2>
-                <p style="color:var(--text-muted); font-size:0.95rem;">by ${featuredBook.author}</p>
-                <div style="margin-top:10px;">
-                    <span class="chip">${featuredBook.genre}</span>
-                </div>
-            </div>
-        </div>
-    `;
-    featuredContainer.querySelector('.featured-card').addEventListener('click', () => { openModal(featuredBook); });
-}
-
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
@@ -422,17 +383,44 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 } else { micBtn.style.display = 'none'; }
 
+// --- Modal & SVG Logic ---
 const bookModal = document.getElementById('book-modal');
 const neighborsArea = document.getElementById('neighbors-area');
 const neighborsList = document.getElementById('neighbors-list');
+const mapContainer = document.getElementById('map-container');
 
-function openModal(book) {
+async function openModal(book) {
     updateHistory(book.title);
     document.getElementById('modal-title').innerText = book.title;
     document.getElementById('modal-author').innerText = book.author;
     document.getElementById('modal-shelf').innerText = book.shelf;
     document.getElementById('modal-genre').innerText = book.genre;
-    document.getElementById('modal-map').src = LibraryDB.getMapUrl(book.genre);
+    
+    // FETCH AND INJECT SVG
+    try {
+        const response = await fetch('map.svg');
+        const svgText = await response.text();
+        mapContainer.innerHTML = svgText;
+
+        // Highlight the specific shelf
+        const shelfId = `shelf-${book.shelf}`;
+        const targetShelf = document.getElementById(shelfId);
+        
+        if (targetShelf) {
+            // Apply Highlight Styles directly
+            targetShelf.style.fill = 'var(--primary-pink)';
+            targetShelf.style.filter = 'drop-shadow(0 0 10px var(--primary-pink))';
+            targetShelf.setAttribute('stroke', '#fff');
+            
+            // Optional: Animate it
+            targetShelf.innerHTML = `<animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />`;
+        }
+    } catch (e) {
+        console.error("Could not load SVG map", e);
+        mapContainer.innerHTML = `<p style="color:red">Map unavailable</p>`;
+    }
+
+    // Neighbors Logic
     const allBooks = LibraryDB.getBooks();
     const neighbors = allBooks.filter(b => b.shelf === book.shelf && b.id !== book.id);
     neighborsList.innerHTML = '';
@@ -446,6 +434,7 @@ function openModal(book) {
             neighborsList.appendChild(chip);
         });
     } else neighborsArea.style.display = 'none';
+    
     bookModal.classList.add('active');
 }
 document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
