@@ -1,4 +1,4 @@
-/* app.js - vFinal (Restored & Fixed) */
+/* app.js - vFinal (Restored & Clean Icons) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -21,16 +21,14 @@ const feedbackForm = document.getElementById('feedback-form');
 const fbStatus = document.getElementById('fb-status');
 const fbSubmitBtn = document.getElementById('fb-submit-btn');
 
-// State
 let selectedGenres = new Set(); 
 let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
 const IDLE_LIMIT = 30000;
 let idleTimeout;
 
-// --- INITIALIZATION ---
 async function init() {
     loadTheme();
-    await LibraryDB.init(); // Wait for data
+    await LibraryDB.init(); 
     
     // Check for Deep Link (QR Scan)
     const urlParams = new URLSearchParams(window.location.search);
@@ -45,10 +43,7 @@ async function init() {
     }
 
     loadFeaturedBook(); 
-    
-    // RESTORED: Initial clean state (Empty search = Show Hero, Hide Results)
     performSearch(''); 
-    
     resetIdleTimer();
     
     document.addEventListener('click', (e) => {
@@ -57,8 +52,6 @@ async function init() {
         }
     });
 }
-
-// --- LOGIC ---
 
 function loadFeaturedBook() {
     const books = LibraryDB.getBooks();
@@ -85,21 +78,17 @@ function loadFeaturedBook() {
     featuredContainer.querySelector('.featured-card').addEventListener('click', () => { openModal(featuredBook); });
 }
 
-// Home Button Logic
 homeBtn.addEventListener('click', () => {
     searchInput.value = '';
     selectedGenres.clear();
     checkboxes.forEach(c => c.checked = false);
     quickBtns.forEach(b => b.classList.remove('active'));
-    
-    // RESTORED: Reset to "Hero Mode"
     hero.classList.remove('minimized');
     featuredContainer.style.display = 'block';
     homeBtn.classList.add('home-hidden');
-    resultsArea.innerHTML = ''; // Clear books
+    resultsArea.innerHTML = ''; 
 });
 
-// Sidebar
 function openSidebar() { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); filterMenu.style.display = 'none'; }
 function closeSidebar() { sideMenu.classList.remove('active'); sideMenuOverlay.classList.remove('active'); }
 hamburgerBtn.addEventListener('click', openSidebar);
@@ -112,20 +101,16 @@ filterToggle.addEventListener('click', (e) => {
     closeSidebar();
 });
 
-// Idle Timer
 function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(goIdle, IDLE_LIMIT); }
 function goIdle() {
     searchInput.value = '';
     selectedGenres.clear();
     checkboxes.forEach(c => c.checked = false);
     quickBtns.forEach(b => b.classList.remove('active'));
-    
-    // Reset UI
     hero.classList.remove('minimized');
     featuredContainer.style.display = 'block';
     homeBtn.classList.add('home-hidden');
     resultsArea.innerHTML = ''; 
-    
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
     closeSidebar();
     filterMenu.style.display = 'none';
@@ -133,17 +118,14 @@ function goIdle() {
 }
 window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
 
-// Quick Buttons
 quickBtns.forEach(btn => {
     if(btn.id === 'open-feedback-btn') return;
     btn.addEventListener('click', () => {
         const genre = btn.dataset.genre;
         searchInput.value = '';
-        // UI Change
         hero.classList.add('minimized');
         featuredContainer.style.display = 'none';
         homeBtn.classList.remove('home-hidden');
-        
         selectedGenres.clear();
         selectedGenres.add(genre);
         checkboxes.forEach(box => {
@@ -157,7 +139,6 @@ quickBtns.forEach(btn => {
     });
 });
 
-// Checkboxes
 checkboxes.forEach(box => {
     box.addEventListener('change', (e) => {
         const val = e.target.value;
@@ -179,14 +160,11 @@ checkboxes.forEach(box => {
                 quickBtns.forEach(b => { if (b.dataset.genre === val) b.classList.remove('active'); });
             }
         }
-        
-        // UI Logic
         if (selectedGenres.size > 0) { 
             hero.classList.add('minimized'); 
             featuredContainer.style.display = 'none'; 
             homeBtn.classList.remove('home-hidden'); 
         } else if (searchInput.value === '') { 
-            // If no filters and no text, go back to Hero
             hero.classList.remove('minimized'); 
             featuredContainer.style.display = 'block'; 
             homeBtn.classList.add('home-hidden'); 
@@ -196,7 +174,7 @@ checkboxes.forEach(box => {
 });
 
 searchInput.addEventListener('input', (e) => {
-    const term = e.target.value;
+    const term = e.target.value.toLowerCase().trim();
     if (term.length > 0) { 
         hero.classList.add('minimized'); 
         featuredContainer.style.display = 'none'; 
@@ -209,33 +187,26 @@ searchInput.addEventListener('input', (e) => {
     performSearch(term);
 });
 
-// --- SEARCH ENGINE ---
 function performSearch(term) {
-    // RESTORED: If empty, clear results (don't show "No books found" yet)
+    term = term.toLowerCase().trim();
     if (term === '' && selectedGenres.size === 0) {
         resultsArea.innerHTML = '';
         return;
     }
-
-    let allBooks = LibraryDB.getBooks();
-    allBooks.sort((a, b) => a.title.localeCompare(b.title));
-    
-    let matches = allBooks.filter(book => {
-        let textMatch = true;
-        if (term && term.trim() !== '') {
-            const query = term.toLowerCase().trim().split(" ");
-            const title = book.title.toLowerCase();
-            const author = book.author.toLowerCase();
-            textMatch = query.every(w => title.includes(w) || author.includes(w));
-        }
+    let books = LibraryDB.getBooks();
+    if (selectedGenres.has('All') || term !== '') {
+        books.sort((a, b) => a.title.localeCompare(b.title));
+    }
+    let matches = books.filter(book => {
+        const titleMatch = book.title.toLowerCase().includes(term);
+        const authorMatch = book.author.toLowerCase().includes(term);
         let genreMatch = false;
-        if (selectedGenres.has('All') || selectedGenres.size === 0) genreMatch = true;
-        else {
+        if (selectedGenres.has('All')) genreMatch = true;
+        else if (selectedGenres.size > 0) {
             if (selectedGenres.has('Favorites') && favorites.includes(book.id)) genreMatch = true;
             if (selectedGenres.has(book.genre)) genreMatch = true;
-        }
-        if(selectedGenres.has('Favorites') && !favorites.includes(book.id)) return false;
-        return textMatch && genreMatch;
+        } else if (term !== '') genreMatch = true;
+        return (titleMatch || authorMatch) && genreMatch;
     });
     renderResults(matches);
 }
@@ -271,40 +242,32 @@ function toggleFavorite(e, bookId) {
     performSearch(searchInput.value);
 }
 
-// --- RESTORED: VOICE RECOGNITION ---
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognition.continuous = false; recognition.interimResults = false; recognition.lang = 'en-US';
-    
     micBtn.addEventListener('click', () => {
         if (micBtn.classList.contains('listening')) recognition.stop();
         else recognition.start();
     });
-    
     recognition.onstart = () => { micBtn.classList.add('listening'); searchInput.placeholder = "Listening..."; };
     recognition.onend = () => { micBtn.classList.remove('listening'); searchInput.placeholder = "Search title or author..."; };
     recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         searchInput.value = transcript;
-        
-        // Trigger search UI
         hero.classList.add('minimized');
         featuredContainer.style.display = 'none';
         homeBtn.classList.remove('home-hidden');
-        
         performSearch(transcript);
     };
 } else { micBtn.style.display = 'none'; }
 
-// --- RESTORED: STATISTICS ---
 document.getElementById('stats-trigger').onclick = () => {
     const books = LibraryDB.getBooks();
     const history = JSON.parse(localStorage.getItem('search_history')) || [];
     const genres = {};
     books.forEach(b => genres[b.genre] = (genres[b.genre] || 0) + 1);
-    
-    let topBook = 'No searches yet';
+    let topBook = 'No data yet';
     let maxCount = 0;
     if(history.length > 0) {
         const counts = {};
@@ -317,7 +280,6 @@ document.getElementById('stats-trigger').onclick = () => {
     let genreHTML = Object.entries(genres).map(([k,v]) => 
         `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border-color);"><span>${k}</span> <span class="text-pink">${v}</span></div>`
     ).join('');
-    
     document.getElementById('stats-content').innerHTML = `
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:20px;">
             <div style="background:var(--bg-chip); padding:15px; border-radius:15px; text-align:center;"><p style="color:var(--text-muted); font-size:0.8rem;">Total Books</p><h2 style="font-size:1.8rem;">${books.length}</h2></div>
@@ -330,8 +292,6 @@ document.getElementById('stats-trigger').onclick = () => {
 };
 function updateHistory(title) { let hist = JSON.parse(localStorage.getItem('search_history')) || []; hist.push(title); localStorage.setItem('search_history', JSON.stringify(hist)); }
 
-
-// --- MODAL & QR CODE ---
 const bookModal = document.getElementById('book-modal');
 const neighborsArea = document.getElementById('neighbors-area');
 const neighborsList = document.getElementById('neighbors-list');
@@ -404,6 +364,22 @@ if (feedbackForm) feedbackForm.addEventListener('submit', async (e) => {
 });
 
 const themeBtn = document.getElementById('theme-toggle');
-themeBtn.onclick = () => { document.body.classList.toggle('light-mode'); localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark'); loadTheme(); };
-function loadTheme() { themeBtn.innerHTML = document.body.classList.contains('light-mode') ? '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>' : '<svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>'; }
+// Use simple, standard SVG strings to prevent squash/distort
+const moonSVG = '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+const lightbulbSVG = '<svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.55-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.55 5 11.38 5 9a7 7 0 0 1 7-7z"></path><path d="M9 21h6"></path></svg>'; 
+
+themeBtn.onclick = () => {
+    document.body.classList.toggle('light-mode');
+    localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+    loadTheme();
+};
+function loadTheme() {
+    const isLight = document.body.classList.contains('light-mode') || localStorage.getItem('theme') === 'light';
+    if(isLight) {
+        document.body.classList.add('light-mode');
+        themeBtn.innerHTML = moonSVG;
+    } else {
+        themeBtn.innerHTML = lightbulbSVG;
+    }
+}
 init();
