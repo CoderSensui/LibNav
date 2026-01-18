@@ -1,4 +1,4 @@
-/* app.js - vFinal (Restored & Clean Icons) */
+/* app.js - vFinal (Standardized Version) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -26,11 +26,11 @@ let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
 const IDLE_LIMIT = 30000;
 let idleTimeout;
 
+// --- INITIALIZATION ---
 async function init() {
     loadTheme();
     await LibraryDB.init(); 
     
-    // Check for Deep Link (QR Scan)
     const urlParams = new URLSearchParams(window.location.search);
     const bookId = urlParams.get('book');
     if (bookId) {
@@ -305,7 +305,6 @@ async function openModal(book) {
     document.getElementById('modal-shelf').innerText = book.shelf;
     document.getElementById('modal-genre').innerText = book.genre;
     
-    // QR Generation
     qrContainer.innerHTML = '';
     const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
     new QRCode(qrContainer, {
@@ -315,7 +314,6 @@ async function openModal(book) {
         correctLevel : QRCode.CorrectLevel.L
     });
 
-    // Map Loading
     try {
         const response = await fetch('map.svg');
         const svgText = await response.text();
@@ -330,7 +328,6 @@ async function openModal(book) {
         }
     } catch (e) { mapContainer.innerHTML = `<p style="color:var(--text-muted)">Map unavailable</p>`; }
 
-    // Neighbors logic
     const allBooks = LibraryDB.getBooks();
     const neighbors = allBooks.filter(b => b.shelf === book.shelf && b.id !== book.id);
     neighborsList.innerHTML = '';
@@ -363,21 +360,23 @@ if (feedbackForm) feedbackForm.addEventListener('submit', async (e) => {
     finally { fbSubmitBtn.disabled = false; fbSubmitBtn.innerText = "Send"; }
 });
 
+// --- Theme Logic (Correct SVGs) ---
 const themeBtn = document.getElementById('theme-toggle');
-// Use simple, standard SVG strings to prevent squash/distort
+
 const moonSVG = '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
-const lightbulbSVG = '<svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.55-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.55 5 11.38 5 9a7 7 0 0 1 7-7z"></path><path d="M9 21h6"></path></svg>'; 
+const lightbulbSVG = '<svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>';
 
 themeBtn.onclick = () => {
     document.body.classList.toggle('light-mode');
-    localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
-    loadTheme();
+    const isLight = document.body.classList.contains('light-mode');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    themeBtn.innerHTML = isLight ? moonSVG : lightbulbSVG;
 };
+
 function loadTheme() {
-    const isLight = document.body.classList.contains('light-mode') || localStorage.getItem('theme') === 'light';
-    if(isLight) {
+    if(localStorage.getItem('theme') === 'light') {
         document.body.classList.add('light-mode');
-        themeBtn.innerHTML = moonSVG;
+        themeBtn.innerHTML = moonSVG; 
     } else {
         themeBtn.innerHTML = lightbulbSVG;
     }
