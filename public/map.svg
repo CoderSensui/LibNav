@@ -8,7 +8,7 @@
   <path d="M 300 600 L 500 600 L 500 580 L 300 580 Z" fill="#1e293b" />
   <text x="400" y="570" text-anchor="middle" fill="#94a3b8" font-family="sans-serif" font-weight="bold" font-size="14">MAIN ENTRANCE</text>
 
-  <circle cx="400" cy="450" r="12" fill="#ef4444" stroke="white" stroke-width="3">
+  <circle id="kiosk-point" cx="400" cy="450" r="12" fill="#ef4444" stroke="white" stroke-width="3">
      <animate attributeName="r" values="12;15;12" dur="2s" repeatCount="indefinite" />
      <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite" />
   </circle>
