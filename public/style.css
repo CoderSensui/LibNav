@@ -166,9 +166,57 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 .qr-text { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; font-weight: bold; }
 
 .close-modal { position: absolute; top: 20px; right: 20px; background: var(--bg-chip); width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: none; color: var(--text-main); }
-.neighbors-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.neighbor-chip { display: inline-block; background: var(--bg-chip); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 18px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; color: var(--text-muted); }
-.neighbor-chip:hover { background: var(--border-color); color: var(--primary-pink); transform: translateY(-2px); }
+
+
+/* --- VIRTUAL SHELF (NEIGHBORS) --- */
+.neighbors-area { margin-top: 20px; text-align: left; }
+
+.neighbors-list { 
+    display: flex; 
+    gap: 4px; 
+    margin-top: 10px; 
+    overflow-x: auto; 
+    padding: 10px 5px 20px 5px; /* Padding bottom for scrollbar space & hover */
+    align-items: flex-end; /* Align books to the bottom of the shelf */
+    border-bottom: 8px solid #5d4037; /* The "Wood" shelf */
+    border-radius: 0 0 5px 5px;
+    background: rgba(0,0,0,0.1);
+}
+
+/* Custom Scrollbar for Shelf */
+.neighbors-list::-webkit-scrollbar { height: 6px; }
+.neighbors-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 3px; }
+.neighbors-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+.book-spine { 
+    width: 32px; 
+    min-width: 32px; 
+    border-radius: 2px 4px 4px 2px; /* Spine roundness */
+    cursor: pointer; 
+    transition: all 0.2s ease; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.3) inset, -1px 0 2px rgba(255,255,255,0.1) inset; /* 3D effect */
+    border: 1px solid rgba(0,0,0,0.2);
+    writing-mode: vertical-rl; /* Vertical Text */
+    text-orientation: mixed;
+    color: rgba(255,255,255,0.9);
+    font-size: 0.65rem;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 5px 0;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.book-spine:hover { 
+    transform: translateY(-10px) scale(1.05); /* Pop up effect */
+    z-index: 10;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
 
 .floating-actions { position: fixed; bottom: 30px; left: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 90; }
 .float-btn { width: 55px; height: 55px; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow); display: flex; justify-content: center; align-items: center; color: var(--primary-pink); transition: 0.3s var(--ease-bounce); flex-shrink: 0; }
@@ -190,13 +238,11 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 @keyframes pulse { 0% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 0.7; } }
 
 /* --- MOBILE COMPANION MODE --- */
-/* This activates ONLY when scanning the QR code */
 body.mobile-view-active {
     background-color: var(--bg-card);
     overflow: hidden;
 }
 
-/* 1. Hide EVERYTHING else */
 body.mobile-view-active .top-controls,
 body.mobile-view-active .search-wrapper,
 body.mobile-view-active .hero,
@@ -207,12 +253,10 @@ body.mobile-view-active #screensaver {
     display: none !important;
 }
 
-/* 2. FORCE HIDE all other modals (like Feedback) */
 body.mobile-view-active .modal-overlay {
     display: none !important;
 }
 
-/* 3. EXPLICITLY SHOW ONLY THE BOOK MODAL */
 body.mobile-view-active #book-modal.modal-overlay {
     display: flex !important;
     background: var(--bg-main);
