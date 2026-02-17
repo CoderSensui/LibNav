@@ -6,7 +6,6 @@
     <meta name="theme-color" content="#0b1121">
     <title>LibNav</title>
     <meta name="description" content="Find a way to the story! A smart navigation system.">
-    <meta property="og:image" content="https://i.imgur.com/8J5j8z9.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -107,15 +106,15 @@
                 <div id="step-counter" class="step-counter">Step 1</div>
             </div>
             
-            <h3 style="margin-top:15px;">Shelf <span id="modal-shelf" class="text-pink">A-01</span></h3>
+            <h3 style="margin-top:15px;">Book #<span id="modal-book-id" class="text-pink">0</span></h3>
             
             <div class="qr-section">
                 <div id="qrcode"></div>
-                <p class="qr-text">Scan to take location with you</p>
+                <p class="qr-text">Scan to take map with you</p>
             </div>
             
             <div id="neighbors-area" class="neighbors-area">
-                <p style="font-size:0.9rem; color:var(--text-muted);">Also on this shelf:</p>
+                <p style="font-size:0.9rem; color:var(--text-muted);">Also in this section:</p>
                 <div id="neighbors-list" class="neighbors-list"></div>
             </div>
         </div>
