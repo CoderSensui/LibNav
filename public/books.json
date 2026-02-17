@@ -1,71 +1,36 @@
 [
-  { 
-    "id": 1, 
-    "title": "The Great Gatsby", 
-    "author": "F. Scott Fitzgerald", 
-    "genre": "Fiction", 
-    "shelf": "A-1", 
-    "images": [
-      "https://placehold.co/600x400/1e293b/ef4444?text=Step+1:+Start+at+Kiosk",
-      "https://placehold.co/600x400/1e293b/ffc4d6?text=Step+2:+Turn+Left+at+Pillar",
-      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Book+%231"
-    ] 
-  },
-  { 
-    "id": 21, 
-    "title": "Sapiens", 
-    "author": "Yuval Noah Harari", 
-    "genre": "Non-Fiction", 
-    "shelf": "B-1", 
-    "images": [
-      "https://placehold.co/600x400/1e293b/ef4444?text=Step+1:+Start+at+Kiosk",
-      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Book+%2321"
-    ] 
-  },
-  { 
-    "id": 41, 
-    "title": "Pride and Prejudice", 
-    "author": "Jane Austen", 
-    "genre": "Romance", 
-    "shelf": "C-1", 
-    "images": [
-      "https://placehold.co/600x400/1e293b/ef4444?text=Step+1:+Start+at+Kiosk",
-      "https://placehold.co/600x400/1e293b/ffc4d6?text=Step+2:+Walk+Straight",
-      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Book+%2341"
-    ] 
-  },
-  { 
-    "id": 61, 
-    "title": "A Brief History of Time", 
-    "author": "Stephen Hawking", 
-    "genre": "Science", 
-    "shelf": "D-1", 
-    "images": [
-      "https://placehold.co/600x400/1e293b/ef4444?text=Step+1:+Start+at+Kiosk",
-      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Book+%2361"
-    ] 
-  },
-  { 
-    "id": 81, 
-    "title": "Guns, Germs, and Steel", 
-    "author": "Jared Diamond", 
-    "genre": "History", 
-    "shelf": "E-1", 
-    "images": [
-      "https://placehold.co/600x400/1e293b/ef4444?text=Step+1:+Start+at+Kiosk",
-      "https://placehold.co/600x400/1e293b/ffc4d6?text=Step+2:+Go+To+Back+Wall",
-      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Book+%2381"
-    ] 
-  },
-  { 
-    "id": 2, 
-    "title": "To Kill a Mockingbird", 
-    "author": "Harper Lee", 
-    "genre": "Fiction", 
-    "shelf": "A-2", 
-    "images": [
-      "https://placehold.co/600x400/1e293b/ef4444?text=Step+1:+Start+at+Kiosk",
-      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Book+%232"
-    ] 
-  }
+  { "id": 1, "title": "The Great Gatsby", "author": "F. Scott Fitzgerald", "genre": "Fiction", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Fiction+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 2, "title": "To Kill a Mockingbird", "author": "Harper Lee", "genre": "Fiction", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Fiction+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 3, "title": "1984", "author": "George Orwell", "genre": "Fiction", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Fiction+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 4, "title": "Brave New World", "author": "Aldous Huxley", "genre": "Fiction", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Fiction+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 5, "title": "Fahrenheit 451", "author": "Ray Bradbury", "genre": "Fiction", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Fiction+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 6, "title": "Lord of the Flies", "author": "William Golding", "genre": "Fiction", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Fiction+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+
+  { "id": 21, "title": "Sapiens", "author": "Yuval Noah Harari", "genre": "Non-Fiction", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=NonFic+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 22, "title": "Educated", "author": "Tara Westover", "genre": "Non-Fiction", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=NonFic+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 23, "title": "Becoming", "author": "Michelle Obama", "genre": "Non-Fiction", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=NonFic+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 24, "title": "Thinking, Fast and Slow", "author": "Daniel Kahneman", "genre": "Non-Fiction", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=NonFic+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 25, "title": "Quiet", "author": "Susan Cain", "genre": "Non-Fiction", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=NonFic+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 26, "title": "Outliers", "author": "Malcolm Gladwell", "genre": "Non-Fiction", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=NonFic+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+
+  { "id": 41, "title": "Pride and Prejudice", "author": "Jane Austen", "genre": "Romance", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Romance+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 42, "title": "The Notebook", "author": "Nicholas Sparks", "genre": "Romance", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Romance+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 43, "title": "Romeo and Juliet", "author": "William Shakespeare", "genre": "Romance", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Romance+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 44, "title": "Little Women", "author": "Louisa May Alcott", "genre": "Romance", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Romance+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 45, "title": "Me Before You", "author": "Jojo Moyes", "genre": "Romance", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Romance+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 46, "title": "Twilight", "author": "Stephenie Meyer", "genre": "Romance", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Romance+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+
+  { "id": 61, "title": "A Brief History of Time", "author": "Stephen Hawking", "genre": "Science", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Science+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 62, "title": "Cosmos", "author": "Carl Sagan", "genre": "Science", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Science+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 63, "title": "Silent Spring", "author": "Rachel Carson", "genre": "Science", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Science+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 64, "title": "The Selfish Gene", "author": "Richard Dawkins", "genre": "Science", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Science+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 65, "title": "The Martian", "author": "Andy Weir", "genre": "Science", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Science+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 66, "title": "Dune", "author": "Frank Herbert", "genre": "Science", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=Science+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+
+  { "id": 81, "title": "Guns, Germs, and Steel", "author": "Jared Diamond", "genre": "History", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=History+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 82, "title": "1776", "author": "David McCullough", "genre": "History", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=History+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 83, "title": "The Silk Roads", "author": "Peter Frankopan", "genre": "History", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=History+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 84, "title": "SPQR", "author": "Mary Beard", "genre": "History", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=History+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 85, "title": "Genghis Khan", "author": "Jack Weatherford", "genre": "History", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=History+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] },
+  { "id": 86, "title": "Midnight in Chernobyl", "author": "Adam Higginbotham", "genre": "History", "images": ["https://placehold.co/600x400/1e293b/ef4444?text=History+Step+1", "https://placehold.co/600x400/1e293b/4ade80?text=Arrived"] }
 ]
