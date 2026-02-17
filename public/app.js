@@ -1,4 +1,4 @@
-/* app.js - vFinal (Step-by-Step Slideshow) */
+/* app.js - vFinal (Mobile + Slideshow + Book ID) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -34,31 +34,34 @@ const prevBtn = document.getElementById('prev-img-btn');
 const nextBtn = document.getElementById('next-img-btn');
 const stepCounter = document.getElementById('step-counter');
 
-// --- INITIALIZATION ---
 async function init() {
     loadTheme();
     await LibraryDB.init(); 
     
     const urlParams = new URLSearchParams(window.location.search);
     const bookId = urlParams.get('book');
+    const viewMode = urlParams.get('view'); 
+
     if (bookId) {
         const allBooks = LibraryDB.getBooks();
         const deepLinkedBook = allBooks.find(b => b.id == bookId);
         if (deepLinkedBook) {
             openModal(deepLinkedBook);
-            window.history.replaceState({}, document.title, window.location.pathname);
+
+            if (viewMode === 'mobile') {
+                document.body.classList.add('mobile-view-active');
+                document.querySelector('.close-modal').style.display = 'none';
+            } else {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         }
     }
 
-    loadFeaturedBook(); 
-    performSearch(''); 
-    resetIdleTimer();
-    
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-wrapper')) {
-            filterMenu.style.display = 'none';
-        }
-    });
+    if (viewMode !== 'mobile') {
+        loadFeaturedBook(); 
+        performSearch(''); 
+        resetIdleTimer();
+    }
 }
 
 function loadFeaturedBook() {
@@ -234,7 +237,7 @@ function renderResults(books) {
             <div class="book-info" style="flex:1;">
                 <h3>${book.title}</h3>
                 <p style="color:var(--text-muted); font-size:0.9rem;">by ${book.author}</p>
-                <div style="margin-top:5px;"><span class="chip">${book.genre}</span><span style="color:var(--text-muted); font-size:0.85rem; margin-left:10px;">Shelf ${book.shelf}</span></div>
+                <div style="margin-top:5px;"><span class="chip">${book.genre}</span><span style="color:var(--text-muted); font-size:0.85rem; margin-left:10px;">ID: ${book.id}</span></div>
             </div>
             <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, ${book.id})"><svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg></button>`;
         div.addEventListener('click', (e) => { if(!e.target.closest('.fav-btn')) openModal(book); });
@@ -306,26 +309,30 @@ const neighborsList = document.getElementById('neighbors-list');
 const qrContainer = document.getElementById('qrcode');
 
 async function openModal(book) {
-    updateHistory(book.title);
+    if (!document.body.classList.contains('mobile-view-active')) {
+        updateHistory(book.title);
+    }
+
     document.getElementById('modal-title').innerText = book.title;
     document.getElementById('modal-author').innerText = book.author;
-    document.getElementById('modal-shelf').innerText = book.shelf;
+    // Updated to show Book ID instead of Shelf
+    document.getElementById('modal-book-id').innerText = book.id;
     document.getElementById('modal-genre').innerText = book.genre;
     
-    // Generate QR
     qrContainer.innerHTML = '';
-    const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
+    // Add &view=mobile to the QR code
+    const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
     new QRCode(qrContainer, {
         text: deepLink,
-        width: 90, height: 90,
+        width: 120, height: 120,
         colorDark : "#0b1121", colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.L
+        correctLevel : QRCode.CorrectLevel.M
     });
 
     // --- CAROUSEL LOGIC ---
-    currentImages = book.images || []; // Get array or empty
-    currentImageIndex = 0; // Reset to start
-    updateCarousel(); // Show first image
+    currentImages = book.images || []; 
+    currentImageIndex = 0; 
+    updateCarousel(); 
 
     const allBooks = LibraryDB.getBooks();
     const neighbors = allBooks.filter(b => b.shelf === book.shelf && b.id !== book.id);
@@ -344,21 +351,14 @@ async function openModal(book) {
     bookModal.classList.add('active');
 }
 
-// Carousel Helper Functions
 function updateCarousel() {
     if (currentImages.length > 0) {
         carouselImg.src = currentImages[currentImageIndex];
         stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
-        
-        // Disable prev button if at start
         prevBtn.disabled = currentImageIndex === 0;
-        // Disable next button if at end
         nextBtn.disabled = currentImageIndex === currentImages.length - 1;
-        
-        // Ensure image is visible
         carouselImg.style.display = 'block';
     } else {
-        // Fallback if no images
         carouselImg.style.display = 'none';
         stepCounter.innerText = "No map images available";
         prevBtn.disabled = true;
@@ -366,7 +366,6 @@ function updateCarousel() {
     }
 }
 
-// Button Listeners
 prevBtn.onclick = () => {
     if (currentImageIndex > 0) {
         currentImageIndex--;
@@ -397,9 +396,7 @@ if (feedbackForm) feedbackForm.addEventListener('submit', async (e) => {
     finally { fbSubmitBtn.disabled = false; fbSubmitBtn.innerText = "Send"; }
 });
 
-// --- Theme Logic (Correct SVGs) ---
 const themeBtn = document.getElementById('theme-toggle');
-
 const moonSVG = '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
 const lightbulbSVG = '<svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>';
 
