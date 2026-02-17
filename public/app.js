@@ -1,4 +1,4 @@
-/* app.js - vFinal (Virtual Shelf + Mobile + Slideshow) */
+/* app.js - vFinal (Brown "Classic Library" Spines) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -331,27 +331,26 @@ async function openModal(book) {
     currentImageIndex = 0; 
     updateCarousel(); 
 
-    // --- VIRTUAL SHELF GENERATOR (Updated Colors) ---
     const allBooks = LibraryDB.getBooks();
-    // Show ALL books in same genre (removed .slice limit so you can scroll)
+    // Show ALL books in same genre (removed .slice limit)
     const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
     
     neighborsList.innerHTML = '';
     if (neighbors.length > 0) {
         neighborsArea.style.display = 'block';
         
-        // NEW: Classy "Library" Color Palette (No bright neons)
+        // NEW: Classy "Library" Brown Palette
         const spineColors = [
-            '#8B0000', // Dark Red
-            '#2F4F4F', // Dark Slate Gray
-            '#556B2F', // Dark Olive Green
-            '#8B4513', // Saddle Brown
-            '#483D8B', // Dark Slate Blue
-            '#A0522D', // Sienna
-            '#191970', // Midnight Blue
-            '#4682B4', // Steel Blue
-            '#D2691E', // Chocolate
-            '#5F9EA0'  // Cadet Blue
+            '#3E2723', // Dark Leather
+            '#4E342E', // Espresso
+            '#5D4037', // Cocoa
+            '#6D4C41', // Chestnut
+            '#795548', // Standard Brown
+            '#8D6E63', // Light Brown
+            '#3b2f2f', // Deep Charcoal Brown
+            '#4a3728', // Traditional Leather
+            '#5c4033', // Dark Wood
+            '#654321'  // Classic Dark Brown
         ];
 
         neighbors.forEach(n => {
