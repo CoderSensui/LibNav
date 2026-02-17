@@ -1,4 +1,4 @@
-/* app.js - vFinal (Mobile + Slideshow + Book ID) */
+/* app.js - vFinal (Virtual Shelf + Mobile + Slideshow) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -331,17 +331,35 @@ async function openModal(book) {
     currentImageIndex = 0; 
     updateCarousel(); 
 
+    // --- VIRTUAL SHELF GENERATOR (Book Spines) ---
     const allBooks = LibraryDB.getBooks();
-    const neighbors = allBooks.filter(b => b.shelf === book.shelf && b.id !== book.id);
+    const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 10); // Show max 10 neighbors from same genre
+    
     neighborsList.innerHTML = '';
     if (neighbors.length > 0) {
         neighborsArea.style.display = 'block';
+        
+        // Define realistic book colors
+        const spineColors = [
+            '#ef4444', '#f97316', '#84cc16', '#10b981', '#06b6d4', 
+            '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'
+        ];
+
         neighbors.forEach(n => {
-            const chip = document.createElement('span');
-            chip.className = 'neighbor-chip';
-            chip.innerText = n.title;
-            chip.onclick = () => openModal(n);
-            neighborsList.appendChild(chip);
+            const spine = document.createElement('div');
+            spine.className = 'book-spine';
+            spine.innerText = n.title;
+            
+            // Random Height (85px to 100px) to look like real shelf
+            const randomHeight = Math.floor(Math.random() * (100 - 85 + 1) + 85);
+            spine.style.height = `${randomHeight}px`;
+            
+            // Random Color
+            const randomColor = spineColors[Math.floor(Math.random() * spineColors.length)];
+            spine.style.backgroundColor = randomColor;
+
+            spine.onclick = () => openModal(n);
+            neighborsList.appendChild(spine);
         });
     } else neighborsArea.style.display = 'none';
     
