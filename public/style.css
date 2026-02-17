@@ -188,3 +188,57 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes menuSlide { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pulse { 0% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 0.7; } }
+
+/* --- MOBILE COMPANION MODE --- */
+body.mobile-view-active {
+    background-color: var(--bg-card);
+    overflow: hidden;
+}
+
+body.mobile-view-active .top-controls,
+body.mobile-view-active .search-wrapper,
+body.mobile-view-active .hero,
+body.mobile-view-active .floating-actions,
+body.mobile-view-active .featured-section,
+body.mobile-view-active #results-area,
+body.mobile-view-active #screensaver {
+    display: none !important;
+}
+
+body.mobile-view-active .modal-overlay {
+    background: var(--bg-main);
+    opacity: 1;
+    pointer-events: all;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+}
+
+body.mobile-view-active .modal-content {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    border: none;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: none;
+    transform: scale(1) !important;
+}
+
+body.mobile-view-active .qr-section {
+    display: none;
+}
+
+body.mobile-view-active .carousel-wrapper {
+    height: 350px;
+    border: none;
+    background: transparent;
+}
+
+body.mobile-view-active .shelf-photo {
+    border-radius: 15px;
+}
