@@ -6,21 +6,9 @@
     "genre": "Fiction", 
     "shelf": "A-1", 
     "images": [
-      "https://placehold.co/600x400/1e293b/ef4444?text=Start:+You+Are+Here",
+      "https://placehold.co/600x400/1e293b/ef4444?text=Step+1:+Start+at+Kiosk",
       "https://placehold.co/600x400/1e293b/ffc4d6?text=Step+2:+Turn+Left+at+Pillar",
-      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Shelf+A-1"
-    ] 
-  },
-  { 
-    "id": 2, 
-    "title": "To Kill a Mockingbird", 
-    "author": "Harper Lee", 
-    "genre": "Fiction", 
-    "shelf": "A-2", 
-    "images": [
-      "https://placehold.co/600x400/1e293b/ef4444?text=Start:+You+Are+Here",
-      "https://placehold.co/600x400/1e293b/ffc4d6?text=Step+2:+Walk+Straight",
-      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Shelf+A-2"
+      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Book+%231"
     ] 
   },
   { 
@@ -30,10 +18,8 @@
     "genre": "Non-Fiction", 
     "shelf": "B-1", 
     "images": [
-      "https://placehold.co/600x400/1e293b/ef4444?text=Start:+You+Are+Here",
-      "https://placehold.co/600x400/1e293b/ffc4d6?text=Step+2:+Go+Past+Fiction",
-      "https://placehold.co/600x400/1e293b/ffc4d6?text=Step+3:+Turn+Right",
-      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Shelf+B-1"
+      "https://placehold.co/600x400/1e293b/ef4444?text=Step+1:+Start+at+Kiosk",
+      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Book+%2321"
     ] 
   },
   { 
@@ -43,8 +29,9 @@
     "genre": "Romance", 
     "shelf": "C-1", 
     "images": [
-      "https://placehold.co/600x400/1e293b/ef4444?text=Start:+You+Are+Here",
-      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Shelf+C-1+(Near+Entrance)"
+      "https://placehold.co/600x400/1e293b/ef4444?text=Step+1:+Start+at+Kiosk",
+      "https://placehold.co/600x400/1e293b/ffc4d6?text=Step+2:+Walk+Straight",
+      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Book+%2341"
     ] 
   },
   { 
@@ -54,8 +41,8 @@
     "genre": "Science", 
     "shelf": "D-1", 
     "images": [
-      "https://placehold.co/600x400/1e293b/ef4444?text=Start:+You+Are+Here",
-      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Shelf+D-1"
+      "https://placehold.co/600x400/1e293b/ef4444?text=Step+1:+Start+at+Kiosk",
+      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Book+%2361"
     ] 
   },
   { 
@@ -65,9 +52,20 @@
     "genre": "History", 
     "shelf": "E-1", 
     "images": [
-      "https://placehold.co/600x400/1e293b/ef4444?text=Start:+You+Are+Here",
+      "https://placehold.co/600x400/1e293b/ef4444?text=Step+1:+Start+at+Kiosk",
       "https://placehold.co/600x400/1e293b/ffc4d6?text=Step+2:+Go+To+Back+Wall",
-      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Shelf+E-1"
+      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Book+%2381"
+    ] 
+  },
+  { 
+    "id": 2, 
+    "title": "To Kill a Mockingbird", 
+    "author": "Harper Lee", 
+    "genre": "Fiction", 
+    "shelf": "A-2", 
+    "images": [
+      "https://placehold.co/600x400/1e293b/ef4444?text=Step+1:+Start+at+Kiosk",
+      "https://placehold.co/600x400/1e293b/4ade80?text=Arrived:+Book+%232"
     ] 
   }
 ]
