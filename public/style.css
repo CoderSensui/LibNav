@@ -190,11 +190,13 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 @keyframes pulse { 0% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 0.7; } }
 
 /* --- MOBILE COMPANION MODE --- */
+/* This activates ONLY when scanning the QR code */
 body.mobile-view-active {
     background-color: var(--bg-card);
     overflow: hidden;
 }
 
+/* 1. Hide EVERYTHING else */
 body.mobile-view-active .top-controls,
 body.mobile-view-active .search-wrapper,
 body.mobile-view-active .hero,
@@ -205,16 +207,23 @@ body.mobile-view-active #screensaver {
     display: none !important;
 }
 
+/* 2. FORCE HIDE all other modals (like Feedback) */
 body.mobile-view-active .modal-overlay {
+    display: none !important;
+}
+
+/* 3. EXPLICITLY SHOW ONLY THE BOOK MODAL */
+body.mobile-view-active #book-modal.modal-overlay {
+    display: flex !important;
     background: var(--bg-main);
-    opacity: 1;
+    opacity: 1 !important;
     pointer-events: all;
     position: fixed;
     inset: 0;
     z-index: 9999;
 }
 
-body.mobile-view-active .modal-content {
+body.mobile-view-active #book-modal .modal-content {
     width: 100%;
     height: 100%;
     max-width: 100%;
