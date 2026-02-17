@@ -315,12 +315,10 @@ async function openModal(book) {
 
     document.getElementById('modal-title').innerText = book.title;
     document.getElementById('modal-author').innerText = book.author;
-    // Updated to show Book ID instead of Shelf
     document.getElementById('modal-book-id').innerText = book.id;
     document.getElementById('modal-genre').innerText = book.genre;
     
     qrContainer.innerHTML = '';
-    // Add &view=mobile to the QR code
     const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
     new QRCode(qrContainer, {
         text: deepLink,
@@ -329,7 +327,6 @@ async function openModal(book) {
         correctLevel : QRCode.CorrectLevel.M
     });
 
-    // --- CAROUSEL LOGIC ---
     currentImages = book.images || []; 
     currentImageIndex = 0; 
     updateCarousel(); 
