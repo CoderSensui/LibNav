@@ -331,18 +331,27 @@ async function openModal(book) {
     currentImageIndex = 0; 
     updateCarousel(); 
 
-    // --- VIRTUAL SHELF GENERATOR (Book Spines) ---
+    // --- VIRTUAL SHELF GENERATOR (Updated Colors) ---
     const allBooks = LibraryDB.getBooks();
-    const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 10); // Show max 10 neighbors from same genre
+    // Show ALL books in same genre (removed .slice limit so you can scroll)
+    const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
     
     neighborsList.innerHTML = '';
     if (neighbors.length > 0) {
         neighborsArea.style.display = 'block';
         
-        // Define realistic book colors
+        // NEW: Classy "Library" Color Palette (No bright neons)
         const spineColors = [
-            '#ef4444', '#f97316', '#84cc16', '#10b981', '#06b6d4', 
-            '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'
+            '#8B0000', // Dark Red
+            '#2F4F4F', // Dark Slate Gray
+            '#556B2F', // Dark Olive Green
+            '#8B4513', // Saddle Brown
+            '#483D8B', // Dark Slate Blue
+            '#A0522D', // Sienna
+            '#191970', // Midnight Blue
+            '#4682B4', // Steel Blue
+            '#D2691E', // Chocolate
+            '#5F9EA0'  // Cadet Blue
         ];
 
         neighbors.forEach(n => {
@@ -350,11 +359,11 @@ async function openModal(book) {
             spine.className = 'book-spine';
             spine.innerText = n.title;
             
-            // Random Height (85px to 100px) to look like real shelf
-            const randomHeight = Math.floor(Math.random() * (100 - 85 + 1) + 85);
+            // Random Height (85px to 110px) to look like real shelf
+            const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
             spine.style.height = `${randomHeight}px`;
             
-            // Random Color
+            // Random Color from new palette
             const randomColor = spineColors[Math.floor(Math.random() * spineColors.length)];
             spine.style.backgroundColor = randomColor;
 
