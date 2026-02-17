@@ -1,4 +1,4 @@
-/* app.js - vFinal (Red Line Pathfinding) */
+/* app.js - vFinal (Step-by-Step Slideshow) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -26,11 +26,19 @@ let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
 const IDLE_LIMIT = 30000;
 let idleTimeout;
 
+// Carousel State
+let currentImages = [];
+let currentImageIndex = 0;
+const carouselImg = document.getElementById('carousel-img');
+const prevBtn = document.getElementById('prev-img-btn');
+const nextBtn = document.getElementById('next-img-btn');
+const stepCounter = document.getElementById('step-counter');
+
+// --- INITIALIZATION ---
 async function init() {
     loadTheme();
     await LibraryDB.init(); 
     
-    // Deep Link Check
     const urlParams = new URLSearchParams(window.location.search);
     const bookId = urlParams.get('book');
     if (bookId) {
@@ -295,7 +303,6 @@ function updateHistory(title) { let hist = JSON.parse(localStorage.getItem('sear
 const bookModal = document.getElementById('book-modal');
 const neighborsArea = document.getElementById('neighbors-area');
 const neighborsList = document.getElementById('neighbors-list');
-const mapContainer = document.getElementById('map-container');
 const qrContainer = document.getElementById('qrcode');
 
 async function openModal(book) {
@@ -305,6 +312,7 @@ async function openModal(book) {
     document.getElementById('modal-shelf').innerText = book.shelf;
     document.getElementById('modal-genre').innerText = book.genre;
     
+    // Generate QR
     qrContainer.innerHTML = '';
     const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
     new QRCode(qrContainer, {
@@ -314,52 +322,10 @@ async function openModal(book) {
         correctLevel : QRCode.CorrectLevel.L
     });
 
-    try {
-        const response = await fetch('map.svg');
-        const svgText = await response.text();
-        mapContainer.innerHTML = svgText;
-        
-        // --- RED LINE PATHFINDING ---
-        const svgElement = mapContainer.querySelector('svg');
-        const shelfId = `shelf-${book.shelf}`;
-        const targetShelf = svgElement.getElementById(shelfId);
-        const kioskPoint = svgElement.getElementById('kiosk-point'); // We added this ID to map.svg
-
-        if (targetShelf && kioskPoint) {
-            // Highlight shelf
-            targetShelf.style.fill = 'var(--primary-pink)';
-            targetShelf.style.filter = 'drop-shadow(0 0 10px var(--primary-pink))';
-            targetShelf.setAttribute('stroke', '#fff');
-            
-            // Calculate coords for line
-            const kioskCx = kioskPoint.getAttribute('cx');
-            const kioskCy = kioskPoint.getAttribute('cy');
-            
-            // Get center of shelf rect
-            const x = parseFloat(targetShelf.getAttribute('x'));
-            const y = parseFloat(targetShelf.getAttribute('y'));
-            const w = parseFloat(targetShelf.getAttribute('width'));
-            const h = parseFloat(targetShelf.getAttribute('height'));
-            const shelfCx = x + (w / 2);
-            const shelfCy = y + (h / 2);
-
-            // Create Line
-            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            line.setAttribute("x1", kioskCx);
-            line.setAttribute("y1", kioskCy);
-            line.setAttribute("x2", shelfCx);
-            line.setAttribute("y2", shelfCy);
-            line.setAttribute("stroke", "#ef4444"); // Red
-            line.setAttribute("stroke-width", "4");
-            line.setAttribute("stroke-linecap", "round");
-            line.setAttribute("stroke-dasharray", "10"); // Dashed line
-            
-            // Animate Line
-            line.innerHTML = `<animate attributeName="stroke-dashoffset" from="100" to="0" dur="1s" repeatCount="indefinite" />`;
-            
-            svgElement.appendChild(line);
-        }
-    } catch (e) { mapContainer.innerHTML = `<p style="color:var(--text-muted)">Map unavailable</p>`; }
+    // --- CAROUSEL LOGIC ---
+    currentImages = book.images || []; // Get array or empty
+    currentImageIndex = 0; // Reset to start
+    updateCarousel(); // Show first image
 
     const allBooks = LibraryDB.getBooks();
     const neighbors = allBooks.filter(b => b.shelf === book.shelf && b.id !== book.id);
@@ -377,6 +343,44 @@ async function openModal(book) {
     
     bookModal.classList.add('active');
 }
+
+// Carousel Helper Functions
+function updateCarousel() {
+    if (currentImages.length > 0) {
+        carouselImg.src = currentImages[currentImageIndex];
+        stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
+        
+        // Disable prev button if at start
+        prevBtn.disabled = currentImageIndex === 0;
+        // Disable next button if at end
+        nextBtn.disabled = currentImageIndex === currentImages.length - 1;
+        
+        // Ensure image is visible
+        carouselImg.style.display = 'block';
+    } else {
+        // Fallback if no images
+        carouselImg.style.display = 'none';
+        stepCounter.innerText = "No map images available";
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+    }
+}
+
+// Button Listeners
+prevBtn.onclick = () => {
+    if (currentImageIndex > 0) {
+        currentImageIndex--;
+        updateCarousel();
+    }
+};
+
+nextBtn.onclick = () => {
+    if (currentImageIndex < currentImages.length - 1) {
+        currentImageIndex++;
+        updateCarousel();
+    }
+};
+
 document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
 
 if (feedbackBtn) feedbackBtn.addEventListener('click', () => { feedbackModal.classList.add('active'); closeSidebar(); });
@@ -396,8 +400,8 @@ if (feedbackForm) feedbackForm.addEventListener('submit', async (e) => {
 // --- Theme Logic (Correct SVGs) ---
 const themeBtn = document.getElementById('theme-toggle');
 
-const moonSVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
-const lightbulbSVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.55-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.55 5 11.38 5 9a7 7 0 0 1 7-7z"></path><path d="M9 21h6"></path></svg>';
+const moonSVG = '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+const lightbulbSVG = '<svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>';
 
 themeBtn.onclick = () => {
     document.body.classList.toggle('light-mode');
