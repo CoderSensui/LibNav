@@ -296,8 +296,8 @@ body.mobile-view-active .modal-overlay {
     display: none !important;
 }
 
-body.mobile-view-active #book-modal.modal-overlay,
-body.mobile-view-active #success-modal.modal-overlay {
+/* Keep the map visible by default */
+body.mobile-view-active #book-modal.modal-overlay {
     display: flex !important;
     background: var(--bg-main);
     opacity: 1 !important;
@@ -305,6 +305,17 @@ body.mobile-view-active #success-modal.modal-overlay {
     position: fixed;
     inset: 0;
     z-index: 9999;
+}
+
+/* ONLY show the success screen when the button makes it .active */
+body.mobile-view-active #success-modal.modal-overlay.active {
+    display: flex !important;
+    background: var(--bg-main);
+    opacity: 1 !important;
+    pointer-events: all;
+    position: fixed;
+    inset: 0;
+    z-index: 10000; /* Puts it on top of the map */
 }
 
 body.mobile-view-active #book-modal .modal-content,
