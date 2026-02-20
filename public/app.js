@@ -1,4 +1,4 @@
-/* app.js - vFinal (Upgraded UI & Mobile Button) */
+/* app.js - vFinal (Stable + Brown Spines + Mobile Button) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -50,11 +50,11 @@ async function init() {
 
             if (viewMode === 'mobile') {
                 document.body.classList.add('mobile-view-active');
-                document.querySelector('.close-modal').style.display = 'none';
-                document.getElementById('mobile-action-area').style.display = 'block'; 
+                if(document.querySelector('.close-modal')) document.querySelector('.close-modal').style.display = 'none';
+                if(document.getElementById('mobile-action-area')) document.getElementById('mobile-action-area').style.display = 'block'; 
             } else {
                 window.history.replaceState({}, document.title, window.location.pathname);
-                document.getElementById('mobile-action-area').style.display = 'none';
+                if(document.getElementById('mobile-action-area')) document.getElementById('mobile-action-area').style.display = 'none';
             }
         }
     }
@@ -322,201 +322,11 @@ async function openModal(book) {
     
     // Show/Hide action area based on mobile-view-active class
     if (document.body.classList.contains('mobile-view-active')) {
-        document.getElementById('mobile-action-area').style.display = 'block';
+        if(document.getElementById('mobile-action-area')) document.getElementById('mobile-action-area').style.display = 'block';
     } else {
-        document.getElementById('mobile-action-area').style.display = 'none';
+        if(document.getElementById('mobile-action-area')) document.getElementById('mobile-action-area').style.display = 'none';
     }
 
-    qrContainer.innerHTML = '';
-    const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
-    new QRCode(qrContainer, {
-        text: deepLink,
-        width: 120, height: 120,
-        colorDark : "#0b1121", colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.M
-    });
-
-    currentImages = book.images || []; 
-    currentImageIndex = 0; 
-    updateCarousel(); 
-
-    const allBooks = LibraryDB.getBooks();
-    const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
-    
-    neighborsList.innerHTML = '';
-    if (neighbors.length > 0) {
-        neighborsArea.style.display = 'block';
-        
-        const spineColors = [
-            '#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', 
-            '#8D6E63', '#3b2f2f', '#4a3728', '#5c4033', '#654321' 
-        ];
-
-        neighbors.forEach(n => {
-            const spine = document.createElement('div');
-            spine.className = 'book-spine';
-            spine.innerText = n.title;
-            
-            const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
-            spine.style.height = `${randomHeight}px`;
-            
-            const randomColor = spineColors[Math.floor(Math.random() * spineColors.length)];
-            spine.style.backgroundColor = randomColor;
-
-            spine.onclick = () => openModal(n);
-            neighborsList.appendChild(spine);
-        });
-    } else neighborsArea.style.display = 'none';
-    
-    bookModal.classList.add('active');
-}
-
-function updateCarousel() {
-    if (currentImages.length > 0) {
-        carouselImg.src = currentImages[currentImageIndex];
-        stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
-        prevBtn.disabled = currentImageIndex === 0;
-        nextBtn.disabled = currentImageIndex === currentImages.length - 1;
-        carouselImg.style.display = 'block';
-    } else {
-        carouselImg.style.display = 'none';
-        stepCounter.innerText = "No map images available";
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
-    }
-}
-
-prevBtn.onclick = () => {
-    if (currentImageIndex > 0) {
-        currentImageIndex--;
-        updateCarousel();
-    }
-};
-
-nextBtn.onclick = () => {
-    if (currentImageIndex < currentImages.length - 1) {
-        currentImageIndex++;
-        updateCarousel();
-    }
-};
-
-document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
-
-if (feedbackBtn) feedbackBtn.addEventListener('click', () => { feedbackModal.classList.add('active'); closeSidebar(); });
-if (feedbackForm) feedbackForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('fb-name').value;
-    const email = document.getElementById('fb-email').value;
-    const message = document.getElementById('fb-message').value;
-    fbSubmitBtn.disabled = true; fbSubmitBtn.innerText = "Sending...";
-    try {
-        const response = await fetch('/api/send-feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, message }) });
-        if (response.ok) { fbStatus.style.color = "#4ade80"; fbStatus.innerText = "Sent!"; feedbackForm.reset(); setTimeout(() => feedbackModal.classList.remove('active'), 2000); } else throw new Error();
-    } catch { fbStatus.style.color = "#ef4444"; fbStatus.innerText = "Error."; }
-    finally { fbSubmitBtn.disabled = false; fbSubmitBtn.innerText = "Send"; }
-});
-
-const themeBtn = document.getElementById('theme-toggle');
-const moonSVG = '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
-const lightbulbSVG = '<svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>';
-
-themeBtn.onclick = () => {
-    document.body.classList.toggle('light-mode');
-    const isLight = document.body.classList.contains('light-mode');
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    themeBtn.innerHTML = isLight ? moonSVG : lightbulbSVG;
-};
-
-function loadTheme() {
-    if(localStorage.getItem('theme') === 'light') {
-        document.boent.createElement('div');
-        div.className = 'book-card';
-        div.style.animationDelay = `${index * 0.05}s`;
-        div.innerHTML = `
-            <div class="book-info" style="flex:1;">
-                <h3>${book.title}</h3>
-                <p style="color:var(--text-muted); font-size:0.9rem;">by ${book.author}</p>
-                <div style="margin-top:5px;"><span class="chip">${book.genre}</span><span style="color:var(--text-muted); font-size:0.85rem; margin-left:10px;">ID: ${book.id}</span></div>
-            </div>
-            <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, ${book.id})"><svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg></button>`;
-        div.addEventListener('click', (e) => { if(!e.target.closest('.fav-btn')) openModal(book); });
-        resultsArea.appendChild(div);
-    });
-}
-
-function toggleFavorite(e, bookId) {
-    e.stopPropagation(); 
-    const index = favorites.indexOf(bookId);
-    if (index === -1) favorites.push(bookId); else favorites.splice(index, 1);
-    localStorage.setItem('libnav_favs', JSON.stringify(favorites));
-    performSearch(searchInput.value);
-}
-
-if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false; recognition.interimResults = false; recognition.lang = 'en-US';
-    micBtn.addEventListener('click', () => {
-        if (micBtn.classList.contains('listening')) recognition.stop();
-        else recognition.start();
-    });
-    recognition.onstart = () => { micBtn.classList.add('listening'); searchInput.placeholder = "Listening..."; };
-    recognition.onend = () => { micBtn.classList.remove('listening'); searchInput.placeholder = "Search title or author..."; };
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        searchInput.value = transcript;
-        hero.classList.add('minimized');
-        featuredContainer.style.display = 'none';
-        homeBtn.classList.remove('home-hidden');
-        performSearch(transcript);
-    };
-} else { micBtn.style.display = 'none'; }
-
-document.getElementById('stats-trigger').onclick = () => {
-    const books = LibraryDB.getBooks();
-    const history = JSON.parse(localStorage.getItem('search_history')) || [];
-    const genres = {};
-    books.forEach(b => genres[b.genre] = (genres[b.genre] || 0) + 1);
-    let topBook = 'No data yet';
-    let maxCount = 0;
-    if(history.length > 0) {
-        const counts = {};
-        history.forEach(h => {
-            counts[h] = (counts[h] || 0) + 1;
-            if(counts[h] > maxCount) { maxCount = counts[h]; topBook = h; }
-        });
-    }
-    const favCount = favorites.length;
-    let genreHTML = Object.entries(genres).map(([k,v]) => 
-        `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border-color);"><span>${k}</span> <span class="text-pink">${v}</span></div>`
-    ).join('');
-    document.getElementById('stats-content').innerHTML = `
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:20px;">
-            <div style="background:var(--bg-chip); padding:15px; border-radius:15px; text-align:center;"><p style="color:var(--text-muted); font-size:0.8rem;">Total Books</p><h2 style="font-size:1.8rem;">${books.length}</h2></div>
-            <div style="background:var(--bg-chip); padding:15px; border-radius:15px; text-align:center;"><p style="color:var(--text-muted); font-size:0.8rem;">Bookmarks</p><h2 style="font-size:1.8rem; color:#ef4444;">${favCount}</h2></div>
-        </div>
-        <div style="margin-bottom:20px;"><p style="color:var(--text-muted); font-size:0.9rem;">👑 Most Viewed Book</p><h3 class="text-pink" style="font-size:1.3rem; margin-top:5px;">${topBook}</h3></div>
-        <div style="margin-bottom:10px;"><p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:5px;">Genre Breakdown</p>${genreHTML}</div>
-    `;
-    document.getElementById('stats-modal').classList.add('active');
-};
-function updateHistory(title) { let hist = JSON.parse(localStorage.getItem('search_history')) || []; hist.push(title); localStorage.setItem('search_history', JSON.stringify(hist)); }
-
-const bookModal = document.getElementById('book-modal');
-const neighborsArea = document.getElementById('neighbors-area');
-const neighborsList = document.getElementById('neighbors-list');
-const qrContainer = document.getElementById('qrcode');
-
-async function openModal(book) {
-    if (!document.body.classList.contains('mobile-view-active')) {
-        updateHistory(book.title);
-    }
-
-    document.getElementById('modal-title').innerText = book.title;
-    document.getElementById('modal-author').innerText = book.author;
-    document.getElementById('modal-book-id').innerText = book.id;
-    document.getElementById('modal-genre').innerText = book.genre;
-    
     qrContainer.innerHTML = '';
     const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
     new QRCode(qrContainer, {
@@ -538,18 +348,10 @@ async function openModal(book) {
     if (neighbors.length > 0) {
         neighborsArea.style.display = 'block';
         
-        // NEW: Classy "Library" Brown Palette
+        // Brown Palette
         const spineColors = [
-            '#3E2723', // Dark Leather
-            '#4E342E', // Espresso
-            '#5D4037', // Cocoa
-            '#6D4C41', // Chestnut
-            '#795548', // Standard Brown
-            '#8D6E63', // Light Brown
-            '#3b2f2f', // Deep Charcoal Brown
-            '#4a3728', // Traditional Leather
-            '#5c4033', // Dark Wood
-            '#654321'  // Classic Dark Brown
+            '#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', 
+            '#8D6E63', '#3b2f2f', '#4a3728', '#5c4033', '#654321' 
         ];
 
         neighbors.forEach(n => {
@@ -557,11 +359,9 @@ async function openModal(book) {
             spine.className = 'book-spine';
             spine.innerText = n.title;
             
-            // Random Height (85px to 110px) to look like real shelf
             const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
             spine.style.height = `${randomHeight}px`;
             
-            // Random Color from new palette
             const randomColor = spineColors[Math.floor(Math.random() * spineColors.length)];
             spine.style.backgroundColor = randomColor;
 
