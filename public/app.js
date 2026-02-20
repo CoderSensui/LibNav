@@ -46,16 +46,16 @@ async function init() {
         const allBooks = LibraryDB.getBooks();
         const deepLinkedBook = allBooks.find(b => b.id == bookId);
         if (deepLinkedBook) {
-            openModal(deepLinkedBook);
-
+            
+            // Fix 1: Add mobile view class BEFORE opening the modal
             if (viewMode === 'mobile') {
                 document.body.classList.add('mobile-view-active');
                 if(document.querySelector('.close-modal')) document.querySelector('.close-modal').style.display = 'none';
-                if(document.getElementById('mobile-action-area')) document.getElementById('mobile-action-area').style.display = 'block'; 
             } else {
                 window.history.replaceState({}, document.title, window.location.pathname);
-                if(document.getElementById('mobile-action-area')) document.getElementById('mobile-action-area').style.display = 'none';
             }
+            
+            openModal(deepLinkedBook);
         }
     }
 
@@ -319,13 +319,9 @@ async function openModal(book) {
     document.getElementById('modal-author').innerText = book.author;
     document.getElementById('modal-book-id').innerText = book.id;
     document.getElementById('modal-genre').innerText = book.genre;
-    
-    // Show/Hide action area based on mobile-view-active class
-    if (document.body.classList.contains('mobile-view-active')) {
-        if(document.getElementById('mobile-action-area')) document.getElementById('mobile-action-area').style.display = 'block';
-    } else {
-        if(document.getElementById('mobile-action-area')) document.getElementById('mobile-action-area').style.display = 'none';
-    }
+
+    // Fix 3: Removed the old display logic for the mobile action area 
+    // from here, since updateCarousel now handles it properly.
 
     qrContainer.innerHTML = '';
     const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
@@ -341,7 +337,6 @@ async function openModal(book) {
     updateCarousel(); 
 
     const allBooks = LibraryDB.getBooks();
-    // Show ALL books in same genre (removed .slice limit)
     const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
     
     neighborsList.innerHTML = '';
@@ -374,17 +369,34 @@ async function openModal(book) {
 }
 
 function updateCarousel() {
+    // Fix 2: Added dynamic step logic for the 'I Found It!' button
+    const actionArea = document.getElementById('mobile-action-area');
+
     if (currentImages.length > 0) {
         carouselImg.src = currentImages[currentImageIndex];
         stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
         prevBtn.disabled = currentImageIndex === 0;
         nextBtn.disabled = currentImageIndex === currentImages.length - 1;
         carouselImg.style.display = 'block';
+        
+        if (actionArea) {
+            if (document.body.classList.contains('mobile-view-active')) {
+                if (currentImageIndex === currentImages.length - 1) {
+                    actionArea.style.display = 'block';
+                } else {
+                    actionArea.style.display = 'none';
+                }
+            } else {
+                actionArea.style.display = 'none';
+            }
+        }
     } else {
         carouselImg.style.display = 'none';
         stepCounter.innerText = "No map images available";
         prevBtn.disabled = true;
         nextBtn.disabled = true;
+        
+        if (actionArea) actionArea.style.display = 'none';
     }
 }
 
@@ -425,16 +437,16 @@ const lightbulbSVG = '<svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.
 themeBtn.onclick = () => {
     document.body.classList.toggle('light-mode');
     const isLight = document.body.classList.contains('light-mode');
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
     themeBtn.innerHTML = isLight ? moonSVG : lightbulbSVG;
+    localStorage.setItem('libnav_theme', isLight ? 'light' : 'dark');
 };
 
 function loadTheme() {
-    if(localStorage.getItem('theme') === 'light') {
+    const savedTheme = localStorage.getItem('libnav_theme');
+    if (savedTheme === 'light') {
         document.body.classList.add('light-mode');
-        themeBtn.innerHTML = moonSVG; 
+        themeBtn.innerHTML = moonSVG;
     } else {
         themeBtn.innerHTML = lightbulbSVG;
     }
 }
-init();
