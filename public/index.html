@@ -40,7 +40,7 @@
                 <button class="quick-btn wide" data-genre="History">History</button>
             </div>
             <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-                <button id="open-feedback-btn" class="quick-btn wide" style="color: var(--primary-pink); border-color: var(--primary-pink);">📝 Send Feedback</button>
+                <button id="open-feedback-btn" class="quick-btn wide" style="color: var(--primary-pink); border-color: var(--primary-pink);">Send Feedback</button>
             </div>
         </div>
     </div>
@@ -96,7 +96,7 @@
         <div class="modal-content">
             <button class="close-modal">&times;</button>
             <h2 id="modal-title" class="text-pink">Title</h2>
-            <p id="modal-author" style="color:var(--text-muted); margin-bottom:15px;">Author</p>
+            <p id="modal-author" style="color:var(--text-muted); margin-bottom:5px;">Author</p>
             <span id="modal-genre" class="chip">Genre</span>
             
             <div id="carousel-wrapper" class="carousel-wrapper">
@@ -106,7 +106,13 @@
                 <div id="step-counter" class="step-counter">Step 1</div>
             </div>
             
-            <h3 style="margin-top:15px;">Book #<span id="modal-book-id" class="text-pink">0</span></h3>
+            <div class="destination-badge">
+                Target: Book #<span id="modal-book-id" class="text-pink">0</span>
+            </div>
+
+            <div id="mobile-action-area" style="display: none;">
+                <button class="found-btn" onclick="alert('Awesome! Happy reading!');">I Found It!</button>
+            </div>
             
             <div class="qr-section">
                 <div id="qrcode"></div>
