@@ -296,7 +296,8 @@ body.mobile-view-active .modal-overlay {
     display: none !important;
 }
 
-body.mobile-view-active #book-modal.modal-overlay {
+body.mobile-view-active #book-modal.modal-overlay,
+body.mobile-view-active #success-modal.modal-overlay {
     display: flex !important;
     background: var(--bg-main);
     opacity: 1 !important;
@@ -306,7 +307,8 @@ body.mobile-view-active #book-modal.modal-overlay {
     z-index: 9999;
 }
 
-body.mobile-view-active #book-modal .modal-content {
+body.mobile-view-active #book-modal .modal-content,
+body.mobile-view-active #success-modal .modal-content {
     width: 100%;
     height: 100%;
     max-width: 100%;
