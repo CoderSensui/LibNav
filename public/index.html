@@ -111,7 +111,7 @@
             </div>
 
             <div id="mobile-action-area" style="display: none;">
-                <button class="found-btn" onclick="alert('Awesome! Happy reading!');">I Found It!</button>
+                <button class="found-btn" onclick="showSuccessScreen()">I Found It!</button>
             </div>
             
             <div class="qr-section">
@@ -147,7 +147,21 @@
             </form>
         </div>
     </div>
-
+<div id="success-modal" class="modal-overlay">
+        <div class="modal-content" style="text-align: center; padding: 40px 20px;">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            </div>
+            <h2 class="text-pink" style="font-size: 2rem; margin-bottom: 10px;">Mission Accomplished!</h2>
+            <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 25px;">
+                You found the book! Don't forget to check it out at the front desk before you leave.
+            </p>
+            <button class="submit-btn" onclick="closeSuccessScreen()">Got it, thanks!</button>
+        </div>
+</div>
     <div id="screensaver" class="screensaver"><h1 class="glow-text">LibNav</h1><p>Touch to start searching!</p></div>
 
     <script src="database.js"></script>
