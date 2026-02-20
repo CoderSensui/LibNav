@@ -450,5 +450,19 @@ function loadTheme() {
         themeBtn.innerHTML = lightbulbSVG;
     }
 }
+// --- SUCCESS SCREEN LOGIC ---
+function showSuccessScreen() {
+    // Hide the book modal to clean up the background
+    document.getElementById('book-modal').classList.remove('active');
+    
+    // Trigger the celebration screen
+    document.getElementById('success-modal').classList.add('active');
+}
 
+function closeSuccessScreen() {
+    document.getElementById('success-modal').classList.remove('active');
+    
+    // Redirects them back to the main search page out of mobile mode
+    window.location.href = window.location.pathname; 
+}
 init();
