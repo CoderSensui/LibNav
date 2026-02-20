@@ -334,3 +334,28 @@ body.mobile-view-active .carousel-wrapper {
 body.mobile-view-active .shelf-photo {
     border-radius: 15px;
 }
+
+/* --- SUCCESS SCREEN --- */
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(74, 222, 128, 0.15); 
+    color: #4ade80; 
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 20px auto;
+    box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+    animation: popIn 0.5s var(--ease-bounce);
+}
+
+.success-icon svg {
+    width: 40px;
+    height: 40px;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
