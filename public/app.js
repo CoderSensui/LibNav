@@ -450,3 +450,5 @@ function loadTheme() {
         themeBtn.innerHTML = lightbulbSVG;
     }
 }
+
+init();
