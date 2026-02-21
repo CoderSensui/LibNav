@@ -1,9 +1,10 @@
-/* database.js - Global View Counting Enabled */
+/* database.js - Ultimate Firebase Cloud Engine */
 
 const LibraryDB = {
     // ⚠️ YOUR SPECIFIC FIREBASE URL
     dbUrl: "https://libnav-dc2c8-default-rtdb.firebaseio.com/", 
     books: [],
+    ratings: [],
 
     init: async function() {
         console.log("🔥 Connecting to LibNav Global Database...");
@@ -11,16 +12,22 @@ const LibraryDB = {
             const response = await fetch(`${this.dbUrl}.json`);
             if (!response.ok) throw new Error("Cloud Connection Failed");
             
-            const data = await response.json();
+            const data = await response.json() || {};
             
-            if (data && data.books) {
+            // 1. Load Books
+            if (data.books) {
                 this.books = Object.values(data.books).filter(b => b !== null && b !== undefined); 
-            } else if (Array.isArray(data)) {
+            } else if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object') {
                 this.books = data.filter(b => b !== null && b !== undefined);
-            } else if (data && typeof data === 'object') {
-                this.books = Object.values(data).filter(b => b !== null && b !== undefined);
             } else {
                 this.books = []; 
+            }
+
+            // 2. Load Ratings
+            if (data.ratings) {
+                this.ratings = Object.values(data.ratings).filter(r => r !== null && r !== undefined);
+            } else {
+                this.ratings = [];
             }
 
             console.log(`✅ Success: ${this.books.length} books loaded.`);
@@ -40,12 +47,12 @@ const LibraryDB = {
             });
             return response.ok;
         } catch (error) {
-            console.error("❌ Sync Error:", error);
             return false;
         }
     },
     
     getBooks: function() { return this.books; },
+    getRatings: function() { return this.ratings; },
 
     addBook: async function(book) {
         this.books.push(book);
@@ -57,14 +64,39 @@ const LibraryDB = {
         return await this.saveToCloud();
     },
 
-    // NEW: Global View Counter logic
+    // GLOBAL VIEW TRACKER
     incrementView: async function(id) {
         const book = this.books.find(b => String(b.id) === String(id));
         if (book) {
-            // Initialize views if it doesn't exist, then add 1
             book.views = (book.views || 0) + 1;
-            // Save the new count to the cloud silently
             await this.saveToCloud(); 
         }
+    },
+
+    // 5-STAR RATING SYSTEM
+    submitRating: async function(stars) {
+        try {
+            this.ratings.push(stars);
+            await fetch(`${this.dbUrl}ratings.json`, {
+                method: 'POST', // Push a new entry
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(stars)
+            });
+        } catch (err) { console.error("Rating save failed", err); }
+    },
+
+    // SOFT FACTORY RESET
+    factoryReset: async function() {
+        // 1. Reset all views to 0
+        this.books.forEach(b => b.views = 0);
+        await this.saveToCloud();
+        
+        // 2. Delete all ratings
+        await fetch(`${this.dbUrl}ratings.json`, { method: 'DELETE' });
+        this.ratings = [];
+
+        // 3. Clear Local Storage
+        localStorage.clear();
+        return true;
     }
 };
