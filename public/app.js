@@ -1,4 +1,4 @@
-/* app.js - vFinal (Fixed Chat & Bug-Free) */
+/* app.js - vFinal (Stable Gemini-Pro Chat + Grid UI) */
 
 // ⚠️ PASTE YOUR API KEY HERE:
 const GEMINI_API_KEY = "AIzaSyA64z6Ym8mRh3CxG2eNPeDFgG8kmp0xsvY"; 
@@ -101,7 +101,7 @@ chatInput.addEventListener('keypress', (e) => {
 
 async function sendMessage() {
     const text = chatInput.value.trim();
-    if (!text) return; // Do nothing if input is empty
+    if (!text) return;
 
     // 1. Show user message
     addMessage(text, 'user-msg');
@@ -133,8 +133,8 @@ Rules:
             throw new Error("API Key is missing! Please add it to app.js");
         }
 
-        // 4. API Call
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${safeApiKey}`, {
+        // 4. API Call - Reverted to highly stable gemini-pro endpoint
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${safeApiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -171,7 +171,6 @@ function addMessage(text, className) {
     div.className = `message ${className}`;
     div.id = 'msg-' + Date.now();
     
-    // Safely try to parse markdown (bold text), fallback to plain text if library isn't loaded
     try {
         if (typeof marked !== 'undefined') {
             div.innerHTML = marked.parse(text); 
