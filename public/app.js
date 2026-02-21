@@ -1,4 +1,4 @@
-/* app.js - vFinal (Optimized + Lazy Loading + No Lag) */
+/* app.js - vFinal (HD Covers + Lag Fixed + Clean Initial Load) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -66,7 +66,7 @@ async function init() {
 
     if (!document.body.classList.contains('companion-mode-active')) {
         loadFeaturedBook(); 
-        performSearch(''); // Auto-load shelf
+        resultsArea.innerHTML = ''; // Keep grid completely empty on initial load
         resetIdleTimer();
     }
 }
@@ -101,10 +101,10 @@ function loadFeaturedBook() {
             </div>
         </div>`;
 
-    // Featured Book uses Medium Cover (-M.jpg)
+    // Fetch HD Cover (-M.jpg)
     const featCoverId = `feat-cover-${featuredBook.id}`;
     if (coverCache[featuredBook.title]) {
-        const url = coverCache[featuredBook.title].replace('-S.jpg', '-M.jpg');
+        const url = coverCache[featuredBook.title];
         document.getElementById(featCoverId).style.backgroundImage = `url(${url})`;
         document.getElementById(featCoverId).querySelector('.placeholder-text').style.opacity = '0';
     } else {
@@ -132,7 +132,7 @@ homeBtn.addEventListener('click', () => {
     hero.classList.remove('minimized');
     featuredContainer.style.display = 'block';
     homeBtn.classList.add('home-hidden');
-    performSearch(''); 
+    resultsArea.innerHTML = ''; // Hide grid on home
 });
 
 function openSidebar() { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); filterMenu.style.display = 'none'; }
@@ -228,9 +228,15 @@ searchInput.addEventListener('input', (e) => {
 });
 
 function performSearch(term) {
-    let books = LibraryDB.getBooks();
     term = term.toLowerCase().trim();
     
+    // Core Fix: Clear grid if no search and no filters are active
+    if (term === '' && selectedGenres.size === 0) {
+        resultsArea.innerHTML = '';
+        return;
+    }
+
+    let books = LibraryDB.getBooks();
     if (selectedGenres.has('All') || term !== '') {
         books.sort((a, b) => a.title.localeCompare(b.title));
     }
@@ -253,7 +259,6 @@ function performSearch(term) {
     renderResults(matches);
 }
 
-// OPTIMIZED RENDER ENGINE: Uses lazy loading and small images
 function renderResults(books) {
     resultsArea.innerHTML = '';
     
@@ -267,12 +272,13 @@ function renderResults(books) {
     books.forEach((book, index) => {
         const card = document.createElement('div');
         card.className = 'shelf-book-card';
-        // Optimize animation: only first 10 animate to prevent lag
-        if (index < 10) {
-            card.style.animationDelay = `${index * 0.05}s`;
+        
+        // Anti-Lag Fix: Only animate the first few cards entering the screen
+        if (index < 12) {
+            card.style.animationDelay = `${index * 0.04}s`;
         } else {
-            card.style.animation = 'none';
-            card.style.opacity = '1';
+            card.style.animation = 'fadeInUp 0.4s ease-out forwards';
+            card.style.animationDelay = '0s'; 
         }
         
         const isFav = favorites.includes(book.id);
@@ -297,10 +303,10 @@ function renderResults(books) {
         };
         fragment.appendChild(card);
 
-        // Fetch Logic: Requests Small Cover (-S.jpg)
+        // Fetch HD Covers (-M.jpg)
         if (coverCache[book.title]) {
              const img = card.querySelector('.shelf-cover-img');
-             const url = coverCache[book.title].replace('-M.jpg', '-S.jpg'); // Ensure small
+             const url = coverCache[book.title];
              img.src = url;
              img.onload = () => { img.style.opacity = '1'; };
         } else {
@@ -308,7 +314,7 @@ function renderResults(books) {
             .then(res => res.json())
             .then(data => {
                 if (data.docs && data.docs[0] && data.docs[0].cover_i) {
-                    const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-S.jpg`; // S size
+                    const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`; // HD Size
                     coverCache[book.title] = url;
                     const img = document.getElementById(coverId);
                     if (img) {
@@ -449,8 +455,9 @@ async function openModal(book) {
             spine.onclick = () => openModal(n);
             neighborsList.appendChild(spine);
 
+            // Fetch HD Covers (-M.jpg)
             if (coverCache[n.title]) {
-                const url = coverCache[n.title].replace('-S.jpg', '-M.jpg');
+                const url = coverCache[n.title];
                 spine.classList.add('has-cover');
                 spine.style.backgroundImage = `url(${url})`;
                 spine.style.backgroundSize = 'cover';
