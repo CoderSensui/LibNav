@@ -1,4 +1,4 @@
-/* app.js - vFinal (Stable + Brown Spines + Mobile Button) */
+/* app.js - vFinal (Stable + Device Detection + UI Cleanup) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -39,27 +39,38 @@ async function init() {
     await LibraryDB.init(); 
     
     const urlParams = new URLSearchParams(window.location.search);
+    let viewMode = urlParams.get('view'); 
     const bookId = urlParams.get('book');
-    const viewMode = urlParams.get('view'); 
 
+    // --- NEW: AUTO-DETECT DEVICE & FIX URL ---
+    // Checks the browser's User Agent or screen width
+    const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    const detectedView = isMobileDevice ? 'mobile' : 'pc';
+
+    // If the URL is missing the parameter, or the user messed with it, force correct it:
+    if (viewMode !== detectedView) {
+        viewMode = detectedView;
+        urlParams.set('view', viewMode);
+        window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
+    }
+
+    // --- ROUTING ---
     if (bookId) {
         const allBooks = LibraryDB.getBooks();
         const deepLinkedBook = allBooks.find(b => b.id == bookId);
         if (deepLinkedBook) {
-            
-            // Fix 1: Add mobile view class BEFORE opening the modal
             if (viewMode === 'mobile') {
                 document.body.classList.add('mobile-view-active');
                 if(document.querySelector('.close-modal')) document.querySelector('.close-modal').style.display = 'none';
             } else {
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
-            
             openModal(deepLinkedBook);
         }
-    }
-
-    if (viewMode !== 'mobile') {
+    } 
+    
+    // Only load the main library homepage if we are NOT in the active mobile navigation map
+    if (!document.body.classList.contains('mobile-view-active')) {
         loadFeaturedBook(); 
         performSearch(''); 
         resetIdleTimer();
@@ -303,6 +314,7 @@ document.getElementById('stats-trigger').onclick = () => {
     `;
     document.getElementById('stats-modal').classList.add('active');
 };
+
 function updateHistory(title) { let hist = JSON.parse(localStorage.getItem('search_history')) || []; hist.push(title); localStorage.setItem('search_history', JSON.stringify(hist)); }
 
 const bookModal = document.getElementById('book-modal');
@@ -319,9 +331,6 @@ async function openModal(book) {
     document.getElementById('modal-author').innerText = book.author;
     document.getElementById('modal-book-id').innerText = book.id;
     document.getElementById('modal-genre').innerText = book.genre;
-
-    // Fix 3: Removed the old display logic for the mobile action area 
-    // from here, since updateCarousel now handles it properly.
 
     qrContainer.innerHTML = '';
     const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
@@ -343,7 +352,6 @@ async function openModal(book) {
     if (neighbors.length > 0) {
         neighborsArea.style.display = 'block';
         
-        // Brown Palette
         const spineColors = [
             '#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', 
             '#8D6E63', '#3b2f2f', '#4a3728', '#5c4033', '#654321' 
@@ -369,7 +377,6 @@ async function openModal(book) {
 }
 
 function updateCarousel() {
-    // Fix 2: Added dynamic step logic for the 'I Found It!' button
     const actionArea = document.getElementById('mobile-action-area');
 
     if (currentImages.length > 0) {
@@ -437,32 +444,29 @@ const lightbulbSVG = '<svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.
 themeBtn.onclick = () => {
     document.body.classList.toggle('light-mode');
     const isLight = document.body.classList.contains('light-mode');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
     themeBtn.innerHTML = isLight ? moonSVG : lightbulbSVG;
-    localStorage.setItem('libnav_theme', isLight ? 'light' : 'dark');
 };
 
 function loadTheme() {
-    const savedTheme = localStorage.getItem('libnav_theme');
-    if (savedTheme === 'light') {
+    if(localStorage.getItem('theme') === 'light') {
         document.body.classList.add('light-mode');
-        themeBtn.innerHTML = moonSVG;
+        themeBtn.innerHTML = moonSVG; 
     } else {
         themeBtn.innerHTML = lightbulbSVG;
     }
 }
+
 // --- SUCCESS SCREEN LOGIC ---
 function showSuccessScreen() {
-    // Hide the book modal to clean up the background
     document.getElementById('book-modal').classList.remove('active');
-    
-    // Trigger the celebration screen
     document.getElementById('success-modal').classList.add('active');
 }
 
 function closeSuccessScreen() {
     document.getElementById('success-modal').classList.remove('active');
-    
-    // Redirects them back to the main search page out of mobile mode
+    // Clears the parameters and sends them to the main library page seamlessly
     window.location.href = window.location.pathname; 
 }
+
 init();
