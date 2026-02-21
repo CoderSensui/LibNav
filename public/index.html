@@ -32,8 +32,6 @@
         </div>
         <div class="menu-content">
             <div class="sidebar-buttons">
-                <button id="virtual-shelf-btn" class="quick-btn wide" style="border-color: var(--primary-pink); color: var(--primary-pink);">✨ Virtual Shelf</button>
-                <div style="height:1px; background:var(--border-color); margin:10px 0;"></div>
                 <button class="quick-btn wide" data-genre="All">All Books (A-Z)</button>
                 <button class="quick-btn wide" data-genre="Fiction">Fiction</button>
                 <button class="quick-btn wide" data-genre="Non-Fiction">Non-Fiction</button>
@@ -86,12 +84,10 @@
         </div>
 
         <div id="featured-container"></div>
-        <div id="results-area"></div>
         
-        <div id="virtual-shelf-area" style="display: none;">
-            <h2 class="text-pink" style="text-align:center; margin-bottom:20px; font-family:var(--font-head);">📚 Virtual Shelf</h2>
-            <div id="shelf-grid" class="shelf-grid"></div>
-        </div>
+        <h2 id="section-title" class="text-pink" style="margin: 20px 0 15px 10px; font-size: 1.2rem; font-family:var(--font-head); display: none;">Results</h2>
+        
+        <div id="results-area" class="shelf-grid"></div>
     </div>
 
     <div class="floating-actions">
