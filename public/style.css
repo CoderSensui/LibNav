@@ -220,6 +220,14 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
     box-shadow: 0 10px 20px rgba(0,0,0,0.6);
 }
 
+/* Tweaks for the real book covers */
+.book-spine.has-cover {
+    writing-mode: horizontal-tb; /* Resets text so it doesn't mess up image */
+    color: transparent; /* Hides text so only cover shows */
+    text-shadow: none;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
 .floating-actions { position: fixed; bottom: 30px; left: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 90; }
 .float-btn { width: 55px; height: 55px; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow); display: flex; justify-content: center; align-items: center; color: var(--primary-pink); transition: 0.3s var(--ease-bounce); flex-shrink: 0; }
 .float-btn:hover { transform: scale(1.1) rotate(5deg); box-shadow: 0 0 15px rgba(255, 196, 214, 0.5); }
