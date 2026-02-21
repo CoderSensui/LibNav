@@ -101,7 +101,7 @@ chatInput.addEventListener('keypress', (e) => {
 
 async function sendMessage() {
     const text = chatInput.value.trim();
-    if (!text) return;
+    if (!text) return; // Do nothing if input is empty
 
     // 1. Show user message
     addMessage(text, 'user-msg');
@@ -129,17 +129,16 @@ Rules:
 
         const safeApiKey = GEMINI_API_KEY.trim();
 
-        if (!safeApiKey || safeApiKey === "PASTE_YOUR_API_KEY_HERE") {
+        if (!safeApiKey || safeApiKey === "AIzaSyA64z6Ym8mRh3CxG2eNPeDFgG8kmp0xsvY") {
             throw new Error("API Key is missing! Please add it to app.js");
         }
 
-        // 4. API Call - Reverted to highly stable gemini-pro endpoint
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${safeApiKey}`, {
+        // 4. API Call - UPGRADED TO STABLE 'v1' API
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${safeApiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 contents: [{ 
-                    role: "user", 
                     parts: [{ text: promptText }] 
                 }] 
             })
@@ -147,21 +146,22 @@ Rules:
 
         const data = await response.json();
 
+        // 5. Catch exact errors
         if (!response.ok) {
             console.error("API Details:", data);
-            alert("Google API Error: " + (data.error?.message || "Unknown Error"));
             throw new Error(data.error?.message || "API Connection Failed");
         }
 
         const aiText = data.candidates[0].content.parts[0].text;
 
-        // 5. Remove Loading & Show Result
+        // 6. Remove Loading & Show Result
         document.getElementById(loadingId).remove();
         addMessage(aiText, 'bot-msg');
 
     } catch (error) {
         document.getElementById(loadingId).remove();
-        addMessage("Sorry, my brain is offline right now! Error: " + error.message, 'bot-msg');
+        // Print the specific error directly to the chat bubble
+        addMessage("⚠️ Error: " + error.message, 'bot-msg');
         console.error("Libby Error:", error);
     }
 }
