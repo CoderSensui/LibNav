@@ -1,4 +1,4 @@
-/* app.js - vFinal (Verified Device Routing + Clean Modal UI) */
+/* app.js - vFinal (Verified Device Routing + API Book Covers) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -341,6 +341,7 @@ async function openModal(book) {
     currentImageIndex = 0; 
     updateCarousel(); 
 
+    // --- VIRTUAL SHELF WITH API BOOK COVERS ---
     const allBooks = LibraryDB.getBooks();
     const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
     
@@ -366,6 +367,19 @@ async function openModal(book) {
 
             spine.onclick = () => openModal(n);
             neighborsList.appendChild(spine);
+
+            // Fetch Real Cover from Open Library API
+            fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(n.title)}&limit=1`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.docs && data.docs[0] && data.docs[0].cover_i) {
+                        const coverUrl = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
+                        spine.classList.add('has-cover');
+                        spine.style.backgroundImage = `url(${coverUrl})`;
+                        spine.style.backgroundSize = 'cover';
+                        spine.style.backgroundPosition = 'center';
+                    }
+                }).catch(err => console.log("No cover found for", n.title));
         });
     } else neighborsArea.style.display = 'none';
     
