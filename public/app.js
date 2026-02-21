@@ -129,7 +129,7 @@ Rules:
 
         const safeApiKey = GEMINI_API_KEY.trim();
 
-        if (!safeApiKey || safeApiKey === "AIzaSyA64z6Ym8mRh3CxG2eNPeDFgG8kmp0xsvY") {
+        if (!safeApiKey || safeApiKey === "") {
             throw new Error("API Key is missing! Please add it to app.js");
         }
 
