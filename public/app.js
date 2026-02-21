@@ -1,7 +1,4 @@
-/* app.js - vFinal (OpenAI ChatGPT Integration) */
-
-// Your OpenAI API Key is plugged in here!
-const OPENAI_API_KEY = "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";
+/* app.js - vFinal (Clean, No AI) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -24,20 +21,15 @@ const feedbackForm = document.getElementById('feedback-form');
 const fbStatus = document.getElementById('fb-status');
 const fbSubmitBtn = document.getElementById('fb-submit-btn');
 
-// CHAT ELEMENTS
-const chatOpenBtn = document.getElementById('chat-open-btn');
-const chatModal = document.getElementById('chat-modal');
-const closeChatBtn = document.getElementById('close-chat-btn');
-const chatInput = document.getElementById('chat-input');
-const sendChatBtn = document.getElementById('send-chat-btn');
-const chatMessages = document.getElementById('chat-messages');
-
 let selectedGenres = new Set(); 
 let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
 const IDLE_LIMIT = 30000;
 let idleTimeout;
+
+// Global Memory Caches 
 const coverCache = {}; 
 const authorCache = {}; 
+
 let currentImages = [];
 let currentImageIndex = 0;
 const carouselImg = document.getElementById('carousel-img');
@@ -54,7 +46,9 @@ async function init() {
     const bookId = urlParams.get('book');
 
     const isMobileDevice = window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-    if (isMobileDevice) document.body.classList.add('is-mobile-device');
+    if (isMobileDevice) {
+        document.body.classList.add('is-mobile-device');
+    }
 
     if (bookId) {
         const allBooks = LibraryDB.getBooks();
@@ -76,114 +70,6 @@ async function init() {
         resetIdleTimer();
     }
 }
-
-// --- LIBBY CHAT LOGIC (Powered by OpenAI) ---
-
-chatOpenBtn.addEventListener('click', () => {
-    chatModal.classList.add('active');
-    setTimeout(() => chatInput.focus(), 100);
-});
-
-closeChatBtn.addEventListener('click', () => {
-    chatModal.classList.remove('active');
-});
-
-sendChatBtn.addEventListener('click', () => {
-    sendMessage();
-});
-
-chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        sendMessage();
-    }
-});
-
-async function sendMessage() {
-    const text = chatInput.value.trim();
-    if (!text) return; 
-
-    // 1. Show user message
-    addMessage(text, 'user-msg');
-    chatInput.value = '';
-    
-    // 2. Show "Thinking..." loading message
-    const loadingId = addMessage("Thinking...", 'bot-msg loading');
-
-    try {
-        // 3. Prepare Context for OpenAI
-        const allBooks = LibraryDB.getBooks();
-        const libraryContext = allBooks.map(b => `- ${b.title} by ${b.author} (${b.genre})`).join("\n");
-
-        const systemPrompt = `You are Libby, a helpful AI librarian for LibNav.
-Here is the current library catalog:
-${libraryContext}
-
-Rules:
-1. Only recommend books from the catalog above.
-2. If the user asks for a book not in the list, apologize and suggest a similar one from the list.
-3. Keep answers short and friendly.
-4. If you recommend a book, put its exact Title in **bold**.`;
-
-        // 4. OpenAI API Call
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({ 
-                model: 'gpt-4o-mini', // Fast, optimized model
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: text }
-                ],
-                temperature: 0.7
-            })
-        });
-
-        const data = await response.json();
-
-        // 5. Catch exact errors
-        if (!response.ok) {
-            console.error("API Details:", data);
-            throw new Error(data.error?.message || "OpenAI API Connection Failed");
-        }
-
-        const aiText = data.choices[0].message.content;
-
-        // 6. Remove Loading & Show Result
-        document.getElementById(loadingId).remove();
-        addMessage(aiText, 'bot-msg');
-
-    } catch (error) {
-        document.getElementById(loadingId).remove();
-        addMessage("⚠️ Error: " + error.message, 'bot-msg');
-        console.error("Libby Error:", error);
-    }
-}
-
-function addMessage(text, className) {
-    const div = document.createElement('div');
-    div.className = `message ${className}`;
-    div.id = 'msg-' + Date.now();
-    
-    try {
-        if (typeof marked !== 'undefined') {
-            div.innerHTML = marked.parse(text); 
-        } else {
-            div.innerText = text;
-        }
-    } catch(e) {
-        div.innerText = text;
-    }
-    
-    chatMessages.appendChild(div);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    return div.id;
-}
-
-// --- END LIBBY LOGIC ---
 
 function loadFeaturedBook() {
     const books = LibraryDB.getBooks();
@@ -225,7 +111,9 @@ function loadFeaturedBook() {
                 const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
                 coverCache[featuredBook.title] = url;
                 const el = document.getElementById(featCoverId);
-                if (el) el.style.backgroundImage = `url(${url})`;
+                if (el) {
+                    el.style.backgroundImage = `url(${url})`;
+                }
             }
         }).catch(err => console.log(err));
     }
@@ -260,7 +148,6 @@ function goIdle() {
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
     closeSidebar();
     filterMenu.style.display = 'none';
-    chatModal.classList.remove('active');
     screensaver.classList.add('active');
 }
 window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
