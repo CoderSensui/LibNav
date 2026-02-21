@@ -286,6 +286,95 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 
 @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
+/* --- NEW AUTHOR HEADSHOT STYLES --- */
+.modal-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.author-headshot {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-pink);
+    background: var(--bg-chip);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    animation: popIn 0.4s var(--ease-bounce);
+}
+
+.modal-text-group {
+    text-align: left;
+}
+
+/* --- NEW VIRTUAL SHELF GRID STYLES --- */
+.shelf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 20px;
+    padding: 10px;
+}
+
+.shelf-book-card {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: transform 0.2s;
+    opacity: 0;
+    animation: fadeInUp 0.5s var(--ease-bounce) forwards;
+}
+
+.shelf-book-card:hover {
+    transform: translateY(-5px);
+}
+
+.shelf-cover {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    background-color: #5D4037;
+    border-radius: 8px 12px 12px 8px; /* Look like a book spine */
+    background-size: cover;
+    background-position: center;
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 10px;
+    border-left: 4px solid rgba(255,255,255,0.1);
+}
+
+.placeholder-text {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    text-align: center;
+    color: rgba(255,255,255,0.8);
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    transition: opacity 0.3s;
+}
+
+.shelf-info {
+    text-align: center;
+}
+
+.shelf-title {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--text-main);
+    line-height: 1.2;
+    margin-bottom: 2px;
+}
+
+.shelf-author {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
 /* =========================================================
    1. ALL MOBILE PHONES (Clean Modal UI)
    ========================================================= */
@@ -334,6 +423,7 @@ body.companion-mode-active .hero,
 body.companion-mode-active .floating-actions,
 body.companion-mode-active .featured-section,
 body.companion-mode-active #results-area,
+body.companion-mode-active #virtual-shelf-area, /* Hide shelf in map mode */
 body.companion-mode-active #screensaver {
     display: none !important;
 }
