@@ -1,12 +1,12 @@
 /* database.js - Robust Firebase Cloud Engine */
 
 const LibraryDB = {
-    // ⚠️ REPLACE WITH YOUR ACTUAL FIREBASE URL
+    // ⚠️ YOUR SPECIFIC FIREBASE URL
     dbUrl: "https://libnav-dc2c8-default-rtdb.firebaseio.com/", 
     books: [],
 
     init: async function() {
-        console.log("📡 Connecting to Global Cloud...");
+        console.log("🔥 Connecting to LibNav Global Database...");
         try {
             const response = await fetch(`${this.dbUrl}.json`);
             if (!response.ok) throw new Error("Cloud Connection Failed");
@@ -24,7 +24,7 @@ const LibraryDB = {
                 this.books = []; // Fallback if database is completely empty
             }
 
-            console.log(`✅ Success: ${this.books.length} books found.`);
+            console.log(`✅ Success: ${this.books.length} books loaded.`);
             return true;
         } catch (error) {
             console.error("❌ Firebase Error:", error);
