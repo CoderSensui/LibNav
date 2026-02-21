@@ -109,35 +109,42 @@ async function sendMessage() {
     try {
         // 3. Prepare Context for Gemini
         const allBooks = LibraryDB.getBooks();
-        // Create a lightweight list of books for the AI to read
-        const libraryContext = allBooks.map(b => `${b.title} by ${b.author} (${b.genre})`).join("\n");
+        const libraryContext = allBooks.map(b => `- ${b.title} by ${b.author} (${b.genre})`).join("\n");
 
-        const prompt = `
-        You are Libby, a helpful AI librarian for LibNav.
-        Here is the current library catalog:
-        ${libraryContext}
+        const promptText = `You are Libby, a helpful AI librarian for LibNav.
+Here is the current library catalog:
+${libraryContext}
 
-        User Request: "${text}"
+User Request: "${text}"
 
-        Rules:
-        1. Only recommend books from the catalog above.
-        2. If the user asks for a book not in the list, apologize and suggest a similar one from the list.
-        3. Keep answers short and friendly.
-        4. If you recommend a book, put its exact Title in **bold**.
-        `;
+Rules:
+1. Only recommend books from the catalog above.
+2. If the user asks for a book not in the list, apologize and suggest a similar one from the list.
+3. Keep answers short and friendly.
+4. If you recommend a book, put its exact Title in **bold**.`;
 
-        // 4. Call Gemini API (Upgraded to 1.5-Flash for faster, reliable responses)
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        // Clean the API key just in case there are hidden spaces
+        const safeApiKey = GEMINI_API_KEY.trim();
+
+        // 4. Call Gemini API (Added role: "user" to fix the 400 Bad Request error)
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${safeApiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            body: JSON.stringify({ 
+                contents: [{ 
+                    role: "user", 
+                    parts: [{ text: promptText }] 
+                }] 
+            })
         });
 
         const data = await response.json();
 
-        // 5. Catch exact API errors (like invalid keys)
+        // 5. Check for Google API Errors
         if (!response.ok) {
             console.error("API Details:", data);
+            // This will create a pop-up on your phone telling us EXACTLY what is wrong!
+            alert("Google API Error: " + (data.error?.message || "Unknown Error"));
             throw new Error(data.error?.message || "API Connection Failed");
         }
 
@@ -149,27 +156,11 @@ async function sendMessage() {
 
     } catch (error) {
         document.getElementById(loadingId).remove();
-        addMessage("Sorry, my brain is offline right now! Check the console for details.", 'bot-msg');
+        addMessage("Sorry, my brain is offline right now!", 'bot-msg');
         console.error("Libby Error:", error.message);
     }
 }
 
-function addMessage(text, className) {
-    const div = document.createElement('div');
-    div.className = `message ${className}`;
-    div.id = 'msg-' + Date.now();
-    
-    // Safety fallback in case the Markdown parser doesn't load instantly
-    try {
-        div.innerHTML = marked.parse(text); 
-    } catch(e) {
-        div.innerText = text;
-    }
-    
-    chatMessages.appendChild(div);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    return div.id;
-}
 // --- END LIBBY LOGIC ---
 
 function loadFeaturedBook() {
