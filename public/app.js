@@ -1,4 +1,4 @@
-/* app.js - Full Monolith File */
+/* app.js - Full Monolith Code */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -182,7 +182,6 @@ window.handleDelete = async function(id) {
 // ==========================================
 // OPENLIBRARY COVER FALLBACK ALGORITHM
 // ==========================================
-// Fixes strict API bugs by trying [Title+Author], then just [Title]
 function fetchCoverWithFallback(title, author, elementId, isImgTag) {
     if (coverCache[title]) {
         applyCoverToElement(coverCache[title], elementId, isImgTag);
@@ -225,6 +224,12 @@ function applyCoverToElement(url, elementId, isImgTag) {
     }
 }
 
+// Global Helper to safely click IDs without Syntax Errors
+window.openModalById = function(id) {
+    const book = LibraryDB.getBooks().find(b => b.id == id);
+    if(book) openModal(book);
+}
+
 function loadFeaturedBook() {
     const books = LibraryDB.getBooks();
     if(books.length === 0) return;
@@ -243,7 +248,7 @@ function loadFeaturedBook() {
     featuredContainer.innerHTML = `
         <div class="featured-section">
             <span class="featured-label">Recommended for you</span>
-            <div class="featured-card" onclick="openModal(LibraryDB.getBooks().find(b => b.id == ${featuredBook.id}))">
+            <div class="featured-card" onclick="openModalById('${featuredBook.id}')">
                 <div class="featured-cover" id="feat-cover-${featuredBook.id}"></div>
                 <div class="featured-info">
                     <h2 style="font-size:1.3rem; margin-bottom:2px; line-height: 1.2;">${featuredBook.title}</h2>
@@ -392,11 +397,12 @@ function performSearch(term) {
     renderResults(matches);
 }
 
+// Fixed bug by using safe programmatic creation method
 function renderResults(books) {
     resultsArea.innerHTML = '';
     
     if (books.length === 0) {
-        resultsArea.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; color:var(--text-muted); padding:40px 20px;">No books found. Try adjusting your search!</div>';
+        resultsArea.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; color:var(--text-muted); padding:40px 20px;">No books found matching criteria.</div>';
         return;
     }
     
@@ -405,13 +411,7 @@ function renderResults(books) {
     books.forEach((book, index) => {
         const card = document.createElement('div');
         card.className = 'shelf-book-card';
-        
-        if (index < 12) {
-            card.style.animationDelay = `${index * 0.04}s`;
-        } else {
-            card.style.animation = 'fadeInUp 0.4s ease-out forwards';
-            card.style.animationDelay = '0s'; 
-        }
+        card.style.animationDelay = (index < 12) ? `${index * 0.04}s` : '0s';
         
         const isFav = favorites.includes(book.id);
         const coverId = `img-${book.id}`;
@@ -419,7 +419,7 @@ function renderResults(books) {
         card.innerHTML = `
             <div class="shelf-cover-wrapper">
                 <img id="${coverId}" class="shelf-cover-img" src="" loading="lazy" alt="${book.title}">
-                <button class="fav-btn-grid ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, ${book.id})">
+                <button class="fav-btn-grid ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${book.id}')">
                     <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
                 </button>
             </div>
@@ -441,10 +441,12 @@ function renderResults(books) {
     resultsArea.appendChild(fragment);
 }
 
-function toggleFavorite(e, bookId) {
+window.toggleFavorite = function(e, bookId) {
     e.stopPropagation(); 
-    const index = favorites.indexOf(bookId);
-    if (index === -1) favorites.push(bookId); else favorites.splice(index, 1);
+    // Generic check to avoid string/number ID mismatch issues
+    const index = favorites.findIndex(id => id == bookId);
+    if (index === -1) favorites.push(bookId); 
+    else favorites.splice(index, 1);
     localStorage.setItem('libnav_favs', JSON.stringify(favorites));
     performSearch(searchInput.value); 
 }
@@ -544,18 +546,22 @@ async function openModal(book) {
     currentImageIndex = 0; 
     updateCarousel(); 
 
+    // --- VIRTUAL SHELF (NEIGHBORS) - REVERTED TO SPINES ---
     const allBooks = LibraryDB.getBooks();
     const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
     
     neighborsList.innerHTML = '';
     if (neighbors.length > 0) {
         neighborsArea.style.display = 'block';
+        
+        // Classic Brown/Tan Palette for Spines
         const spineColors = ['#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', '#8D6E63'];
 
         neighbors.forEach(n => {
             const spine = document.createElement('div');
-            spine.className = 'book-spine';
+            spine.className = 'book-spine'; // Uses CSS to look like a spine
             spine.innerText = n.title;
+            
             const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
             spine.style.height = `${randomHeight}px`;
             spine.style.backgroundColor = spineColors[Math.floor(Math.random() * spineColors.length)];
@@ -626,7 +632,13 @@ function loadTheme() {
     else { themeBtn.innerHTML = lightbulbSVG; }
 }
 
-function showSuccessScreen() { document.getElementById('book-modal').classList.remove('active'); document.getElementById('success-modal').classList.add('active'); }
-function closeSuccessScreen() { document.getElementById('success-modal').classList.remove('active'); window.location.href = window.location.pathname; }
+window.showSuccessScreen = function() { 
+    document.getElementById('book-modal').classList.remove('active'); 
+    document.getElementById('success-modal').classList.add('active'); 
+}
+window.closeSuccessScreen = function() { 
+    document.getElementById('success-modal').classList.remove('active'); 
+    window.location.href = window.location.pathname; 
+}
 
 init();
