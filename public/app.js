@@ -1,4 +1,4 @@
-/* app.js - Full Integrated Code (582 Lines) */
+/* app.js - Full Monolith File */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -22,7 +22,7 @@ const fbStatus = document.getElementById('fb-status');
 const fbSubmitBtn = document.getElementById('fb-submit-btn');
 
 // --- SECRET ADMIN ELEMENTS ---
-const secretTrigger = document.getElementById('secret-admin-btn');
+const secretAdminBtn = document.getElementById('secret-admin-btn');
 const adminModal = document.getElementById('admin-modal');
 const adminAuthBtn = document.getElementById('admin-auth-btn');
 const adminPassInput = document.getElementById('admin-password');
@@ -33,11 +33,12 @@ const imageInputsContainer = document.getElementById('image-inputs-container');
 const addBookBtn = document.getElementById('add-book-btn');
 const adminBookList = document.getElementById('admin-book-list');
 
-// --- MODAL ELEMENTS ---
-const bookModal = document.getElementById('book-modal');
-const neighborsArea = document.getElementById('neighbors-area');
-const neighborsList = document.getElementById('neighbors-list');
-const qrContainer = document.getElementById('qrcode');
+let selectedGenres = new Set(); 
+let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
+const IDLE_LIMIT = 30000;
+let idleTimeout;
+const coverCache = {}; 
+const authorCache = {}; 
 let currentImages = [];
 let currentImageIndex = 0;
 const carouselImg = document.getElementById('carousel-img');
@@ -45,23 +46,16 @@ const prevBtn = document.getElementById('prev-img-btn');
 const nextBtn = document.getElementById('next-img-btn');
 const stepCounter = document.getElementById('step-counter');
 
-let selectedGenres = new Set(); 
-let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
-const IDLE_LIMIT = 30000;
-let idleTimeout;
-const coverCache = {}; 
-const authorCache = {}; 
-
 async function init() {
     loadTheme();
     // Initialize Cloud Database
-    const connectionSuccess = await LibraryDB.init(); 
+    const connected = await LibraryDB.init(); 
     
-    if (!connectionSuccess) {
-        resultsArea.innerHTML = '<div style="text-align:center; padding:20px;">Unable to connect to the global database.</div>';
+    if (!connected) {
+        resultsArea.innerHTML = '<div style="text-align:center; padding:20px;">Connection Error to Firebase.</div>';
         return;
     }
-
+    
     const urlParams = new URLSearchParams(window.location.search);
     const viewMode = urlParams.get('view'); 
     const bookId = urlParams.get('book');
@@ -85,7 +79,9 @@ async function init() {
 
     if (!document.body.classList.contains('companion-mode-active')) {
         loadFeaturedBook(); 
-        performSearch(''); // Show all books initially
+        
+        // BUG FIX: Keeps grid hidden on initial load
+        resultsArea.innerHTML = ''; 
         resetIdleTimer();
     }
 }
@@ -94,57 +90,50 @@ async function init() {
 // SECRET ADMIN PANEL LOGIC 
 // ==========================================
 
-// 1. Trigger Secret Modal
-secretTrigger.addEventListener('click', () => {
+secretAdminBtn.addEventListener('click', () => {
     adminModal.classList.add('active');
+    closeSidebar();
 });
 
-// 2. Authentication
 adminAuthBtn.addEventListener('click', () => {
     if(adminPassInput.value === 'admin123') {
         adminLoginScreen.style.display = 'none';
         adminDashboard.style.display = 'block';
-        updateImageInputs(); // Generate inputs dynamically based on default dropdown
+        updateImageInputs(); 
         renderAdminList();
     } else {
-        alert('Access Denied. Invalid Password.');
+        alert('Wrong Password!');
     }
 });
 
-// 3. Dynamic Step Generator
 function updateImageInputs() {
     const count = parseInt(stepSelect.value);
-    imageInputsContainer.innerHTML = ''; // Clear existing
+    imageInputsContainer.innerHTML = ''; 
     
     for (let i = 1; i <= count; i++) {
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'form-input step-url-input';
-        // Style it to stand out
-        input.style.borderLeft = "4px solid var(--primary-pink)";
-        // If it's the last step, mark it as arrival
-        input.placeholder = (i === count) ? `Final Arrival Image Link` : `Step ${i} Image Link`;
+        input.placeholder = (i === count) ? `Final Image URL (Arrived)` : `Step ${i} Image URL`;
         imageInputsContainer.appendChild(input);
     }
 }
 
 stepSelect.addEventListener('change', updateImageInputs);
 
-// 4. Add Book to Global Firebase
 addBookBtn.addEventListener('click', async () => {
     const title = document.getElementById('new-title').value.trim();
     const author = document.getElementById('new-author').value.trim();
     const genre = document.getElementById('new-genre').value;
     
-    // Gather all dynamically generated image URLs
     const urlInputs = document.querySelectorAll('.step-url-input');
     const imageUrls = Array.from(urlInputs).map(input => input.value.trim());
     
     if(!title || !author) return alert('Please fill in title and author.');
-    if(imageUrls.some(url => url === "")) return alert('Please fill in all navigation step image links.');
+    if(imageUrls.some(url => url === "")) return alert('Please fill in all image URLs.');
     
     addBookBtn.disabled = true;
-    addBookBtn.innerText = "Syncing with Cloud...";
+    addBookBtn.innerText = "Saving to Cloud...";
     
     const newBook = {
         id: Date.now(), 
@@ -157,44 +146,84 @@ addBookBtn.addEventListener('click', async () => {
     const success = await LibraryDB.addBook(newBook);
     
     if(success) {
-        alert('Book saved globally!');
+        alert('Book Added Globally!');
         document.getElementById('new-title').value = '';
         document.getElementById('new-author').value = '';
-        updateImageInputs(); // Reset inputs
+        updateImageInputs(); 
         renderAdminList();
         performSearch(searchInput.value);
     }
     
     addBookBtn.disabled = false;
-    addBookBtn.innerText = "+ Save to Firebase";
+    addBookBtn.innerText = "+ Add Book to Cloud";
 });
 
-// 5. Delete Book
 function renderAdminList() {
     const books = LibraryDB.getBooks();
     adminBookList.innerHTML = books.map(b => `
         <div style="background:var(--bg-chip); padding:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center;">
-            <div style="overflow:hidden; padding-right:10px;">
+            <div style="overflow:hidden;">
                 <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${b.title}</strong>
                 <span style="font-size:0.8rem; color:var(--text-muted);">${b.author}</span>
             </div>
-            <button onclick="handleDelete(${b.id})" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; flex-shrink:0;">Delete</button>
+            <button onclick="handleDelete(${b.id})" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; flex-shrink:0; margin-left:10px;">Delete</button>
         </div>
     `).join('');
 }
 
 window.handleDelete = async function(id) {
-    if(confirm('Delete this book globally for all users?')) {
+    if(confirm('Delete this book globally from the cloud?')) {
         await LibraryDB.deleteBook(id);
         renderAdminList();
         performSearch(searchInput.value); 
     }
 };
 
+// ==========================================
+// OPENLIBRARY COVER FALLBACK ALGORITHM
+// ==========================================
+// Fixes strict API bugs by trying [Title+Author], then just [Title]
+function fetchCoverWithFallback(title, author, elementId, isImgTag) {
+    if (coverCache[title]) {
+        applyCoverToElement(coverCache[title], elementId, isImgTag);
+        return;
+    }
 
-// ==========================================
-// CORE RENDERING & SEARCH LOGIC
-// ==========================================
+    const applyUrl = (coverId) => {
+        const url = `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`;
+        coverCache[title] = url;
+        applyCoverToElement(url, elementId, isImgTag);
+    };
+
+    // Try 1: Title + Author
+    fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.docs && data.docs[0] && data.docs[0].cover_i) {
+            applyUrl(data.docs[0].cover_i);
+        } else {
+            // Try 2: Fallback to Title only
+            fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&limit=1`)
+            .then(res2 => res2.json())
+            .then(data2 => {
+                if (data2.docs && data2.docs[0] && data2.docs[0].cover_i) {
+                    applyUrl(data2.docs[0].cover_i);
+                }
+            }).catch(() => {});
+        }
+    }).catch(() => {});
+}
+
+function applyCoverToElement(url, elementId, isImgTag) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    if (isImgTag) {
+        el.src = url;
+        el.onload = () => el.style.opacity = '1';
+    } else {
+        el.style.backgroundImage = `url(${url})`;
+    }
+}
 
 function loadFeaturedBook() {
     const books = LibraryDB.getBooks();
@@ -211,12 +240,10 @@ function loadFeaturedBook() {
         localStorage.setItem('libnav_daily_pick', JSON.stringify({ date: today, bookId: featuredBook.id }));
     }
     
-    if(!featuredBook) return; // Fail safe
-
     featuredContainer.innerHTML = `
         <div class="featured-section">
             <span class="featured-label">Recommended for you</span>
-            <div class="featured-card" onclick="openModalById(${featuredBook.id})">
+            <div class="featured-card" onclick="openModal(LibraryDB.getBooks().find(b => b.id == ${featuredBook.id}))">
                 <div class="featured-cover" id="feat-cover-${featuredBook.id}"></div>
                 <div class="featured-info">
                     <h2 style="font-size:1.3rem; margin-bottom:2px; line-height: 1.2;">${featuredBook.title}</h2>
@@ -226,33 +253,8 @@ function loadFeaturedBook() {
             </div>
         </div>`;
 
-    fetchCoverData(featuredBook.title, featuredBook.author, `feat-cover-${featuredBook.id}`, false);
-}
-
-// Global Helper to Fetch Covers from OpenLibrary
-function fetchCoverData(title, author, elementId, isImgTag = true) {
-    if (coverCache[title]) {
-        const el = document.getElementById(elementId);
-        if (el) {
-            if (isImgTag) { el.src = coverCache[title]; el.style.opacity = '1'; } 
-            else { el.style.backgroundImage = `url(${coverCache[title]})`; }
-        }
-        return;
-    }
-
-    fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1`)
-    .then(res => res.json())
-    .then(data => {
-        if (data.docs && data.docs[0] && data.docs[0].cover_i) {
-            const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
-            coverCache[title] = url;
-            const el = document.getElementById(elementId);
-            if (el) {
-                if (isImgTag) { el.src = url; el.style.opacity = '1'; } 
-                else { el.style.backgroundImage = `url(${url})`; }
-            }
-        }
-    }).catch(() => {});
+    // Apply Smart Fallback
+    fetchCoverWithFallback(featuredBook.title, featuredBook.author, `feat-cover-${featuredBook.id}`, false);
 }
 
 homeBtn.addEventListener('click', () => {
@@ -263,10 +265,9 @@ homeBtn.addEventListener('click', () => {
     hero.classList.remove('minimized');
     featuredContainer.style.display = 'block';
     homeBtn.classList.add('home-hidden');
-    performSearch(''); // Refresh default list
+    resultsArea.innerHTML = ''; // Hides books on Home click
 });
 
-// Sidebar Controls
 function openSidebar() { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); filterMenu.style.display = 'none'; }
 function closeSidebar() { sideMenu.classList.remove('active'); sideMenuOverlay.classList.remove('active'); }
 hamburgerBtn.addEventListener('click', openSidebar);
@@ -279,7 +280,16 @@ filterToggle.addEventListener('click', (e) => {
     closeSidebar();
 });
 
-// Category Buttons logic
+function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(goIdle, IDLE_LIMIT); }
+function goIdle() {
+    homeBtn.click();
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+    closeSidebar();
+    filterMenu.style.display = 'none';
+    screensaver.classList.add('active');
+}
+window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
+
 quickBtns.forEach(btn => {
     if(btn.id === 'open-feedback-btn') return;
     btn.addEventListener('click', () => {
@@ -353,16 +363,24 @@ searchInput.addEventListener('input', (e) => {
 function performSearch(term) {
     let books = LibraryDB.getBooks();
     term = term.toLowerCase().trim();
+    
+    // BUG FIX: Ensure grid stays hidden if empty search & no category
+    if (term === '' && selectedGenres.size === 0) {
+        resultsArea.innerHTML = '';
+        return;
+    }
 
     let matches = books.filter(book => {
         const titleMatch = book.title.toLowerCase().includes(term);
         const authorMatch = book.author.toLowerCase().includes(term);
         let genreMatch = false;
         
-        if (selectedGenres.has('All') || selectedGenres.size === 0) genreMatch = true;
-        else {
+        if (selectedGenres.has('All')) genreMatch = true;
+        else if (selectedGenres.size > 0) {
             if (selectedGenres.has('Favorites') && favorites.includes(book.id)) genreMatch = true;
             if (selectedGenres.has(book.genre)) genreMatch = true;
+        } else {
+            genreMatch = true; 
         }
         return (titleMatch || authorMatch) && genreMatch;
     });
@@ -378,7 +396,7 @@ function renderResults(books) {
     resultsArea.innerHTML = '';
     
     if (books.length === 0) {
-        resultsArea.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; color:var(--text-muted); padding:40px 20px;">No books found matching criteria.</div>';
+        resultsArea.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; color:var(--text-muted); padding:40px 20px;">No books found. Try adjusting your search!</div>';
         return;
     }
     
@@ -387,7 +405,13 @@ function renderResults(books) {
     books.forEach((book, index) => {
         const card = document.createElement('div');
         card.className = 'shelf-book-card';
-        card.style.animationDelay = (index < 12) ? `${index * 0.04}s` : '0s';
+        
+        if (index < 12) {
+            card.style.animationDelay = `${index * 0.04}s`;
+        } else {
+            card.style.animation = 'fadeInUp 0.4s ease-out forwards';
+            card.style.animationDelay = '0s'; 
+        }
         
         const isFav = favorites.includes(book.id);
         const coverId = `img-${book.id}`;
@@ -409,7 +433,9 @@ function renderResults(books) {
             if(!e.target.closest('.fav-btn-grid')) openModal(book); 
         };
         fragment.appendChild(card);
-        fetchCoverData(book.title, book.author, coverId, true);
+
+        // Apply Smart Fallback
+        fetchCoverWithFallback(book.title, book.author, coverId, true);
     });
     
     resultsArea.appendChild(fragment);
@@ -422,111 +448,6 @@ function toggleFavorite(e, bookId) {
     localStorage.setItem('libnav_favs', JSON.stringify(favorites));
     performSearch(searchInput.value); 
 }
-
-// Helper to open modal by ID (used safely by cards and dynamic renders)
-window.openModalById = function(id) {
-    const book = LibraryDB.getBooks().find(b => b.id == id);
-    if (book) openModal(book);
-}
-
-async function openModal(book) {
-    if (!document.body.classList.contains('companion-mode-active')) {
-        updateHistory(book.title);
-    }
-
-    document.getElementById('modal-title').innerText = book.title;
-    document.getElementById('modal-author').innerText = book.author;
-    document.getElementById('modal-book-id').innerText = book.id;
-    document.getElementById('modal-genre').innerText = book.genre;
-
-    // Load Author Headshot
-    const authorImg = document.getElementById('modal-author-pic');
-    authorImg.style.display = 'none'; 
-    authorImg.src = '';
-    
-    if (authorCache[book.author]) {
-         authorImg.src = authorCache[book.author];
-         authorImg.style.display = 'block';
-    } else {
-        fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(book.author)}`)
-        .then(res => res.json())
-        .then(data => {
-            if(data.docs && data.docs[0] && data.docs[0].key) {
-                const authorKey = data.docs[0].key; 
-                const url = `https://covers.openlibrary.org/a/olid/${authorKey}-M.jpg`;
-                authorCache[book.author] = url;
-                authorImg.src = url;
-                authorImg.style.display = 'block';
-            }
-        }).catch(e => console.log(e));
-    }
-
-    // Load QR
-    qrContainer.innerHTML = '';
-    const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
-    new QRCode(qrContainer, {
-        text: deepLink, width: 120, height: 120,
-        colorDark : "#0b1121", colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.M
-    });
-
-    // Reset Map Carousel
-    currentImages = book.images || []; 
-    currentImageIndex = 0; 
-    updateCarousel(); 
-
-    // Visual Shelf Spines
-    const allBooks = LibraryDB.getBooks();
-    const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
-    
-    neighborsList.innerHTML = '';
-    if (neighbors.length > 0) {
-        neighborsArea.style.display = 'block';
-        const spineColors = ['#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', '#8D6E63'];
-
-        neighbors.forEach(n => {
-            const spine = document.createElement('div');
-            spine.className = 'book-spine';
-            spine.innerText = n.title;
-            const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
-            spine.style.height = `${randomHeight}px`;
-            spine.style.backgroundColor = spineColors[Math.floor(Math.random() * spineColors.length)];
-
-            spine.onclick = () => openModal(n);
-            neighborsList.appendChild(spine);
-        });
-    } else neighborsArea.style.display = 'none';
-    
-    bookModal.classList.add('active');
-}
-
-function updateCarousel() {
-    const actionArea = document.getElementById('mobile-action-area');
-    if (currentImages.length > 0) {
-        carouselImg.src = currentImages[currentImageIndex];
-        stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
-        prevBtn.disabled = currentImageIndex === 0;
-        nextBtn.disabled = currentImageIndex === currentImages.length - 1;
-        carouselImg.style.display = 'block';
-        
-        if (actionArea) {
-            if (document.body.classList.contains('is-mobile-device') || document.body.classList.contains('companion-mode-active')) {
-                if (currentImageIndex === currentImages.length - 1) {
-                    actionArea.style.display = 'block';
-                } else { actionArea.style.display = 'none'; }
-            } else { actionArea.style.display = 'none'; }
-        }
-    } else {
-        carouselImg.style.display = 'none';
-        stepCounter.innerText = "No map images available";
-        prevBtn.disabled = true; nextBtn.disabled = true;
-        if (actionArea) actionArea.style.display = 'none';
-    }
-}
-
-// ==========================================
-// UX FEATURES (VOICE, STATS, IDLE)
-// ==========================================
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -579,18 +500,102 @@ document.getElementById('stats-trigger').onclick = () => {
 
 function updateHistory(title) { let hist = JSON.parse(localStorage.getItem('search_history')) || []; hist.push(title); localStorage.setItem('search_history', JSON.stringify(hist)); }
 
-function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(goIdle, IDLE_LIMIT); }
-function goIdle() {
-    if(document.body.classList.contains('companion-mode-active')) return;
-    homeBtn.click();
-    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
-    closeSidebar();
-    filterMenu.style.display = 'none';
-    screensaver.classList.add('active');
-}
-window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
+async function openModal(book) {
+    if (!document.body.classList.contains('companion-mode-active')) {
+        updateHistory(book.title);
+    }
 
-// Feedback Logic
+    document.getElementById('modal-title').innerText = book.title;
+    document.getElementById('modal-author').innerText = book.author;
+    document.getElementById('modal-book-id').innerText = book.id;
+    document.getElementById('modal-genre').innerText = book.genre;
+
+    const authorImg = document.getElementById('modal-author-pic');
+    authorImg.style.display = 'none'; 
+    authorImg.src = '';
+    
+    if (authorCache[book.author]) {
+         authorImg.src = authorCache[book.author];
+         authorImg.style.display = 'block';
+    } else {
+        fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(book.author)}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.docs && data.docs[0] && data.docs[0].key) {
+                const authorKey = data.docs[0].key; 
+                const url = `https://covers.openlibrary.org/a/olid/${authorKey}-M.jpg`;
+                authorCache[book.author] = url;
+                authorImg.src = url;
+                authorImg.style.display = 'block';
+            }
+        }).catch(e => console.log(e));
+    }
+
+    qrContainer.innerHTML = '';
+    const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
+    new QRCode(qrContainer, {
+        text: deepLink,
+        width: 120, height: 120,
+        colorDark : "#0b1121", colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.M
+    });
+
+    currentImages = book.images || []; 
+    currentImageIndex = 0; 
+    updateCarousel(); 
+
+    const allBooks = LibraryDB.getBooks();
+    const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
+    
+    neighborsList.innerHTML = '';
+    if (neighbors.length > 0) {
+        neighborsArea.style.display = 'block';
+        const spineColors = ['#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', '#8D6E63'];
+
+        neighbors.forEach(n => {
+            const spine = document.createElement('div');
+            spine.className = 'book-spine';
+            spine.innerText = n.title;
+            const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
+            spine.style.height = `${randomHeight}px`;
+            spine.style.backgroundColor = spineColors[Math.floor(Math.random() * spineColors.length)];
+
+            spine.onclick = () => openModal(n);
+            neighborsList.appendChild(spine);
+        });
+    } else neighborsArea.style.display = 'none';
+    
+    bookModal.classList.add('active');
+}
+
+function updateCarousel() {
+    const actionArea = document.getElementById('mobile-action-area');
+    if (currentImages.length > 0) {
+        carouselImg.src = currentImages[currentImageIndex];
+        stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
+        prevBtn.disabled = currentImageIndex === 0;
+        nextBtn.disabled = currentImageIndex === currentImages.length - 1;
+        carouselImg.style.display = 'block';
+        
+        if (actionArea) {
+            if (document.body.classList.contains('is-mobile-device') || document.body.classList.contains('companion-mode-active')) {
+                if (currentImageIndex === currentImages.length - 1) {
+                    actionArea.style.display = 'block';
+                } else { actionArea.style.display = 'none'; }
+            } else { actionArea.style.display = 'none'; }
+        }
+    } else {
+        carouselImg.style.display = 'none';
+        stepCounter.innerText = "No map images available";
+        prevBtn.disabled = true; nextBtn.disabled = true;
+        if (actionArea) actionArea.style.display = 'none';
+    }
+}
+
+prevBtn.onclick = () => { if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } };
+nextBtn.onclick = () => { if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } };
+document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
+
 if (feedbackBtn) feedbackBtn.addEventListener('click', () => { feedbackModal.classList.add('active'); closeSidebar(); });
 if (feedbackForm) feedbackForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -620,10 +625,6 @@ function loadTheme() {
     if(localStorage.getItem('theme') === 'light') { document.body.classList.add('light-mode'); themeBtn.innerHTML = moonSVG; } 
     else { themeBtn.innerHTML = lightbulbSVG; }
 }
-
-prevBtn.onclick = () => { if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } };
-nextBtn.onclick = () => { if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } };
-document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
 
 function showSuccessScreen() { document.getElementById('book-modal').classList.remove('active'); document.getElementById('success-modal').classList.add('active'); }
 function closeSuccessScreen() { document.getElementById('success-modal').classList.remove('active'); window.location.href = window.location.pathname; }
