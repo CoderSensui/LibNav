@@ -7,7 +7,7 @@
     <title>LibNav</title>
     <meta name="description" content="Find a way to the story! A smart navigation system.">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=5">
+    <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
@@ -32,7 +32,8 @@
         </div>
         <div class="menu-content">
             <div class="sidebar-buttons">
-                <button class="quick-btn wide" data-genre="All">All Books (A-Z)</button>
+                <button class="quick-btn wide" data-genre="All">Browse Books (A-Z)</button>
+                <div style="height:1px; background:var(--border-color); margin:10px 0;"></div>
                 <button class="quick-btn wide" data-genre="Fiction">Fiction</button>
                 <button class="quick-btn wide" data-genre="Non-Fiction">Non-Fiction</button>
                 <button class="quick-btn wide" data-genre="Romance">Romance</button>
@@ -84,8 +85,6 @@
         </div>
 
         <div id="featured-container"></div>
-        
-        <h2 id="section-title" class="text-pink" style="margin: 20px 0 15px 10px; font-size: 1.2rem; font-family:var(--font-head); display: none;">Results</h2>
         
         <div id="results-area" class="shelf-grid"></div>
     </div>
