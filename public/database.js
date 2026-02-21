@@ -1,66 +1,36 @@
-/* database.js - Powered by JSONBin.io (Cloud) */
+/* database.js - Firebase Backend */
 
 const LibraryDB = {
-    // YOUR CLOUD CREDENTIALS
-    binId: "69994556ae596e708f3c0715",
-    apiKey: "$2a$10$OP.f7BAIsHpCyfBXqprbgevRwToFbx.jpbQTPXoftEPTxBWHqRmvy", // Master Key
-    
+    dbUrl: "https://libnav-dc2c8-default-rtdb.firebaseio.com/", 
     books: [],
 
-    // Initialize: Fetch data from the Cloud
     init: async function() {
-        console.log("☁️ Connecting to Global Database...");
         try {
-            const response = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}`, {
-                method: 'GET',
-                headers: {
-                    'X-Master-Key': this.apiKey
-                }
-            });
-
-            if (!response.ok) throw new Error("Cloud Connection Failed");
-            
+            const response = await fetch(`${this.dbUrl}books.json`);
+            if (!response.ok) throw new Error("Sync Failed");
             const data = await response.json();
-            
-            // JSONBin v3 stores the actual array inside "record"
-            this.books = data.record || [];
-            console.log(`✅ Loaded ${this.books.length} books from Cloud.`);
+            this.books = data || [];
             return true;
         } catch (error) {
-            console.error("❌ Critical Error:", error);
-            alert("Could not connect to the database. Please check your internet.");
-            this.books = []; // Fallback to empty
+            console.error("Firebase Error:", error);
             return false;
         }
     },
 
-    // Save: Push updates to the Cloud (Overwrites the file)
     saveToCloud: async function() {
         try {
-            const response = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}`, {
+            const response = await fetch(`${this.dbUrl}books.json`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': this.apiKey
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(this.books)
             });
-
-            if (!response.ok) throw new Error("Save Failed");
-            console.log("☁️ Sync Successful!");
-            return true;
+            return response.ok;
         } catch (error) {
-            console.error("Save Error:", error);
-            alert("Failed to save changes to the cloud.");
             return false;
         }
     },
     
-    getBooks: function() {
-        return this.books;
-    },
-
-    // --- ADMIN FUNCTIONS (Async now) ---
+    getBooks: function() { return this.books; },
 
     addBook: async function(book) {
         this.books.push(book);
@@ -68,13 +38,7 @@ const LibraryDB = {
     },
 
     deleteBook: async function(id) {
-        this.books = this.books.filter(book => book.id !== id);
-        return await this.saveToCloud();
-    },
-    
-    // Only use this if you mess up the database and need to reset!
-    resetToDefaults: async function(defaultBooks) {
-        this.books = defaultBooks;
+        this.books = this.books.filter(b => b.id !== id);
         return await this.saveToCloud();
     }
 };
