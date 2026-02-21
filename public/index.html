@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0b1121">
-    <title>LibNav</title>
+    <title>LibNav | Smart Library</title>
     <meta name="description" content="Find a way to the story! A smart navigation system.">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=11">
+    <link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
 
@@ -21,7 +21,7 @@
                 <span>Main Menu</span>
             </button>
         </div>
-        <h1 class="header-logo">LibNav</h1>
+        <h1 id="secret-admin-btn" class="header-logo">LibNav</h1>
     </div>
 
     <div id="side-menu-overlay" class="menu-overlay"></div>
@@ -32,7 +32,7 @@
         </div>
         <div class="menu-content">
             <div class="sidebar-buttons">
-                <button class="quick-btn wide" data-genre="All">Browse Books (A-Z)</button>
+                <button class="quick-btn wide active" data-genre="All">Browse Books (A-Z)</button>
                 <div style="height:1px; background:var(--border-color); margin:10px 0;"></div>
                 <button class="quick-btn wide" data-genre="Fiction">Fiction</button>
                 <button class="quick-btn wide" data-genre="Non-Fiction">Non-Fiction</button>
@@ -43,7 +43,6 @@
             
             <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
                 <button id="open-feedback-btn" class="quick-btn wide">Send Feedback</button>
-                <button id="admin-login-btn" class="quick-btn wide" style="margin-top:10px; color:#ef4444; border-color:#ef4444;">Admin Panel</button>
             </div>
         </div>
     </div>
@@ -64,13 +63,9 @@
             </div>
             
             <div id="filter-menu" class="filter-dropdown">
-                <label class="filter-option" style="font-weight:bold; color:var(--primary-pink);">
-                    <input type="checkbox" value="All">
-                    <span class="checkmark"></span>
-                    <span>All Genres</span>
-                </label>
+                <label class="filter-option" style="font-weight:bold; color:var(--primary-pink);"><input type="checkbox" value="All"><span class="checkmark"></span><span>All Genres</span></label>
                 <div style="height:1px; background:var(--border-color); margin:5px 0;"></div>
-                <label class="filter-option"><input type="checkbox" value="Favorites"><span class="checkmark" style="border-color:#ef4444; color:#ef4444;"></span><div style="display:flex; align-items:center; gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#ef4444"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg><span>Bookmarks</span></div></label>
+                <label class="filter-option"><input type="checkbox" value="Favorites"><span class="checkmark" style="border-color:#ef4444;"></span><div style="display:flex; align-items:center; gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#ef4444"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg><span>Bookmarks</span></div></label>
                 <label class="filter-option"><input type="checkbox" value="Fiction"><span class="checkmark"></span><span>Fiction</span></label>
                 <label class="filter-option"><input type="checkbox" value="Non-Fiction"><span class="checkmark"></span><span>Non-Fiction</span></label>
                 <label class="filter-option"><input type="checkbox" value="Romance"><span class="checkmark"></span><span>Romance</span></label>
@@ -107,7 +102,7 @@
             </div>
             <div class="destination-badge">Target: Book #<span id="modal-book-id" class="text-pink">0</span></div>
             <div id="mobile-action-area" style="display: none;"><button class="found-btn" onclick="showSuccessScreen()">I Found It!</button></div>
-            <div class="qr-section"><div id="qrcode"></div><p class="qr-text">Scan to take map with you</p></div>
+            <div class="qr-section"><div id="qrcode"></div><p class="qr-text">Scan for Mobile View</p></div>
             <div id="neighbors-area" class="neighbors-area">
                 <p style="font-size:0.9rem; color:var(--text-muted);">Also in this section:</p>
                 <div id="neighbors-list" class="neighbors-list"></div>
@@ -118,33 +113,45 @@
     <div id="admin-modal" class="modal-overlay">
         <div class="modal-content" style="max-height:85vh; overflow-y:auto;">
             <button class="close-modal">&times;</button>
-            <h2 class="text-pink">Admin Panel</h2>
+            <h2 class="text-pink">System Database</h2>
             <div id="admin-login-screen">
-                <p style="color:var(--text-muted); margin-bottom:15px;">Enter password to manage books.</p>
-                <input type="password" id="admin-password" class="form-input" placeholder="Password (admin123)">
+                <p style="color:var(--text-muted); margin-bottom:15px;">Enter Access Key</p>
+                <input type="password" id="admin-password" class="form-input" placeholder="Password">
                 <button id="admin-auth-btn" class="submit-btn">Login</button>
             </div>
             
             <div id="admin-dashboard" style="display:none; text-align:left;">
-                <h3 style="margin:20px 0 10px 0;">Add New Book</h3>
+                <h3 style="margin:20px 0 10px 0;">Add New Entry</h3>
                 <input type="text" id="new-title" class="form-input" placeholder="Book Title">
                 <input type="text" id="new-author" class="form-input" placeholder="Author Name">
-                <select id="new-genre" class="form-input">
-                    <option value="Fiction">Fiction</option>
-                    <option value="Non-Fiction">Non-Fiction</option>
-                    <option value="Romance">Romance</option>
-                    <option value="Science">Science</option>
-                    <option value="History">History</option>
-                </select>
-                <button id="add-book-btn" class="submit-btn" style="background:#4ade80; color:#0b1121;">+ Add Book</button>
                 
-                <h3 style="margin:30px 0 10px 0; color:#ef4444;">Delete Books</h3>
-                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">Tap a book to remove it permanently.</p>
-                <div id="admin-book-list" style="display:grid; grid-template-columns:1fr; gap:10px;"></div>
-                
-                <div style="margin-top:30px; border-top:1px solid var(--border-color); padding-top:20px;">
-                    <button id="factory-reset-btn" class="submit-btn" style="background:#ef4444; color:white;">⚠️ Factory Reset</button>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 10px;">
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-muted); font-weight:bold;">Genre</label>
+                        <select id="new-genre" class="form-input">
+                            <option value="Fiction">Fiction</option>
+                            <option value="Non-Fiction">Non-Fiction</option>
+                            <option value="Romance">Romance</option>
+                            <option value="Science">Science</option>
+                            <option value="History">History</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-muted); font-weight:bold;">Total Steps</label>
+                        <select id="step-count-select" class="form-input">
+                            <option value="2">2 Steps</option>
+                            <option value="3">3 Steps</option>
+                            <option value="4">4 Steps</option>
+                        </select>
+                    </div>
                 </div>
+
+                <div id="image-inputs-container"></div>
+
+                <button id="add-book-btn" class="submit-btn" style="background:#4ade80; color:#0b1121; margin-top:10px;">+ Sync to Cloud</button>
+                
+                <h3 style="margin:30px 0 10px 0; color:#ef4444;">Manage Inventory</h3>
+                <div id="admin-book-list" style="display:grid; grid-template-columns:1fr; gap:10px; max-height:200px; overflow-y:auto; padding-right:5px;"></div>
             </div>
         </div>
     </div>
