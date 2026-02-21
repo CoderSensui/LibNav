@@ -1,7 +1,8 @@
-/* app.js - vFinal (Virtual Shelf + Author Headshots) */
+/* app.js - vFinal (Global Visual Bookshelf) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
+const sectionTitle = document.getElementById('section-title');
 const hero = document.getElementById('hero');
 const featuredContainer = document.getElementById('featured-container');
 const hamburgerBtn = document.getElementById('hamburger-btn');
@@ -20,16 +21,15 @@ const feedbackModal = document.getElementById('feedback-modal');
 const feedbackForm = document.getElementById('feedback-form');
 const fbStatus = document.getElementById('fb-status');
 const fbSubmitBtn = document.getElementById('fb-submit-btn');
-const virtualShelfBtn = document.getElementById('virtual-shelf-btn');
-const virtualShelfArea = document.getElementById('virtual-shelf-area');
-const shelfGrid = document.getElementById('shelf-grid');
 
 let selectedGenres = new Set(); 
 let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
 const IDLE_LIMIT = 30000;
 let idleTimeout;
-const coverCache = {}; // Cache for book covers
-const authorCache = {}; // Cache for author images
+
+// Global Memory Caches 
+const coverCache = {}; 
+const authorCache = {}; 
 
 // Carousel State
 let currentImages = [];
@@ -68,7 +68,12 @@ async function init() {
 
     if (!document.body.classList.contains('companion-mode-active')) {
         loadFeaturedBook(); 
+        
+        // Auto-load all books on the homepage immediately
+        sectionTitle.style.display = 'block';
+        sectionTitle.innerText = "Browse Library";
         performSearch(''); 
+        
         resetIdleTimer();
     }
 }
@@ -79,6 +84,7 @@ function loadFeaturedBook() {
     const today = new Date().toISOString().split('T')[0];
     const storedData = JSON.parse(localStorage.getItem('libnav_daily_pick'));
     let featuredBook;
+    
     if (storedData && storedData.date === today) {
         featuredBook = books.find(b => b.id === storedData.bookId);
     } 
@@ -86,104 +92,61 @@ function loadFeaturedBook() {
         featuredBook = books[Math.floor(Math.random() * books.length)];
         localStorage.setItem('libnav_daily_pick', JSON.stringify({ date: today, bookId: featuredBook.id }));
     }
+    
     featuredContainer.innerHTML = `
         <div class="featured-section">
             <span class="featured-label">Recommended for you</span>
-            <div class="featured-card">
-                <h2 style="font-size:1.4rem; margin-bottom:5px;">${featuredBook.title}</h2>
-                <p style="color:var(--text-muted); font-size:0.95rem;">by ${featuredBook.author}</p>
-                <div style="margin-top:10px;"><span class="chip">${featuredBook.genre}</span></div>
+            <div class="featured-card" onclick="openModal(LibraryDB.getBooks().find(b => b.id == ${featuredBook.id}))">
+                <div class="featured-cover" id="feat-cover-${featuredBook.id}">
+                    <span class="placeholder-text text-small">${featuredBook.title}</span>
+                </div>
+                <div class="featured-info">
+                    <h2 style="font-size:1.3rem; margin-bottom:2px; line-height: 1.2;">${featuredBook.title}</h2>
+                    <p style="color:var(--text-muted); font-size:0.9rem;">by ${featuredBook.author}</p>
+                    <div style="margin-top:8px;"><span class="chip" style="margin:0;">${featuredBook.genre}</span></div>
+                </div>
             </div>
         </div>`;
-    featuredContainer.querySelector('.featured-card').addEventListener('click', () => { openModal(featuredBook); });
+
+    // Fetch API cover for Featured Book
+    const featCoverId = `feat-cover-${featuredBook.id}`;
+    if (coverCache[featuredBook.title]) {
+        document.getElementById(featCoverId).style.backgroundImage = `url(${coverCache[featuredBook.title]})`;
+        document.getElementById(featCoverId).querySelector('.placeholder-text').style.opacity = '0';
+    } else {
+        fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(featuredBook.title)}&limit=1`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.docs && data.docs[0] && data.docs[0].cover_i) {
+                const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
+                coverCache[featuredBook.title] = url;
+                const el = document.getElementById(featCoverId);
+                if (el) {
+                    el.style.backgroundImage = `url(${url})`;
+                    el.querySelector('.placeholder-text').style.opacity = '0';
+                }
+            }
+        }).catch(err => console.log(err));
+    }
 }
 
 homeBtn.addEventListener('click', () => {
-    resetView();
-    performSearch(''); 
-});
-
-// Resets the UI to the main search view
-function resetView() {
     searchInput.value = '';
     selectedGenres.clear();
     checkboxes.forEach(c => c.checked = false);
     quickBtns.forEach(b => b.classList.remove('active'));
     hero.classList.remove('minimized');
     featuredContainer.style.display = 'block';
-    resultsArea.style.display = 'flex'; // Show normal results
-    virtualShelfArea.style.display = 'none'; // Hide shelf
     homeBtn.classList.add('home-hidden');
-    resultsArea.innerHTML = '';
-}
+    sectionTitle.innerText = "Browse Library";
+    performSearch(''); 
+});
 
 function openSidebar() { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); filterMenu.style.display = 'none'; }
 function closeSidebar() { sideMenu.classList.remove('active'); sideMenuOverlay.classList.remove('active'); }
 hamburgerBtn.addEventListener('click', openSidebar);
 closeMenuBtn.addEventListener('click', closeSidebar);
 sideMenuOverlay.addEventListener('click', closeSidebar);
-
-// Virtual Shelf Button Logic
-virtualShelfBtn.addEventListener('click', () => {
-    closeSidebar();
-    loadVirtualShelf();
-});
-
-function loadVirtualShelf() {
-    // Hide standard elements
-    hero.classList.add('minimized');
-    featuredContainer.style.display = 'none';
-    resultsArea.style.display = 'none'; // Hide list view
-    homeBtn.classList.remove('home-hidden');
-    
-    // Show Virtual Shelf
-    virtualShelfArea.style.display = 'block';
-    shelfGrid.innerHTML = ''; // Clear previous
-
-    const allBooks = LibraryDB.getBooks();
-    
-    // Build the grid
-    allBooks.forEach((book, index) => {
-        const card = document.createElement('div');
-        card.className = 'shelf-book-card';
-        card.style.animationDelay = `${index * 0.05}s`;
-        
-        // Default cover text
-        card.innerHTML = `
-            <div class="shelf-cover" id="cover-${book.id}">
-                <span class="placeholder-text">${book.title}</span>
-            </div>
-            <div class="shelf-info">
-                <p class="shelf-title">${book.title}</p>
-                <p class="shelf-author">${book.author}</p>
-            </div>
-        `;
-        
-        card.onclick = () => openModal(book);
-        shelfGrid.appendChild(card);
-
-        // Fetch Cover for Grid
-        const coverId = `cover-${book.id}`;
-        if (coverCache[book.title]) {
-             document.getElementById(coverId).style.backgroundImage = `url(${coverCache[book.title]})`;
-             document.getElementById(coverId).querySelector('.placeholder-text').style.opacity = '0';
-        } else {
-            fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(book.title)}&limit=1`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.docs && data.docs[0] && data.docs[0].cover_i) {
-                    const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
-                    coverCache[book.title] = url;
-                    const el = document.getElementById(coverId);
-                    if (el) {
-                        el.style.backgroundImage = `url(${url})`;
-                        el.querySelector('.placeholder-text').style.opacity = '0';
-                    }
-                }
-            });
-        }
-    });
-}
 
 filterToggle.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -193,7 +156,7 @@ filterToggle.addEventListener('click', (e) => {
 
 function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(goIdle, IDLE_LIMIT); }
 function goIdle() {
-    resetView();
+    homeBtn.click();
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
     closeSidebar();
     filterMenu.style.display = 'none';
@@ -202,10 +165,10 @@ function goIdle() {
 window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
 
 quickBtns.forEach(btn => {
-    if(btn.id === 'open-feedback-btn' || btn.id === 'virtual-shelf-btn') return;
+    if(btn.id === 'open-feedback-btn') return;
     btn.addEventListener('click', () => {
         const genre = btn.dataset.genre;
-        resetView(); // Go to list view for genre filters
+        searchInput.value = '';
         hero.classList.add('minimized');
         featuredContainer.style.display = 'none';
         homeBtn.classList.remove('home-hidden');
@@ -217,6 +180,7 @@ quickBtns.forEach(btn => {
         });
         quickBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        sectionTitle.innerText = genre === 'All' ? 'All Books' : `${genre} Books`;
         performSearch('');
         closeSidebar();
     });
@@ -224,9 +188,6 @@ quickBtns.forEach(btn => {
 
 checkboxes.forEach(box => {
     box.addEventListener('change', (e) => {
-        virtualShelfArea.style.display = 'none';
-        resultsArea.style.display = 'flex';
-        
         const val = e.target.value;
         if (val === 'All') {
             if (e.target.checked) {
@@ -246,79 +207,118 @@ checkboxes.forEach(box => {
                 quickBtns.forEach(b => { if (b.dataset.genre === val) b.classList.remove('active'); });
             }
         }
+        
         if (selectedGenres.size > 0) { 
             hero.classList.add('minimized'); 
             featuredContainer.style.display = 'none'; 
             homeBtn.classList.remove('home-hidden'); 
+            sectionTitle.innerText = "Filtered Results";
         } else if (searchInput.value === '') { 
             hero.classList.remove('minimized'); 
             featuredContainer.style.display = 'block'; 
             homeBtn.classList.add('home-hidden'); 
+            sectionTitle.innerText = "Browse Library";
         }
         performSearch(searchInput.value);
     });
 });
 
 searchInput.addEventListener('input', (e) => {
-    virtualShelfArea.style.display = 'none';
-    resultsArea.style.display = 'flex';
     const term = e.target.value.toLowerCase().trim();
     if (term.length > 0) { 
         hero.classList.add('minimized'); 
         featuredContainer.style.display = 'none'; 
         homeBtn.classList.remove('home-hidden'); 
+        sectionTitle.innerText = `Search: "${term}"`;
     } else if (selectedGenres.size === 0) { 
         hero.classList.remove('minimized'); 
         featuredContainer.style.display = 'block'; 
         homeBtn.classList.add('home-hidden'); 
+        sectionTitle.innerText = "Browse Library";
     }
     performSearch(term);
 });
 
 function performSearch(term) {
-    term = term.toLowerCase().trim();
-    if (term === '' && selectedGenres.size === 0) {
-        resultsArea.innerHTML = '';
-        return;
-    }
     let books = LibraryDB.getBooks();
+    term = term.toLowerCase().trim();
+    
     if (selectedGenres.has('All') || term !== '') {
         books.sort((a, b) => a.title.localeCompare(b.title));
     }
+    
     let matches = books.filter(book => {
         const titleMatch = book.title.toLowerCase().includes(term);
         const authorMatch = book.author.toLowerCase().includes(term);
         let genreMatch = false;
+        
         if (selectedGenres.has('All')) genreMatch = true;
         else if (selectedGenres.size > 0) {
             if (selectedGenres.has('Favorites') && favorites.includes(book.id)) genreMatch = true;
             if (selectedGenres.has(book.genre)) genreMatch = true;
-        } else if (term !== '') genreMatch = true;
+        } else {
+            genreMatch = true; // No filters active
+        }
         return (titleMatch || authorMatch) && genreMatch;
     });
+    
     renderResults(matches);
 }
 
+// THE NEW RENDER ENGINE (GLOBAL VIRTUAL SHELF)
 function renderResults(books) {
     resultsArea.innerHTML = '';
+    
     if (books.length === 0) {
-        resultsArea.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">No books found.</div>';
+        resultsArea.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; color:var(--text-muted); padding:40px 20px;">No books found. Try adjusting your search!</div>';
         return;
     }
+    
     books.forEach((book, index) => {
+        const card = document.createElement('div');
+        card.className = 'shelf-book-card';
+        card.style.animationDelay = `${index * 0.03}s`; // Faster stagger
+        
         const isFav = favorites.includes(book.id);
-        const div = document.createElement('div');
-        div.className = 'book-card';
-        div.style.animationDelay = `${index * 0.05}s`;
-        div.innerHTML = `
-            <div class="book-info" style="flex:1;">
-                <h3>${book.title}</h3>
-                <p style="color:var(--text-muted); font-size:0.9rem;">by ${book.author}</p>
-                <div style="margin-top:5px;"><span class="chip">${book.genre}</span><span style="color:var(--text-muted); font-size:0.85rem; margin-left:10px;">ID: ${book.id}</span></div>
+        
+        card.innerHTML = `
+            <div class="shelf-cover" id="cover-${book.id}">
+                <span class="placeholder-text">${book.title}</span>
+                <button class="fav-btn-grid ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, ${book.id})">
+                    <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+                </button>
             </div>
-            <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, ${book.id})"><svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg></button>`;
-        div.addEventListener('click', (e) => { if(!e.target.closest('.fav-btn')) openModal(book); });
-        resultsArea.appendChild(div);
+            <div class="shelf-info">
+                <p class="shelf-title">${book.title}</p>
+                <p class="shelf-author">${book.author}</p>
+            </div>
+        `;
+        
+        card.onclick = (e) => { 
+            if(!e.target.closest('.fav-btn-grid')) openModal(book); 
+        };
+        resultsArea.appendChild(card);
+
+        // Fetch Cover Logic with Cache
+        const coverId = `cover-${book.id}`;
+        if (coverCache[book.title]) {
+             document.getElementById(coverId).style.backgroundImage = `url(${coverCache[book.title]})`;
+             document.getElementById(coverId).querySelector('.placeholder-text').style.opacity = '0';
+        } else {
+            fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(book.title)}&limit=1`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.docs && data.docs[0] && data.docs[0].cover_i) {
+                    const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
+                    coverCache[book.title] = url; // Save to memory cache
+                    const el = document.getElementById(coverId);
+                    if (el) {
+                        el.style.backgroundImage = `url(${url})`;
+                        el.querySelector('.placeholder-text').style.opacity = '0';
+                    }
+                }
+            }).catch(e => console.log("Cover err:", e));
+        }
     });
 }
 
@@ -327,7 +327,7 @@ function toggleFavorite(e, bookId) {
     const index = favorites.indexOf(bookId);
     if (index === -1) favorites.push(bookId); else favorites.splice(index, 1);
     localStorage.setItem('libnav_favs', JSON.stringify(favorites));
-    performSearch(searchInput.value);
+    performSearch(searchInput.value); // Re-renders the grid instantly (fast thanks to cache)
 }
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -346,6 +346,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         hero.classList.add('minimized');
         featuredContainer.style.display = 'none';
         homeBtn.classList.remove('home-hidden');
+        sectionTitle.innerText = `Search: "${transcript}"`;
         performSearch(transcript);
     };
 } else { micBtn.style.display = 'none'; }
@@ -397,7 +398,7 @@ async function openModal(book) {
 
     // --- AUTHOR HEADSHOT LOGIC ---
     const authorImg = document.getElementById('modal-author-pic');
-    authorImg.style.display = 'none'; // Reset
+    authorImg.style.display = 'none'; 
     authorImg.src = '';
     
     if (authorCache[book.author]) {
@@ -408,13 +409,13 @@ async function openModal(book) {
         .then(res => res.json())
         .then(data => {
             if(data.docs && data.docs[0] && data.docs[0].key) {
-                const authorKey = data.docs[0].key; // e.g., OL26772A
+                const authorKey = data.docs[0].key; 
                 const url = `https://covers.openlibrary.org/a/olid/${authorKey}-M.jpg`;
                 authorCache[book.author] = url;
                 authorImg.src = url;
                 authorImg.style.display = 'block';
             }
-        });
+        }).catch(e => console.log(e));
     }
 
     qrContainer.innerHTML = '';
@@ -430,34 +431,26 @@ async function openModal(book) {
     currentImageIndex = 0; 
     updateCarousel(); 
 
-    // --- VIRTUAL SHELF WITH API BOOK COVERS ---
+    // --- VIRTUAL SHELF (NEIGHBORS) ---
     const allBooks = LibraryDB.getBooks();
     const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
     
     neighborsList.innerHTML = '';
     if (neighbors.length > 0) {
         neighborsArea.style.display = 'block';
-        
-        const spineColors = [
-            '#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', 
-            '#8D6E63', '#3b2f2f', '#4a3728', '#5c4033', '#654321' 
-        ];
+        const spineColors = ['#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', '#8D6E63'];
 
         neighbors.forEach(n => {
             const spine = document.createElement('div');
             spine.className = 'book-spine';
             spine.innerText = n.title;
-            
             const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
             spine.style.height = `${randomHeight}px`;
-            
-            const randomColor = spineColors[Math.floor(Math.random() * spineColors.length)];
-            spine.style.backgroundColor = randomColor;
+            spine.style.backgroundColor = spineColors[Math.floor(Math.random() * spineColors.length)];
 
             spine.onclick = () => openModal(n);
             neighborsList.appendChild(spine);
 
-            // Fetch Real Cover from Open Library API
             if (coverCache[n.title]) {
                 spine.classList.add('has-cover');
                 spine.style.backgroundImage = `url(${coverCache[n.title]})`;
@@ -469,13 +462,13 @@ async function openModal(book) {
                     .then(data => {
                         if (data.docs && data.docs[0] && data.docs[0].cover_i) {
                             const coverUrl = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
-                            coverCache[n.title] = coverUrl; // Cache it
+                            coverCache[n.title] = coverUrl; 
                             spine.classList.add('has-cover');
                             spine.style.backgroundImage = `url(${coverUrl})`;
                             spine.style.backgroundSize = 'cover';
                             spine.style.backgroundPosition = 'center';
                         }
-                    }).catch(err => console.log("No cover found for", n.title));
+                    }).catch(err => console.log(err));
             }
         });
     } else neighborsArea.style.display = 'none';
@@ -485,7 +478,6 @@ async function openModal(book) {
 
 function updateCarousel() {
     const actionArea = document.getElementById('mobile-action-area');
-
     if (currentImages.length > 0) {
         carouselImg.src = currentImages[currentImageIndex];
         stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
@@ -494,41 +486,22 @@ function updateCarousel() {
         carouselImg.style.display = 'block';
         
         if (actionArea) {
-            // Show the "I Found It" button if they are on ANY mobile device (normal or scanned)
             if (document.body.classList.contains('is-mobile-device') || document.body.classList.contains('companion-mode-active')) {
                 if (currentImageIndex === currentImages.length - 1) {
                     actionArea.style.display = 'block';
-                } else {
-                    actionArea.style.display = 'none';
-                }
-            } else {
-                actionArea.style.display = 'none';
-            }
+                } else { actionArea.style.display = 'none'; }
+            } else { actionArea.style.display = 'none'; }
         }
     } else {
         carouselImg.style.display = 'none';
         stepCounter.innerText = "No map images available";
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
-        
+        prevBtn.disabled = true; nextBtn.disabled = true;
         if (actionArea) actionArea.style.display = 'none';
     }
 }
 
-prevBtn.onclick = () => {
-    if (currentImageIndex > 0) {
-        currentImageIndex--;
-        updateCarousel();
-    }
-};
-
-nextBtn.onclick = () => {
-    if (currentImageIndex < currentImages.length - 1) {
-        currentImageIndex++;
-        updateCarousel();
-    }
-};
-
+prevBtn.onclick = () => { if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } };
+nextBtn.onclick = () => { if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } };
 document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
 
 if (feedbackBtn) feedbackBtn.addEventListener('click', () => { feedbackModal.classList.add('active'); closeSidebar(); });
@@ -557,23 +530,11 @@ themeBtn.onclick = () => {
 };
 
 function loadTheme() {
-    if(localStorage.getItem('theme') === 'light') {
-        document.body.classList.add('light-mode');
-        themeBtn.innerHTML = moonSVG; 
-    } else {
-        themeBtn.innerHTML = lightbulbSVG;
-    }
+    if(localStorage.getItem('theme') === 'light') { document.body.classList.add('light-mode'); themeBtn.innerHTML = moonSVG; } 
+    else { themeBtn.innerHTML = lightbulbSVG; }
 }
 
-// --- SUCCESS SCREEN LOGIC ---
-function showSuccessScreen() {
-    document.getElementById('book-modal').classList.remove('active');
-    document.getElementById('success-modal').classList.add('active');
-}
-
-function closeSuccessScreen() {
-    document.getElementById('success-modal').classList.remove('active');
-    window.location.href = window.location.pathname; // Resets page
-}
+function showSuccessScreen() { document.getElementById('book-modal').classList.remove('active'); document.getElementById('success-modal').classList.add('active'); }
+function closeSuccessScreen() { document.getElementById('success-modal').classList.remove('active'); window.location.href = window.location.pathname; }
 
 init();
