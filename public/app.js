@@ -1,4 +1,4 @@
-/* app.js - vFinal (Optimized + Lazy Loading) */
+/* app.js - vFinal (Optimized + Lazy Loading + No Lag) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -66,7 +66,7 @@ async function init() {
 
     if (!document.body.classList.contains('companion-mode-active')) {
         loadFeaturedBook(); 
-        performSearch(''); 
+        performSearch(''); // Auto-load shelf
         resetIdleTimer();
     }
 }
@@ -101,10 +101,9 @@ function loadFeaturedBook() {
             </div>
         </div>`;
 
-    // Fetch API cover for Featured Book (Use Medium Size -M)
+    // Featured Book uses Medium Cover (-M.jpg)
     const featCoverId = `feat-cover-${featuredBook.id}`;
     if (coverCache[featuredBook.title]) {
-        // Use cached URL but switch to M if available, otherwise reuse
         const url = coverCache[featuredBook.title].replace('-S.jpg', '-M.jpg');
         document.getElementById(featCoverId).style.backgroundImage = `url(${url})`;
         document.getElementById(featCoverId).querySelector('.placeholder-text').style.opacity = '0';
@@ -254,7 +253,7 @@ function performSearch(term) {
     renderResults(matches);
 }
 
-// OPTIMIZED RENDER ENGINE: Uses <img> with lazy loading
+// OPTIMIZED RENDER ENGINE: Uses lazy loading and small images
 function renderResults(books) {
     resultsArea.innerHTML = '';
     
@@ -268,15 +267,20 @@ function renderResults(books) {
     books.forEach((book, index) => {
         const card = document.createElement('div');
         card.className = 'shelf-book-card';
-        card.style.animationDelay = `${Math.min(index * 0.03, 0.5)}s`; // Cap animation delay
+        // Optimize animation: only first 10 animate to prevent lag
+        if (index < 10) {
+            card.style.animationDelay = `${index * 0.05}s`;
+        } else {
+            card.style.animation = 'none';
+            card.style.opacity = '1';
+        }
         
         const isFav = favorites.includes(book.id);
         const coverId = `img-${book.id}`;
         
-        // Use an <img> tag for lazy loading performance
         card.innerHTML = `
             <div class="shelf-cover-wrapper">
-                <img id="${coverId}" class="shelf-cover-img" src="" loading="lazy" alt="${book.title}" onerror="this.style.opacity=0">
+                <img id="${coverId}" class="shelf-cover-img" src="" loading="lazy" alt="${book.title}">
                 <span class="placeholder-text">${book.title}</span>
                 <button class="fav-btn-grid ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, ${book.id})">
                     <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
@@ -293,17 +297,18 @@ function renderResults(books) {
         };
         fragment.appendChild(card);
 
-        // Fetch Cover Logic (Optimized for Small Size -S)
+        // Fetch Logic: Requests Small Cover (-S.jpg)
         if (coverCache[book.title]) {
              const img = card.querySelector('.shelf-cover-img');
-             img.src = coverCache[book.title];
+             const url = coverCache[book.title].replace('-M.jpg', '-S.jpg'); // Ensure small
+             img.src = url;
              img.onload = () => { img.style.opacity = '1'; };
         } else {
             fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(book.title)}&limit=1`)
             .then(res => res.json())
             .then(data => {
                 if (data.docs && data.docs[0] && data.docs[0].cover_i) {
-                    const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-S.jpg`; // Small size
+                    const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-S.jpg`; // S size
                     coverCache[book.title] = url;
                     const img = document.getElementById(coverId);
                     if (img) {
@@ -311,7 +316,7 @@ function renderResults(books) {
                         img.onload = () => { img.style.opacity = '1'; };
                     }
                 }
-            }).catch(() => {}); // Silent fail is fine
+            }).catch(() => {}); 
         }
     });
     
@@ -438,5 +443,4 @@ async function openModal(book) {
             spine.className = 'book-spine';
             spine.innerText = n.title;
             const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
-            spine.style.height = `${randomHeight}px`;
-            spine.style.backgroundColor = spineColors[Math.floor(M
+            spine.style.height = `${randomHeight}p
