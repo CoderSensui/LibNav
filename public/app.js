@@ -42,12 +42,16 @@ async function init() {
     let viewMode = urlParams.get('view'); 
     const bookId = urlParams.get('book');
 
-    // --- NEW: AUTO-DETECT DEVICE & FIX URL ---
-    // Checks the browser's User Agent or screen width
+    // --- AUTO-DETECT DEVICE ---
     const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
     const detectedView = isMobileDevice ? 'mobile' : 'pc';
 
-    // If the URL is missing the parameter, or the user messed with it, force correct it:
+    // 1. Apply a general mobile class so the UI is always clean on phones
+    if (isMobileDevice) {
+        document.body.classList.add('is-mobile-device');
+    }
+
+    // 2. Fix the URL if it doesn't match the device
     if (viewMode !== detectedView) {
         viewMode = detectedView;
         urlParams.set('view', viewMode);
@@ -59,8 +63,9 @@ async function init() {
         const allBooks = LibraryDB.getBooks();
         const deepLinkedBook = allBooks.find(b => b.id == bookId);
         if (deepLinkedBook) {
+            // 3. If they deep-linked on a mobile device (QR Scan), activate FULL SCREEN Companion Mode
             if (viewMode === 'mobile') {
-                document.body.classList.add('mobile-view-active');
+                document.body.classList.add('companion-mode-active');
                 if(document.querySelector('.close-modal')) document.querySelector('.close-modal').style.display = 'none';
             } else {
                 window.history.replaceState({}, document.title, window.location.pathname);
@@ -69,8 +74,8 @@ async function init() {
         }
     } 
     
-    // Only load the main library homepage if we are NOT in the active mobile navigation map
-    if (!document.body.classList.contains('mobile-view-active')) {
+    // Only load the main library homepage if we are NOT in the full-screen scanned mode
+    if (!document.body.classList.contains('companion-mode-active')) {
         loadFeaturedBook(); 
         performSearch(''); 
         resetIdleTimer();
@@ -387,7 +392,8 @@ function updateCarousel() {
         carouselImg.style.display = 'block';
         
         if (actionArea) {
-            if (document.body.classList.contains('mobile-view-active')) {
+            // Trigger button if they are on a mobile device
+            if (document.body.classList.contains('is-mobile-device')) {
                 if (currentImageIndex === currentImages.length - 1) {
                     actionArea.style.display = 'block';
                 } else {
