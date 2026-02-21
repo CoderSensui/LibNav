@@ -150,8 +150,7 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 .modal-content { background: var(--bg-card); padding: 30px; width: 90%; max-width: 420px; border-radius: 30px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid var(--border-color); transform: scale(0.9); transition: transform 0.4s var(--ease-bounce); max-height: 90vh; overflow-y: auto; }
 .modal-overlay.active .modal-content { transform: scale(1); }
 
-/* --- CAROUSEL STYLES --
-- */
+/* --- CAROUSEL STYLES --- */
 .carousel-wrapper { width: 100%; margin: 20px 0; border-radius: 20px; border: 3px solid var(--bg-chip); overflow: hidden; background: var(--bg-main); display: flex; justify-content: center; align-items: center; position: relative; height: 250px; }
 .shelf-photo { width: 100%; height: 100%; display: block; object-fit: cover; }
 .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(11, 17, 33, 0.7); color: white; border: none; font-size: 2rem; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 50%; z-index: 10; transition: background 0.3s; }
@@ -277,79 +276,7 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
     transform: scale(0.95);
 }
 
-/* --- MOBILE COMPANION MODE --- */
-body.mobile-view-active {
-    background-color: var(--bg-card);
-    overflow: hidden;
-}
-
-body.mobile-view-active .top-controls,
-body.mobile-view-active .search-wrapper,
-body.mobile-view-active .hero,
-body.mobile-view-active .floating-actions,
-body.mobile-view-active .featured-section,
-body.mobile-view-active #results-area,
-body.mobile-view-active #screensaver {
-    display: none !important;
-}
-
-body.mobile-view-active .modal-overlay {
-    display: none !important;
-}
-
-/* Keep the map visible by default */
-body.mobile-view-active #book-modal.modal-overlay {
-    display: flex !important;
-    background: var(--bg-main);
-    opacity: 1 !important;
-    pointer-events: all;
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-}
-
-/* ONLY show the success screen when the button makes it .active */
-body.mobile-view-active #success-modal.modal-overlay.active {
-    display: flex !important;
-    background: var(--bg-main);
-    opacity: 1 !important;
-    pointer-events: all;
-    position: fixed;
-    inset: 0;
-    z-index: 10000; /* Puts it on top of the map */
-}
-
-body.mobile-view-active #book-modal .modal-content,
-body.mobile-view-active #success-modal .modal-content {
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    border-radius: 0;
-    border: none;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    box-shadow: none;
-    transform: scale(1) !important;
-}
-
-body.mobile-view-active .qr-section {
-    display: none;
-}
-
-body.mobile-view-active .carousel-wrapper {
-    height: 350px;
-    border: none;
-    background: transparent;
-}
-
-body.mobile-view-active .shelf-photo {
-    border-radius: 15px;
-}
-
-/* --- SUCCESS SCREEN --- */
+/* --- SUCCESS SCREEN LOGIC --- */
 .success-icon {
     width: 80px;
     height: 80px;
@@ -374,41 +301,104 @@ body.mobile-view-active .shelf-photo {
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* Hide redundant QR code on mobile */
+/* --- MOBILE COMPANION MODE UPGRADES --- */
+body.mobile-view-active {
+    background-color: var(--bg-card);
+    overflow: hidden;
+}
+
+body.mobile-view-active .top-controls,
+body.mobile-view-active .search-wrapper,
+body.mobile-view-active .hero,
+body.mobile-view-active .floating-actions,
+body.mobile-view-active .featured-section,
+body.mobile-view-active #results-area,
+body.mobile-view-active #screensaver {
+    display: none !important;
+}
+
+/* Hide original full-screen overlay backdrop */
+body.mobile-view-active .modal-overlay {
+    display: none !important;
+}
+
+/* MAP SCREEN */
+body.mobile-view-active #book-modal.modal-overlay {
+    display: flex !important;
+    background: var(--bg-main);
+    opacity: 1 !important;
+    pointer-events: all;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+}
+
+/* SUCCESS SCREEN */
+body.mobile-view-active #success-modal.modal-overlay.active {
+    display: flex !important;
+    background: var(--bg-main);
+    opacity: 1 !important;
+    pointer-events: all;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+}
+
+body.mobile-view-active #book-modal .modal-content,
+body.mobile-view-active #success-modal .modal-content {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    border: none;
+    padding: 20px;
+    padding-bottom: 100px; /* Space for fixed bottom button */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: none;
+    transform: scale(1) !important;
+}
+
+/* -- MOBILE UX CLEANUP (No QR, Big Map, Bottom Button) -- */
 body.mobile-view-active .qr-section {
     display: none !important;
 }
 
-/* Make the map image bigger and centered */
 body.mobile-view-active .carousel-wrapper {
-    height: 50vh; /* Use half the screen height for the map */
+    height: 50vh !important;
     margin-bottom: 20px;
     border: none;
+    background: transparent;
 }
 
-/* Style the Target Badge to look like a label, not a button */
+body.mobile-view-active .shelf-photo {
+    border-radius: 15px;
+}
+
 body.mobile-view-active .destination-badge {
     background: transparent;
     border: none;
     box-shadow: none;
     padding: 0;
     margin: 5px 0 20px 0;
-    font-size: 1rem;
+    font-size: 1.1rem;
     color: var(--text-muted);
 }
 
-/* Make the 'I Found It' button huge and tappable at the bottom */
 body.mobile-view-active #mobile-action-area {
     position: fixed;
     bottom: 30px;
     left: 20px;
     right: 20px;
-    z-index: 100;
+    z-index: 1000;
 }
 
 body.mobile-view-active .found-btn {
     width: 100%;
     padding: 18px;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     box-shadow: 0 10px 25px rgba(219, 39, 119, 0.4);
-}
+    border-radius: 25px;
+                 }
