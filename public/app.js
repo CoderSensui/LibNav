@@ -126,24 +126,31 @@ async function sendMessage() {
         4. If you recommend a book, put its exact Title in **bold**.
         `;
 
-        // 4. Call Gemini API
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+        // 4. Call Gemini API (Upgraded to 1.5-Flash for faster, reliable responses)
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
 
         const data = await response.json();
+
+        // 5. Catch exact API errors (like invalid keys)
+        if (!response.ok) {
+            console.error("API Details:", data);
+            throw new Error(data.error?.message || "API Connection Failed");
+        }
+
         const aiText = data.candidates[0].content.parts[0].text;
 
-        // 5. Remove Loading & Add Response
+        // 6. Remove Loading & Add Response
         document.getElementById(loadingId).remove();
         addMessage(aiText, 'bot-msg');
 
     } catch (error) {
         document.getElementById(loadingId).remove();
-        addMessage("Sorry, my brain is offline right now! Please check the API Key.", 'bot-msg');
-        console.error(error);
+        addMessage("Sorry, my brain is offline right now! Check the console for details.", 'bot-msg');
+        console.error("Libby Error:", error.message);
     }
 }
 
@@ -151,13 +158,18 @@ function addMessage(text, className) {
     const div = document.createElement('div');
     div.className = `message ${className}`;
     div.id = 'msg-' + Date.now();
-    // Parse Markdown for bolding
-    div.innerHTML = marked.parse(text); 
+    
+    // Safety fallback in case the Markdown parser doesn't load instantly
+    try {
+        div.innerHTML = marked.parse(text); 
+    } catch(e) {
+        div.innerText = text;
+    }
+    
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     return div.id;
 }
-
 // --- END LIBBY LOGIC ---
 
 function loadFeaturedBook() {
