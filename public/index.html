@@ -7,7 +7,7 @@
     <title>LibNav</title>
     <meta name="description" content="Find a way to the story! A smart navigation system.">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=10">
+    <link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 
@@ -40,8 +40,10 @@
                 <button class="quick-btn wide" data-genre="Science">Science</button>
                 <button class="quick-btn wide" data-genre="History">History</button>
             </div>
+            
             <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
                 <button id="open-feedback-btn" class="quick-btn wide">Send Feedback</button>
+                <button id="admin-login-btn" class="quick-btn wide" style="margin-top:10px; color:#ef4444; border-color:#ef4444;">Admin Panel</button>
             </div>
         </div>
     </div>
@@ -89,7 +91,6 @@
     <div id="book-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-modal">&times;</button>
-            
             <div class="modal-header-row">
                 <img id="modal-author-pic" class="author-headshot" src="" alt="Author" style="display:none;">
                 <div class="modal-text-group">
@@ -97,27 +98,16 @@
                     <p id="modal-author" style="color:var(--text-muted);">Author</p>
                 </div>
             </div>
-            
             <span id="modal-genre" class="chip">Genre</span>
-            
             <div id="carousel-wrapper" class="carousel-wrapper">
                 <button id="prev-img-btn" class="carousel-btn prev">&lt;</button>
                 <img id="carousel-img" src="" alt="Navigation Step" class="shelf-photo">
                 <button id="next-img-btn" class="carousel-btn next">&gt;</button>
                 <div id="step-counter" class="step-counter">Step 1</div>
             </div>
-            
             <div class="destination-badge">Target: Book #<span id="modal-book-id" class="text-pink">0</span></div>
-
-            <div id="mobile-action-area" style="display: none;">
-                <button class="found-btn" onclick="showSuccessScreen()">I Found It!</button>
-            </div>
-            
-            <div class="qr-section">
-                <div id="qrcode"></div>
-                <p class="qr-text">Scan to take map with you</p>
-            </div>
-            
+            <div id="mobile-action-area" style="display: none;"><button class="found-btn" onclick="showSuccessScreen()">I Found It!</button></div>
+            <div class="qr-section"><div id="qrcode"></div><p class="qr-text">Scan to take map with you</p></div>
             <div id="neighbors-area" class="neighbors-area">
                 <p style="font-size:0.9rem; color:var(--text-muted);">Also in this section:</p>
                 <div id="neighbors-list" class="neighbors-list"></div>
@@ -125,18 +115,44 @@
         </div>
     </div>
 
+    <div id="admin-modal" class="modal-overlay">
+        <div class="modal-content" style="max-height:85vh; overflow-y:auto;">
+            <button class="close-modal">&times;</button>
+            <h2 class="text-pink">Admin Panel</h2>
+            <div id="admin-login-screen">
+                <p style="color:var(--text-muted); margin-bottom:15px;">Enter password to manage books.</p>
+                <input type="password" id="admin-password" class="form-input" placeholder="Password (admin123)">
+                <button id="admin-auth-btn" class="submit-btn">Login</button>
+            </div>
+            
+            <div id="admin-dashboard" style="display:none; text-align:left;">
+                <h3 style="margin:20px 0 10px 0;">Add New Book</h3>
+                <input type="text" id="new-title" class="form-input" placeholder="Book Title">
+                <input type="text" id="new-author" class="form-input" placeholder="Author Name">
+                <select id="new-genre" class="form-input">
+                    <option value="Fiction">Fiction</option>
+                    <option value="Non-Fiction">Non-Fiction</option>
+                    <option value="Romance">Romance</option>
+                    <option value="Science">Science</option>
+                    <option value="History">History</option>
+                </select>
+                <button id="add-book-btn" class="submit-btn" style="background:#4ade80; color:#0b1121;">+ Add Book</button>
+                
+                <h3 style="margin:30px 0 10px 0; color:#ef4444;">Delete Books</h3>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">Tap a book to remove it permanently.</p>
+                <div id="admin-book-list" style="display:grid; grid-template-columns:1fr; gap:10px;"></div>
+                
+                <div style="margin-top:30px; border-top:1px solid var(--border-color); padding-top:20px;">
+                    <button id="factory-reset-btn" class="submit-btn" style="background:#ef4444; color:white;">⚠️ Factory Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="success-modal" class="modal-overlay">
         <div class="modal-content" style="text-align: center; padding: 40px 20px;">
-            <div class="success-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-            </div>
+            <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
             <h2 class="text-pink" style="font-size: 2rem; margin-bottom: 10px;">Mission Accomplished!</h2>
-            <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 25px;">
-                You found the book! Don't forget to check it out at the front desk before you leave.
-            </p>
             <button class="submit-btn" onclick="closeSuccessScreen()">Got it, thanks!</button>
         </div>
     </div>
