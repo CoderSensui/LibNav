@@ -150,7 +150,8 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 .modal-content { background: var(--bg-card); padding: 30px; width: 90%; max-width: 420px; border-radius: 30px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid var(--border-color); transform: scale(0.9); transition: transform 0.4s var(--ease-bounce); max-height: 90vh; overflow-y: auto; }
 .modal-overlay.active .modal-content { transform: scale(1); }
 
-/* --- CAROUSEL STYLES --- */
+/* --- CAROUSEL STYLES --
+- */
 .carousel-wrapper { width: 100%; margin: 20px 0; border-radius: 20px; border: 3px solid var(--bg-chip); overflow: hidden; background: var(--bg-main); display: flex; justify-content: center; align-items: center; position: relative; height: 250px; }
 .shelf-photo { width: 100%; height: 100%; display: block; object-fit: cover; }
 .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(11, 17, 33, 0.7); color: white; border: none; font-size: 2rem; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 50%; z-index: 10; transition: background 0.3s; }
@@ -371,4 +372,43 @@ body.mobile-view-active .shelf-photo {
 @keyframes popIn {
     0% { transform: scale(0); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
+}
+
+/* Hide redundant QR code on mobile */
+body.mobile-view-active .qr-section {
+    display: none !important;
+}
+
+/* Make the map image bigger and centered */
+body.mobile-view-active .carousel-wrapper {
+    height: 50vh; /* Use half the screen height for the map */
+    margin-bottom: 20px;
+    border: none;
+}
+
+/* Style the Target Badge to look like a label, not a button */
+body.mobile-view-active .destination-badge {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 5px 0 20px 0;
+    font-size: 1rem;
+    color: var(--text-muted);
+}
+
+/* Make the 'I Found It' button huge and tappable at the bottom */
+body.mobile-view-active #mobile-action-area {
+    position: fixed;
+    bottom: 30px;
+    left: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+body.mobile-view-active .found-btn {
+    width: 100%;
+    padding: 18px;
+    font-size: 1.2rem;
+    box-shadow: 0 10px 25px rgba(219, 39, 119, 0.4);
 }
