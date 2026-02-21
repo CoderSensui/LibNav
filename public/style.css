@@ -142,9 +142,9 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
     position: relative; 
     overflow: hidden; 
     transition: transform 0.3s; 
-    display: flex; /* NEW */
-    gap: 15px;     /* NEW */
-    align-items: center; /* NEW */
+    display: flex; 
+    gap: 15px;     
+    align-items: center; 
 }
 .featured-card::before { content: "★ Daily Pick"; position: absolute; top: 10px; right: 10px; background: var(--primary-pink); color: var(--bg-main); font-size: 0.7rem; font-weight: bold; padding: 4px 10px; border-radius: 10px; z-index: 10; }
 .featured-card:hover { transform: translateY(-3px); border-color: var(--primary-pink); box-shadow: 0 10px 20px -5px rgba(255, 196, 214, 0.2); }
@@ -227,40 +227,48 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 .author-headshot { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-pink); background: var(--bg-chip); box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: popIn 0.4s var(--ease-bounce); }
 .modal-text-group { text-align: left; }
 
-/* --- THE GLOBAL VISUAL SHELF STYLES --- */
+/* --- THE GLOBAL VISUAL SHELF STYLES (OPTIMIZED) --- */
 .shelf-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 20px 15px;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); /* Slightly smaller for better mobile fit */
+    gap: 15px;
     padding: 10px 0 100px 0;
+    will-change: transform; /* Hint for GPU acceleration */
 }
 
 .shelf-book-card {
     display: flex;
     flex-direction: column;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s ease-out;
     opacity: 0;
-    animation: fadeInUp 0.5s var(--ease-bounce) forwards;
+    animation: fadeInUp 0.4s ease-out forwards;
     position: relative;
+    /* Removed heavy shadows on card itself for performance */
 }
 
 .shelf-book-card:hover {
     transform: translateY(-5px);
 }
 
-.shelf-cover {
+.shelf-cover-wrapper {
     width: 100%;
     aspect-ratio: 2 / 3;
     background-color: #5D4037;
     border-radius: 5px 10px 10px 5px; 
-    background-size: cover;
-    background-position: center;
-    box-shadow: 4px 4px 12px rgba(0,0,0,0.4);
     position: relative;
     overflow: hidden;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     border-left: 3px solid rgba(255,255,255,0.1);
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.3); /* Lighter shadow */
+}
+
+.shelf-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0; /* Hidden until loaded */
+    transition: opacity 0.3s ease-in;
 }
 
 .placeholder-text {
@@ -274,6 +282,7 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
     font-weight: bold;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
     transition: opacity 0.3s;
+    pointer-events: none;
 }
 
 .text-small {
@@ -284,12 +293,12 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
     position: absolute;
     top: -5px;
     right: 5px;
-    background: rgba(11, 17, 33, 0.8);
-    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(11, 17, 33, 0.85);
+    border: none;
     color: var(--text-muted);
-    width: 32px;
-    height: 35px;
-    border-radius: 0 0 15px 15px; /* Ribbon shape */
+    width: 28px;
+    height: 32px;
+    border-radius: 0 0 10px 10px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -299,19 +308,19 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 }
 
 .fav-btn-grid svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     fill: none;
     stroke: currentColor;
     stroke-width: 2;
 }
 
-.fav-btn-grid:hover { height: 40px; background: rgba(11, 17, 33, 1); }
+.fav-btn-grid:hover { height: 36px; background: rgba(11, 17, 33, 1); }
 .fav-btn-grid.active svg { fill: #ef4444; stroke: #ef4444; }
 
 .shelf-info { text-align: left; padding: 0 2px; }
-.shelf-title { font-size: 0.9rem; font-weight: bold; color: var(--text-main); line-height: 1.2; margin-bottom: 2px; }
-.shelf-author { font-size: 0.75rem; color: var(--text-muted); }
+.shelf-title { font-size: 0.85rem; font-weight: bold; color: var(--text-main); line-height: 1.2; margin-bottom: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.shelf-author { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* =========================================================
    1. ALL MOBILE PHONES (Clean Modal UI)
@@ -325,7 +334,7 @@ body.is-mobile-device .found-btn { width: 100% !important; padding: 18px !import
    2. QR SCAN MODE ONLY (Full Screen Immersion)
    ========================================================= */
 body.companion-mode-active { overflow: hidden !important; }
-body.companion-mode-active .top-controls, body.companion-mode-active .search-wrapper, body.companion-mode-active .hero, body.companion-mode-active .floating-actions, body.companion-mode-active .featured-section, body.companion-mode-active #results-area, body.companion-mode-active #section-title, body.companion-mode-active #screensaver { display: none !important; }
+body.companion-mode-active .top-controls, body.companion-mode-active .search-wrapper, body.companion-mode-active .hero, body.companion-mode-active .floating-actions, body.companion-mode-active .featured-section, body.companion-mode-active #results-area, body.companion-mode-active #screensaver { display: none !important; }
 body.companion-mode-active #book-modal.modal-overlay { display: flex !important; background: var(--bg-main) !important; opacity: 1 !important; pointer-events: all !important; position: fixed !important; inset: 0 !important; z-index: 9999 !important; }
 body.companion-mode-active #book-modal .modal-content { width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; border-radius: 0 !important; border: none !important; justify-content: center !important; box-shadow: none !important; transform: scale(1) !important; }
 body.companion-mode-active #success-modal.modal-overlay.active { display: flex !important; background: var(--bg-main) !important; opacity: 1 !important; pointer-events: all !important; position: fixed !important; inset: 0 !important; z-index: 10000 !important; }
