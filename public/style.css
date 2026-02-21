@@ -186,7 +186,6 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 
 .close-modal { position: absolute; top: 20px; right: 20px; background: var(--bg-chip); width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: none; color: var(--text-main); z-index: 50; }
 
-/* --- VIRTUAL SHELF (NEIGHBORS) - REVERTED TO SPINES --- */
 .neighbors-area { margin-top: 20px; text-align: left; }
 .neighbors-list { display: flex; gap: 2px; margin-top: 10px; overflow-x: auto; padding: 20px 10px 0px 10px; align-items: flex-end; height: 120px; border-bottom: 12px solid #5d4037; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.2)); border-radius: 0 0 5px 5px; }
 .neighbors-list::-webkit-scrollbar { height: 8px; }
@@ -227,17 +226,14 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 .modal-content .chip { display: inline-block; width: auto; margin: 10px auto 20px auto; padding: 6px 16px; }
 .destination-badge { display: inline-block; background: rgba(219, 39, 119, 0.15); border: 2px solid var(--primary-pink); padding: 10px 25px; border-radius: 12px; font-size: 1.2rem; font-weight: bold; margin: 15px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 
-/* SUCCESS SCREEN LOGIC */
 .success-icon { width: 80px; height: 80px; background: rgba(74, 222, 128, 0.15); color: #4ade80; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px auto; box-shadow: 0 0 20px rgba(74, 222, 128, 0.3); animation: popIn 0.5s var(--ease-bounce); }
 .success-icon svg { width: 40px; height: 40px; }
 @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-/* --- NEW AUTHOR HEADSHOT STYLES --- */
 .modal-header-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
 .author-headshot { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-pink); background: var(--bg-chip); box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: popIn 0.4s var(--ease-bounce); }
 .modal-text-group { text-align: left; }
 
-/* --- THE GLOBAL VISUAL SHELF STYLES (OPTIMIZED) --- */
 .shelf-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
