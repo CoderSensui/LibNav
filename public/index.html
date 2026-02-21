@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0b1121">
-    <title>LibNav</title>
+    <title>LibNav | Smart Library</title>
     <meta name="description" content="Find a way to the story! A smart navigation system.">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=21">
+    <link rel="stylesheet" href="style.css?v=28">
 </head>
 <body>
 
@@ -117,9 +117,9 @@
     <div id="admin-modal" class="modal-overlay">
         <div class="modal-content" style="max-height:85vh; overflow-y:auto;">
             <button class="close-modal">&times;</button>
-            <h2 class="text-pink">Admin Panel</h2>
+            <h2 class="text-pink">Admin Operations</h2>
             <div id="admin-login-screen">
-                <p style="color:var(--text-muted); margin-bottom:15px;">Enter password to manage books.</p>
+                <p style="color:var(--text-muted); margin-bottom:15px;">Enter Access Key</p>
                 <input type="password" id="admin-password" class="form-input" placeholder="Password (admin123)">
                 <button id="admin-auth-btn" class="submit-btn">Login</button>
             </div>
@@ -152,10 +152,10 @@
 
                 <div id="image-inputs-container"></div>
 
-                <button id="add-book-btn" class="submit-btn" style="background:#4ade80; color:#0b1121; margin-top:10px;">+ Add Book to Cloud</button>
+                <button id="add-book-btn" class="submit-btn" style="background:#4ade80; color:#0b1121; margin-top:10px;">+ Add to Cloud</button>
                 
                 <h3 style="margin:30px 0 10px 0; color:#ef4444;">Delete Books</h3>
-                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">Tap a book to remove it permanently.</p>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">Tap a book to remove it globally.</p>
                 <div id="admin-book-list" style="display:grid; grid-template-columns:1fr; gap:10px; max-height:200px; overflow-y:auto; padding-right:5px;"></div>
             </div>
         </div>
