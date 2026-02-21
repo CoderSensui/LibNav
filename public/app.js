@@ -1,4 +1,4 @@
-/* app.js - Full Monolith Code */
+/* app.js - Full Integrated Engine */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -33,6 +33,16 @@ const imageInputsContainer = document.getElementById('image-inputs-container');
 const addBookBtn = document.getElementById('add-book-btn');
 const adminBookList = document.getElementById('admin-book-list');
 
+// --- MODAL ELEMENTS ---
+const bookModal = document.getElementById('book-modal');
+const neighborsArea = document.getElementById('neighbors-area');
+const neighborsList = document.getElementById('neighbors-list');
+const qrContainer = document.getElementById('qrcode');
+const carouselImg = document.getElementById('carousel-img');
+const prevBtn = document.getElementById('prev-img-btn');
+const nextBtn = document.getElementById('next-img-btn');
+const stepCounter = document.getElementById('step-counter');
+
 let selectedGenres = new Set(); 
 let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
 const IDLE_LIMIT = 30000;
@@ -41,10 +51,6 @@ const coverCache = {};
 const authorCache = {}; 
 let currentImages = [];
 let currentImageIndex = 0;
-const carouselImg = document.getElementById('carousel-img');
-const prevBtn = document.getElementById('prev-img-btn');
-const nextBtn = document.getElementById('next-img-btn');
-const stepCounter = document.getElementById('step-counter');
 
 async function init() {
     loadTheme();
@@ -52,7 +58,7 @@ async function init() {
     const connected = await LibraryDB.init(); 
     
     if (!connected) {
-        resultsArea.innerHTML = '<div style="text-align:center; padding:20px;">Connection Error to Firebase.</div>';
+        resultsArea.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; padding:20px;">Firebase Connection Error. Check rules.</div>';
         return;
     }
     
@@ -65,7 +71,7 @@ async function init() {
 
     if (bookId) {
         const allBooks = LibraryDB.getBooks();
-        const deepLinkedBook = allBooks.find(b => b.id == bookId);
+        const deepLinkedBook = allBooks.find(b => String(b.id) === String(bookId));
         if (deepLinkedBook) {
             if (viewMode === 'mobile') {
                 document.body.classList.add('companion-mode-active');
@@ -79,10 +85,51 @@ async function init() {
 
     if (!document.body.classList.contains('companion-mode-active')) {
         loadFeaturedBook(); 
-        
-        // BUG FIX: Keeps grid hidden on initial load
-        resultsArea.innerHTML = ''; 
+        resultsArea.innerHTML = ''; // Start empty
         resetIdleTimer();
+    }
+}
+
+// ==========================================
+// OPENLIBRARY COVER FALLBACK ALGORITHM
+// ==========================================
+function fetchCoverWithFallback(title, author, elementId, isImgTag) {
+    if (coverCache[title]) {
+        applyCover(coverCache[title], elementId, isImgTag);
+        return;
+    }
+
+    // Try 1: Title + Author
+    fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.docs && data.docs[0] && data.docs[0].cover_i) {
+            const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
+            coverCache[title] = url;
+            applyCover(url, elementId, isImgTag);
+        } else {
+            // Try 2: FALLBACK to Title Only
+            fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&limit=1`)
+            .then(res2 => res2.json())
+            .then(data2 => {
+                if (data2.docs && data2.docs[0] && data2.docs[0].cover_i) {
+                    const fallbackUrl = `https://covers.openlibrary.org/b/id/${data2.docs[0].cover_i}-M.jpg`;
+                    coverCache[title] = fallbackUrl;
+                    applyCover(fallbackUrl, elementId, isImgTag);
+                }
+            }).catch(() => {});
+        }
+    }).catch(() => {});
+}
+
+function applyCover(url, elementId, isImgTag) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    if (isImgTag) {
+        el.src = url;
+        el.onload = () => el.style.opacity = '1';
+    } else {
+        el.style.backgroundImage = `url(${url})`;
     }
 }
 
@@ -114,6 +161,7 @@ function updateImageInputs() {
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'form-input step-url-input';
+        input.style.borderLeft = "4px solid var(--primary-pink)";
         input.placeholder = (i === count) ? `Final Image URL (Arrived)` : `Step ${i} Image URL`;
         imageInputsContainer.appendChild(input);
     }
@@ -166,7 +214,7 @@ function renderAdminList() {
                 <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${b.title}</strong>
                 <span style="font-size:0.8rem; color:var(--text-muted);">${b.author}</span>
             </div>
-            <button onclick="handleDelete(${b.id})" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; flex-shrink:0; margin-left:10px;">Delete</button>
+            <button onclick="handleDelete('${b.id}')" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; flex-shrink:0; margin-left:10px;">Delete</button>
         </div>
     `).join('');
 }
@@ -180,55 +228,8 @@ window.handleDelete = async function(id) {
 };
 
 // ==========================================
-// OPENLIBRARY COVER FALLBACK ALGORITHM
+// MAIN UI AND RENDER LOGIC
 // ==========================================
-function fetchCoverWithFallback(title, author, elementId, isImgTag) {
-    if (coverCache[title]) {
-        applyCoverToElement(coverCache[title], elementId, isImgTag);
-        return;
-    }
-
-    const applyUrl = (coverId) => {
-        const url = `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`;
-        coverCache[title] = url;
-        applyCoverToElement(url, elementId, isImgTag);
-    };
-
-    // Try 1: Title + Author
-    fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1`)
-    .then(res => res.json())
-    .then(data => {
-        if (data.docs && data.docs[0] && data.docs[0].cover_i) {
-            applyUrl(data.docs[0].cover_i);
-        } else {
-            // Try 2: Fallback to Title only
-            fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&limit=1`)
-            .then(res2 => res2.json())
-            .then(data2 => {
-                if (data2.docs && data2.docs[0] && data2.docs[0].cover_i) {
-                    applyUrl(data2.docs[0].cover_i);
-                }
-            }).catch(() => {});
-        }
-    }).catch(() => {});
-}
-
-function applyCoverToElement(url, elementId, isImgTag) {
-    const el = document.getElementById(elementId);
-    if (!el) return;
-    if (isImgTag) {
-        el.src = url;
-        el.onload = () => el.style.opacity = '1';
-    } else {
-        el.style.backgroundImage = `url(${url})`;
-    }
-}
-
-// Global Helper to safely click IDs without Syntax Errors
-window.openModalById = function(id) {
-    const book = LibraryDB.getBooks().find(b => b.id == id);
-    if(book) openModal(book);
-}
 
 function loadFeaturedBook() {
     const books = LibraryDB.getBooks();
@@ -245,10 +246,12 @@ function loadFeaturedBook() {
         localStorage.setItem('libnav_daily_pick', JSON.stringify({ date: today, bookId: featuredBook.id }));
     }
     
+    if(!featuredBook) return;
+
     featuredContainer.innerHTML = `
         <div class="featured-section">
             <span class="featured-label">Recommended for you</span>
-            <div class="featured-card" onclick="openModalById('${featuredBook.id}')">
+            <div class="featured-card" id="featured-card-btn">
                 <div class="featured-cover" id="feat-cover-${featuredBook.id}"></div>
                 <div class="featured-info">
                     <h2 style="font-size:1.3rem; margin-bottom:2px; line-height: 1.2;">${featuredBook.title}</h2>
@@ -258,7 +261,7 @@ function loadFeaturedBook() {
             </div>
         </div>`;
 
-    // Apply Smart Fallback
+    document.getElementById('featured-card-btn').onclick = () => openModal(featuredBook);
     fetchCoverWithFallback(featuredBook.title, featuredBook.author, `feat-cover-${featuredBook.id}`, false);
 }
 
@@ -270,7 +273,7 @@ homeBtn.addEventListener('click', () => {
     hero.classList.remove('minimized');
     featuredContainer.style.display = 'block';
     homeBtn.classList.add('home-hidden');
-    resultsArea.innerHTML = ''; // Hides books on Home click
+    resultsArea.innerHTML = ''; 
 });
 
 function openSidebar() { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); filterMenu.style.display = 'none'; }
@@ -287,6 +290,7 @@ filterToggle.addEventListener('click', (e) => {
 
 function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(goIdle, IDLE_LIMIT); }
 function goIdle() {
+    if(document.body.classList.contains('companion-mode-active')) return;
     homeBtn.click();
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
     closeSidebar();
@@ -369,7 +373,6 @@ function performSearch(term) {
     let books = LibraryDB.getBooks();
     term = term.toLowerCase().trim();
     
-    // BUG FIX: Ensure grid stays hidden if empty search & no category
     if (term === '' && selectedGenres.size === 0) {
         resultsArea.innerHTML = '';
         return;
@@ -397,7 +400,6 @@ function performSearch(term) {
     renderResults(matches);
 }
 
-// Fixed bug by using safe programmatic creation method
 function renderResults(books) {
     resultsArea.innerHTML = '';
     
@@ -429,12 +431,14 @@ function renderResults(books) {
             </div>
         `;
         
+        // Bomb-proof event listener directly passing the object
         card.onclick = (e) => { 
-            if(!e.target.closest('.fav-btn-grid')) openModal(book); 
+            if(!e.target.closest('.fav-btn-grid')) {
+                openModal(book); 
+            }
         };
-        fragment.appendChild(card);
 
-        // Apply Smart Fallback
+        fragment.appendChild(card);
         fetchCoverWithFallback(book.title, book.author, coverId, true);
     });
     
@@ -443,13 +447,128 @@ function renderResults(books) {
 
 window.toggleFavorite = function(e, bookId) {
     e.stopPropagation(); 
-    // Generic check to avoid string/number ID mismatch issues
-    const index = favorites.findIndex(id => id == bookId);
+    const index = favorites.findIndex(id => String(id) === String(bookId));
     if (index === -1) favorites.push(bookId); 
     else favorites.splice(index, 1);
     localStorage.setItem('libnav_favs', JSON.stringify(favorites));
     performSearch(searchInput.value); 
 }
+
+// Safely log history to prevent Syntax crash
+function updateHistory(title) { 
+    try {
+        let hist = JSON.parse(localStorage.getItem('search_history')) || []; 
+        hist.push(title); 
+        localStorage.setItem('search_history', JSON.stringify(hist.slice(-15))); 
+    } catch(e) {
+        localStorage.setItem('search_history', JSON.stringify([title]));
+    }
+}
+
+// Highly defensive Modal Opening
+async function openModal(book) {
+    try {
+        // Open modal instantly so it never silently fails
+        bookModal.classList.add('active');
+
+        if (!document.body.classList.contains('companion-mode-active')) {
+            updateHistory(book.title);
+        }
+
+        document.getElementById('modal-title').innerText = book.title || 'Unknown Title';
+        document.getElementById('modal-author').innerText = book.author || 'Unknown Author';
+        document.getElementById('modal-book-id').innerText = book.id || 'N/A';
+        document.getElementById('modal-genre').innerText = book.genre || 'Misc';
+
+        const authorImg = document.getElementById('modal-author-pic');
+        authorImg.style.display = 'none'; 
+        authorImg.src = '';
+        
+        if (authorCache[book.author]) {
+             authorImg.src = authorCache[book.author];
+             authorImg.style.display = 'block';
+        } else if(book.author) {
+            fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(book.author)}`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.docs && data.docs[0] && data.docs[0].key) {
+                    const authorKey = data.docs[0].key; 
+                    const url = `https://covers.openlibrary.org/a/olid/${authorKey}-M.jpg`;
+                    authorCache[book.author] = url;
+                    authorImg.src = url;
+                    authorImg.style.display = 'block';
+                }
+            }).catch(e => console.log(e));
+        }
+
+        qrContainer.innerHTML = '';
+        try {
+            const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
+            new QRCode(qrContainer, {
+                text: deepLink,
+                width: 120, height: 120,
+                colorDark : "#0b1121", colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.M
+            });
+        } catch(err) { console.error("QR Code Error:", err); }
+
+        currentImages = book.images || []; 
+        currentImageIndex = 0; 
+        updateCarousel(); 
+
+        const allBooks = LibraryDB.getBooks();
+        const neighbors = allBooks.filter(b => b.genre === book.genre && String(b.id) !== String(book.id)); 
+        
+        neighborsList.innerHTML = '';
+        if (neighbors.length > 0) {
+            neighborsArea.style.display = 'block';
+            const spineColors = ['#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', '#8D6E63'];
+
+            neighbors.forEach(n => {
+                const spine = document.createElement('div');
+                spine.className = 'book-spine'; 
+                spine.innerText = n.title;
+                const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
+                spine.style.height = `${randomHeight}px`;
+                spine.style.backgroundColor = spineColors[Math.floor(Math.random() * spineColors.length)];
+
+                spine.onclick = () => openModal(n);
+                neighborsList.appendChild(spine);
+            });
+        } else neighborsArea.style.display = 'none';
+        
+    } catch(err) {
+        console.error("Critical error inside openModal:", err);
+    }
+}
+
+function updateCarousel() {
+    const actionArea = document.getElementById('mobile-action-area');
+    if (currentImages.length > 0) {
+        carouselImg.src = currentImages[currentImageIndex];
+        stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
+        prevBtn.disabled = currentImageIndex === 0;
+        nextBtn.disabled = currentImageIndex === currentImages.length - 1;
+        carouselImg.style.display = 'block';
+        
+        if (actionArea) {
+            if (document.body.classList.contains('is-mobile-device') || document.body.classList.contains('companion-mode-active')) {
+                if (currentImageIndex === currentImages.length - 1) {
+                    actionArea.style.display = 'block';
+                } else { actionArea.style.display = 'none'; }
+            } else { actionArea.style.display = 'none'; }
+        }
+    } else {
+        carouselImg.style.display = 'none';
+        stepCounter.innerText = "No map images available";
+        prevBtn.disabled = true; nextBtn.disabled = true;
+        if (actionArea) actionArea.style.display = 'none';
+    }
+}
+
+prevBtn.onclick = () => { if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } };
+nextBtn.onclick = () => { if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } };
+document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -500,108 +619,6 @@ document.getElementById('stats-trigger').onclick = () => {
     document.getElementById('stats-modal').classList.add('active');
 };
 
-function updateHistory(title) { let hist = JSON.parse(localStorage.getItem('search_history')) || []; hist.push(title); localStorage.setItem('search_history', JSON.stringify(hist)); }
-
-async function openModal(book) {
-    if (!document.body.classList.contains('companion-mode-active')) {
-        updateHistory(book.title);
-    }
-
-    document.getElementById('modal-title').innerText = book.title;
-    document.getElementById('modal-author').innerText = book.author;
-    document.getElementById('modal-book-id').innerText = book.id;
-    document.getElementById('modal-genre').innerText = book.genre;
-
-    const authorImg = document.getElementById('modal-author-pic');
-    authorImg.style.display = 'none'; 
-    authorImg.src = '';
-    
-    if (authorCache[book.author]) {
-         authorImg.src = authorCache[book.author];
-         authorImg.style.display = 'block';
-    } else {
-        fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(book.author)}`)
-        .then(res => res.json())
-        .then(data => {
-            if(data.docs && data.docs[0] && data.docs[0].key) {
-                const authorKey = data.docs[0].key; 
-                const url = `https://covers.openlibrary.org/a/olid/${authorKey}-M.jpg`;
-                authorCache[book.author] = url;
-                authorImg.src = url;
-                authorImg.style.display = 'block';
-            }
-        }).catch(e => console.log(e));
-    }
-
-    qrContainer.innerHTML = '';
-    const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
-    new QRCode(qrContainer, {
-        text: deepLink,
-        width: 120, height: 120,
-        colorDark : "#0b1121", colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.M
-    });
-
-    currentImages = book.images || []; 
-    currentImageIndex = 0; 
-    updateCarousel(); 
-
-    // --- VIRTUAL SHELF (NEIGHBORS) - REVERTED TO SPINES ---
-    const allBooks = LibraryDB.getBooks();
-    const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
-    
-    neighborsList.innerHTML = '';
-    if (neighbors.length > 0) {
-        neighborsArea.style.display = 'block';
-        
-        // Classic Brown/Tan Palette for Spines
-        const spineColors = ['#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', '#8D6E63'];
-
-        neighbors.forEach(n => {
-            const spine = document.createElement('div');
-            spine.className = 'book-spine'; // Uses CSS to look like a spine
-            spine.innerText = n.title;
-            
-            const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
-            spine.style.height = `${randomHeight}px`;
-            spine.style.backgroundColor = spineColors[Math.floor(Math.random() * spineColors.length)];
-
-            spine.onclick = () => openModal(n);
-            neighborsList.appendChild(spine);
-        });
-    } else neighborsArea.style.display = 'none';
-    
-    bookModal.classList.add('active');
-}
-
-function updateCarousel() {
-    const actionArea = document.getElementById('mobile-action-area');
-    if (currentImages.length > 0) {
-        carouselImg.src = currentImages[currentImageIndex];
-        stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
-        prevBtn.disabled = currentImageIndex === 0;
-        nextBtn.disabled = currentImageIndex === currentImages.length - 1;
-        carouselImg.style.display = 'block';
-        
-        if (actionArea) {
-            if (document.body.classList.contains('is-mobile-device') || document.body.classList.contains('companion-mode-active')) {
-                if (currentImageIndex === currentImages.length - 1) {
-                    actionArea.style.display = 'block';
-                } else { actionArea.style.display = 'none'; }
-            } else { actionArea.style.display = 'none'; }
-        }
-    } else {
-        carouselImg.style.display = 'none';
-        stepCounter.innerText = "No map images available";
-        prevBtn.disabled = true; nextBtn.disabled = true;
-        if (actionArea) actionArea.style.display = 'none';
-    }
-}
-
-prevBtn.onclick = () => { if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } };
-nextBtn.onclick = () => { if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } };
-document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
-
 if (feedbackBtn) feedbackBtn.addEventListener('click', () => { feedbackModal.classList.add('active'); closeSidebar(); });
 if (feedbackForm) feedbackForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -632,13 +649,7 @@ function loadTheme() {
     else { themeBtn.innerHTML = lightbulbSVG; }
 }
 
-window.showSuccessScreen = function() { 
-    document.getElementById('book-modal').classList.remove('active'); 
-    document.getElementById('success-modal').classList.add('active'); 
-}
-window.closeSuccessScreen = function() { 
-    document.getElementById('success-modal').classList.remove('active'); 
-    window.location.href = window.location.pathname; 
-}
+window.showSuccessScreen = function() { document.getElementById('book-modal').classList.remove('active'); document.getElementById('success-modal').classList.add('active'); }
+window.closeSuccessScreen = function() { document.getElementById('success-modal').classList.remove('active'); window.location.href = window.location.pathname; }
 
 init();
