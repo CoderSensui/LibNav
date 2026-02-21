@@ -6,8 +6,9 @@
     <meta name="theme-color" content="#0b1121">
     <title>LibNav</title>
     <meta name="description" content="Find a way to the story! A smart navigation system.">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=8">
+    <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
@@ -21,7 +22,11 @@
                 <span>Main Menu</span>
             </button>
         </div>
-        <h1 class="header-logo">LibNav</h1>
+        
+        <button id="chat-open-btn" class="chat-header-btn">
+            <span>Ask Libby</span>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        </button>
     </div>
 
     <div id="side-menu-overlay" class="menu-overlay"></div>
@@ -68,14 +73,7 @@
                     <span>All Genres</span>
                 </label>
                 <div style="height:1px; background:var(--border-color); margin:5px 0;"></div>
-                <label class="filter-option">
-                    <input type="checkbox" value="Favorites">
-                    <span class="checkmark" style="border-color:#ef4444; color:#ef4444;"></span>
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#ef4444"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
-                        <span>Bookmarks</span>
-                    </div>
-                </label>
+                <label class="filter-option"><input type="checkbox" value="Favorites"><span class="checkmark" style="border-color:#ef4444; color:#ef4444;"></span><span>Bookmarks</span></label>
                 <label class="filter-option"><input type="checkbox" value="Fiction"><span class="checkmark"></span><span>Fiction</span></label>
                 <label class="filter-option"><input type="checkbox" value="Non-Fiction"><span class="checkmark"></span><span>Non-Fiction</span></label>
                 <label class="filter-option"><input type="checkbox" value="Romance"><span class="checkmark"></span><span>Romance</span></label>
@@ -96,7 +94,6 @@
     <div id="book-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-modal">&times;</button>
-            
             <div class="modal-header-row">
                 <img id="modal-author-pic" class="author-headshot" src="" alt="Author" style="display:none;">
                 <div class="modal-text-group">
@@ -104,29 +101,16 @@
                     <p id="modal-author" style="color:var(--text-muted);">Author</p>
                 </div>
             </div>
-            
             <span id="modal-genre" class="chip">Genre</span>
-            
             <div id="carousel-wrapper" class="carousel-wrapper">
                 <button id="prev-img-btn" class="carousel-btn prev">&lt;</button>
                 <img id="carousel-img" src="" alt="Navigation Step" class="shelf-photo">
                 <button id="next-img-btn" class="carousel-btn next">&gt;</button>
                 <div id="step-counter" class="step-counter">Step 1</div>
             </div>
-            
-            <div class="destination-badge">
-                Target: Book #<span id="modal-book-id" class="text-pink">0</span>
-            </div>
-
-            <div id="mobile-action-area" style="display: none;">
-                <button class="found-btn" onclick="showSuccessScreen()">I Found It!</button>
-            </div>
-            
-            <div class="qr-section">
-                <div id="qrcode"></div>
-                <p class="qr-text">Scan to take map with you</p>
-            </div>
-            
+            <div class="destination-badge">Target: Book #<span id="modal-book-id" class="text-pink">0</span></div>
+            <div id="mobile-action-area" style="display: none;"><button class="found-btn" onclick="showSuccessScreen()">I Found It!</button></div>
+            <div class="qr-section"><div id="qrcode"></div><p class="qr-text">Scan to take map with you</p></div>
             <div id="neighbors-area" class="neighbors-area">
                 <p style="font-size:0.9rem; color:var(--text-muted);">Also in this section:</p>
                 <div id="neighbors-list" class="neighbors-list"></div>
@@ -134,18 +118,36 @@
         </div>
     </div>
 
+    <div id="chat-modal" class="chat-modal-overlay">
+        <div class="chat-window">
+            <div class="chat-header">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="libby-avatar">🤖</div>
+                    <div>
+                        <h3 style="margin:0; font-size:1.1rem;">Libby</h3>
+                        <span style="font-size:0.8rem; color:#4ade80;">Online</span>
+                    </div>
+                </div>
+                <button id="close-chat-btn">&times;</button>
+            </div>
+            <div id="chat-messages" class="chat-messages">
+                <div class="message bot-msg">
+                    Hi! I'm Libby, your AI librarian. I know exactly what books are on the shelves. What are you looking for?
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Ask for a recommendation..." autocomplete="off">
+                <button id="send-chat-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="success-modal" class="modal-overlay">
         <div class="modal-content" style="text-align: center; padding: 40px 20px;">
-            <div class="success-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-            </div>
+            <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
             <h2 class="text-pink" style="font-size: 2rem; margin-bottom: 10px;">Mission Accomplished!</h2>
-            <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 25px;">
-                You found the book! Don't forget to check it out at the front desk before you leave.
-            </p>
             <button class="submit-btn" onclick="closeSuccessScreen()">Got it, thanks!</button>
         </div>
     </div>
