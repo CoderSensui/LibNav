@@ -1,4 +1,4 @@
-/* database.js - Robust Firebase Cloud Engine */
+/* database.js - Global View Counting Enabled */
 
 const LibraryDB = {
     // ⚠️ YOUR SPECIFIC FIREBASE URL
@@ -13,7 +13,6 @@ const LibraryDB = {
             
             const data = await response.json();
             
-            // Defensive coding: Handle different Firebase data structures and remove empty ghost nodes
             if (data && data.books) {
                 this.books = Object.values(data.books).filter(b => b !== null && b !== undefined); 
             } else if (Array.isArray(data)) {
@@ -54,8 +53,18 @@ const LibraryDB = {
     },
 
     deleteBook: async function(id) {
-        // Safe global delete matching string or int IDs
         this.books = this.books.filter(b => String(b.id) !== String(id));
         return await this.saveToCloud();
+    },
+
+    // NEW: Global View Counter logic
+    incrementView: async function(id) {
+        const book = this.books.find(b => String(b.id) === String(id));
+        if (book) {
+            // Initialize views if it doesn't exist, then add 1
+            book.views = (book.views || 0) + 1;
+            // Save the new count to the cloud silently
+            await this.saveToCloud(); 
+        }
     }
 };
