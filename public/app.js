@@ -1,4 +1,4 @@
-/* app.js - vFinal (HD Covers + Lag Fixed + Clean Initial Load) */
+/* app.js - vFinal (Accurate Covers + Clean Grid + Shelf Spines) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -66,7 +66,7 @@ async function init() {
 
     if (!document.body.classList.contains('companion-mode-active')) {
         loadFeaturedBook(); 
-        resultsArea.innerHTML = ''; // Keep grid completely empty on initial load
+        resultsArea.innerHTML = ''; 
         resetIdleTimer();
     }
 }
@@ -90,9 +90,7 @@ function loadFeaturedBook() {
         <div class="featured-section">
             <span class="featured-label">Recommended for you</span>
             <div class="featured-card" onclick="openModal(LibraryDB.getBooks().find(b => b.id == ${featuredBook.id}))">
-                <div class="featured-cover" id="feat-cover-${featuredBook.id}">
-                    <span class="placeholder-text text-small">${featuredBook.title}</span>
-                </div>
+                <div class="featured-cover" id="feat-cover-${featuredBook.id}"></div>
                 <div class="featured-info">
                     <h2 style="font-size:1.3rem; margin-bottom:2px; line-height: 1.2;">${featuredBook.title}</h2>
                     <p style="color:var(--text-muted); font-size:0.9rem;">by ${featuredBook.author}</p>
@@ -101,14 +99,14 @@ function loadFeaturedBook() {
             </div>
         </div>`;
 
-    // Fetch HD Cover (-M.jpg)
+    // Fetch HD Cover with Author Cross-Check
     const featCoverId = `feat-cover-${featuredBook.id}`;
     if (coverCache[featuredBook.title]) {
         const url = coverCache[featuredBook.title];
         document.getElementById(featCoverId).style.backgroundImage = `url(${url})`;
-        document.getElementById(featCoverId).querySelector('.placeholder-text').style.opacity = '0';
     } else {
-        fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(featuredBook.title)}&limit=1`)
+        // NEW: Search by Title AND Author for accuracy
+        fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(featuredBook.title)}&author=${encodeURIComponent(featuredBook.author)}&limit=1`)
         .then(res => res.json())
         .then(data => {
             if (data.docs && data.docs[0] && data.docs[0].cover_i) {
@@ -117,7 +115,6 @@ function loadFeaturedBook() {
                 const el = document.getElementById(featCoverId);
                 if (el) {
                     el.style.backgroundImage = `url(${url})`;
-                    el.querySelector('.placeholder-text').style.opacity = '0';
                 }
             }
         }).catch(err => console.log(err));
@@ -132,7 +129,7 @@ homeBtn.addEventListener('click', () => {
     hero.classList.remove('minimized');
     featuredContainer.style.display = 'block';
     homeBtn.classList.add('home-hidden');
-    resultsArea.innerHTML = ''; // Hide grid on home
+    resultsArea.innerHTML = ''; 
 });
 
 function openSidebar() { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); filterMenu.style.display = 'none'; }
@@ -228,19 +225,14 @@ searchInput.addEventListener('input', (e) => {
 });
 
 function performSearch(term) {
+    let books = LibraryDB.getBooks();
     term = term.toLowerCase().trim();
     
-    // Core Fix: Clear grid if no search and no filters are active
     if (term === '' && selectedGenres.size === 0) {
         resultsArea.innerHTML = '';
         return;
     }
 
-    let books = LibraryDB.getBooks();
-    if (selectedGenres.has('All') || term !== '') {
-        books.sort((a, b) => a.title.localeCompare(b.title));
-    }
-    
     let matches = books.filter(book => {
         const titleMatch = book.title.toLowerCase().includes(term);
         const authorMatch = book.author.toLowerCase().includes(term);
@@ -255,6 +247,10 @@ function performSearch(term) {
         }
         return (titleMatch || authorMatch) && genreMatch;
     });
+    
+    if (selectedGenres.has('All') || term !== '') {
+        matches.sort((a, b) => a.title.localeCompare(b.title));
+    }
     
     renderResults(matches);
 }
@@ -273,7 +269,6 @@ function renderResults(books) {
         const card = document.createElement('div');
         card.className = 'shelf-book-card';
         
-        // Anti-Lag Fix: Only animate the first few cards entering the screen
         if (index < 12) {
             card.style.animationDelay = `${index * 0.04}s`;
         } else {
@@ -284,10 +279,10 @@ function renderResults(books) {
         const isFav = favorites.includes(book.id);
         const coverId = `img-${book.id}`;
         
+        // Removed the span.placeholder-text entirely
         card.innerHTML = `
             <div class="shelf-cover-wrapper">
                 <img id="${coverId}" class="shelf-cover-img" src="" loading="lazy" alt="${book.title}">
-                <span class="placeholder-text">${book.title}</span>
                 <button class="fav-btn-grid ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, ${book.id})">
                     <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
                 </button>
@@ -303,18 +298,19 @@ function renderResults(books) {
         };
         fragment.appendChild(card);
 
-        // Fetch HD Covers (-M.jpg)
+        // Fetch Cover with Author Check
         if (coverCache[book.title]) {
              const img = card.querySelector('.shelf-cover-img');
              const url = coverCache[book.title];
              img.src = url;
              img.onload = () => { img.style.opacity = '1'; };
         } else {
-            fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(book.title)}&limit=1`)
+            // NEW: Added &author=${book.author}
+            fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(book.title)}&author=${encodeURIComponent(book.author)}&limit=1`)
             .then(res => res.json())
             .then(data => {
                 if (data.docs && data.docs[0] && data.docs[0].cover_i) {
-                    const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`; // HD Size
+                    const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
                     coverCache[book.title] = url;
                     const img = document.getElementById(coverId);
                     if (img) {
@@ -436,46 +432,28 @@ async function openModal(book) {
     currentImageIndex = 0; 
     updateCarousel(); 
 
+    // --- REVERTED TO CLASSIC SPINES FOR SHELF VIEW ---
     const allBooks = LibraryDB.getBooks();
     const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
     
     neighborsList.innerHTML = '';
     if (neighbors.length > 0) {
         neighborsArea.style.display = 'block';
+        
+        // Classic Brown/Tan Palette for Spines
         const spineColors = ['#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', '#8D6E63'];
 
         neighbors.forEach(n => {
             const spine = document.createElement('div');
-            spine.className = 'book-spine';
+            spine.className = 'book-spine'; // Uses CSS to look like a spine
             spine.innerText = n.title;
+            
             const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
             spine.style.height = `${randomHeight}px`;
             spine.style.backgroundColor = spineColors[Math.floor(Math.random() * spineColors.length)];
 
             spine.onclick = () => openModal(n);
             neighborsList.appendChild(spine);
-
-            // Fetch HD Covers (-M.jpg)
-            if (coverCache[n.title]) {
-                const url = coverCache[n.title];
-                spine.classList.add('has-cover');
-                spine.style.backgroundImage = `url(${url})`;
-                spine.style.backgroundSize = 'cover';
-                spine.style.backgroundPosition = 'center';
-            } else {
-                fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(n.title)}&limit=1`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.docs && data.docs[0] && data.docs[0].cover_i) {
-                            const coverUrl = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
-                            coverCache[n.title] = coverUrl; 
-                            spine.classList.add('has-cover');
-                            spine.style.backgroundImage = `url(${coverUrl})`;
-                            spine.style.backgroundSize = 'cover';
-                            spine.style.backgroundPosition = 'center';
-                        }
-                    }).catch(err => console.log(err));
-            }
         });
     } else neighborsArea.style.display = 'none';
     
