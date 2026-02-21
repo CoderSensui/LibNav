@@ -78,7 +78,7 @@ const LibraryDB = {
         try {
             this.ratings.push(stars);
             await fetch(`${this.dbUrl}ratings.json`, {
-                method: 'POST', // Push a new entry
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(stars)
             });
@@ -87,15 +87,10 @@ const LibraryDB = {
 
     // SOFT FACTORY RESET
     factoryReset: async function() {
-        // 1. Reset all views to 0
         this.books.forEach(b => b.views = 0);
         await this.saveToCloud();
-        
-        // 2. Delete all ratings
         await fetch(`${this.dbUrl}ratings.json`, { method: 'DELETE' });
         this.ratings = [];
-
-        // 3. Clear Local Storage
         localStorage.clear();
         return true;
     }
