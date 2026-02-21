@@ -1,4 +1,9 @@
-/* app.js - vFinal (Accurate Covers + Clean Grid + Shelf Spines) */
+/* app.js - vFinal (With Libby AI Integration) */
+
+// --- CONFIGURATION ---
+// ⚠️ SECURITY WARNING: In a real app, never store API keys in frontend code.
+// For this demo/school project, it is acceptable.
+const GEMINI_API_KEY = "AIzaSyCocE7oZcgoadKSGbysvVW2Svq_z7P6QcM"; 
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -21,15 +26,20 @@ const feedbackForm = document.getElementById('feedback-form');
 const fbStatus = document.getElementById('fb-status');
 const fbSubmitBtn = document.getElementById('fb-submit-btn');
 
+// CHAT ELEMENTS
+const chatOpenBtn = document.getElementById('chat-open-btn');
+const chatModal = document.getElementById('chat-modal');
+const closeChatBtn = document.getElementById('close-chat-btn');
+const chatInput = document.getElementById('chat-input');
+const sendChatBtn = document.getElementById('send-chat-btn');
+const chatMessages = document.getElementById('chat-messages');
+
 let selectedGenres = new Set(); 
 let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
 const IDLE_LIMIT = 30000;
 let idleTimeout;
-
-// Global Memory Caches 
 const coverCache = {}; 
 const authorCache = {}; 
-
 let currentImages = [];
 let currentImageIndex = 0;
 const carouselImg = document.getElementById('carousel-img');
@@ -46,9 +56,7 @@ async function init() {
     const bookId = urlParams.get('book');
 
     const isMobileDevice = window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-    if (isMobileDevice) {
-        document.body.classList.add('is-mobile-device');
-    }
+    if (isMobileDevice) document.body.classList.add('is-mobile-device');
 
     if (bookId) {
         const allBooks = LibraryDB.getBooks();
@@ -70,6 +78,87 @@ async function init() {
         resetIdleTimer();
     }
 }
+
+// --- LIBBY CHAT LOGIC ---
+
+chatOpenBtn.addEventListener('click', () => {
+    chatModal.classList.add('active');
+    chatInput.focus();
+});
+
+closeChatBtn.addEventListener('click', () => {
+    chatModal.classList.remove('active');
+});
+
+sendChatBtn.addEventListener('click', sendMessage);
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+});
+
+async function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    // 1. Add User Message
+    addMessage(text, 'user-msg');
+    chatInput.value = '';
+    
+    // 2. Show Loading
+    const loadingId = addMessage("Thinking...", 'bot-msg loading');
+
+    try {
+        // 3. Prepare Context for Gemini
+        const allBooks = LibraryDB.getBooks();
+        // Create a lightweight list of books for the AI to read
+        const libraryContext = allBooks.map(b => `${b.title} by ${b.author} (${b.genre})`).join("\n");
+
+        const prompt = `
+        You are Libby, a helpful AI librarian for LibNav.
+        Here is the current library catalog:
+        ${libraryContext}
+
+        User Request: "${text}"
+
+        Rules:
+        1. Only recommend books from the catalog above.
+        2. If the user asks for a book not in the list, apologize and suggest a similar one from the list.
+        3. Keep answers short and friendly.
+        4. If you recommend a book, put its exact Title in **bold**.
+        `;
+
+        // 4. Call Gemini API
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+
+        const data = await response.json();
+        const aiText = data.candidates[0].content.parts[0].text;
+
+        // 5. Remove Loading & Add Response
+        document.getElementById(loadingId).remove();
+        addMessage(aiText, 'bot-msg');
+
+    } catch (error) {
+        document.getElementById(loadingId).remove();
+        addMessage("Sorry, my brain is offline right now! Please check the API Key.", 'bot-msg');
+        console.error(error);
+    }
+}
+
+function addMessage(text, className) {
+    const div = document.createElement('div');
+    div.className = `message ${className}`;
+    div.id = 'msg-' + Date.now();
+    // Parse Markdown for bolding
+    div.innerHTML = marked.parse(text); 
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return div.id;
+}
+
+// --- END LIBBY LOGIC ---
 
 function loadFeaturedBook() {
     const books = LibraryDB.getBooks();
@@ -99,13 +188,11 @@ function loadFeaturedBook() {
             </div>
         </div>`;
 
-    // Fetch HD Cover with Author Cross-Check
     const featCoverId = `feat-cover-${featuredBook.id}`;
     if (coverCache[featuredBook.title]) {
         const url = coverCache[featuredBook.title];
         document.getElementById(featCoverId).style.backgroundImage = `url(${url})`;
     } else {
-        // NEW: Search by Title AND Author for accuracy
         fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(featuredBook.title)}&author=${encodeURIComponent(featuredBook.author)}&limit=1`)
         .then(res => res.json())
         .then(data => {
@@ -113,9 +200,7 @@ function loadFeaturedBook() {
                 const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
                 coverCache[featuredBook.title] = url;
                 const el = document.getElementById(featCoverId);
-                if (el) {
-                    el.style.backgroundImage = `url(${url})`;
-                }
+                if (el) el.style.backgroundImage = `url(${url})`;
             }
         }).catch(err => console.log(err));
     }
@@ -150,6 +235,7 @@ function goIdle() {
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
     closeSidebar();
     filterMenu.style.display = 'none';
+    chatModal.classList.remove('active'); // Close chat on idle
     screensaver.classList.add('active');
 }
 window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
@@ -242,16 +328,13 @@ function performSearch(term) {
         else if (selectedGenres.size > 0) {
             if (selectedGenres.has('Favorites') && favorites.includes(book.id)) genreMatch = true;
             if (selectedGenres.has(book.genre)) genreMatch = true;
-        } else {
-            genreMatch = true; 
-        }
+        } else { genreMatch = true; }
         return (titleMatch || authorMatch) && genreMatch;
     });
     
     if (selectedGenres.has('All') || term !== '') {
         matches.sort((a, b) => a.title.localeCompare(b.title));
     }
-    
     renderResults(matches);
 }
 
@@ -268,18 +351,12 @@ function renderResults(books) {
     books.forEach((book, index) => {
         const card = document.createElement('div');
         card.className = 'shelf-book-card';
-        
-        if (index < 12) {
-            card.style.animationDelay = `${index * 0.04}s`;
-        } else {
-            card.style.animation = 'fadeInUp 0.4s ease-out forwards';
-            card.style.animationDelay = '0s'; 
-        }
+        if (index < 12) { card.style.animationDelay = `${index * 0.04}s`; } 
+        else { card.style.animation = 'fadeInUp 0.4s ease-out forwards'; card.style.animationDelay = '0s'; }
         
         const isFav = favorites.includes(book.id);
         const coverId = `img-${book.id}`;
         
-        // Removed the span.placeholder-text entirely
         card.innerHTML = `
             <div class="shelf-cover-wrapper">
                 <img id="${coverId}" class="shelf-cover-img" src="" loading="lazy" alt="${book.title}">
@@ -293,19 +370,15 @@ function renderResults(books) {
             </div>
         `;
         
-        card.onclick = (e) => { 
-            if(!e.target.closest('.fav-btn-grid')) openModal(book); 
-        };
+        card.onclick = (e) => { if(!e.target.closest('.fav-btn-grid')) openModal(book); };
         fragment.appendChild(card);
 
-        // Fetch Cover with Author Check
         if (coverCache[book.title]) {
              const img = card.querySelector('.shelf-cover-img');
              const url = coverCache[book.title];
              img.src = url;
              img.onload = () => { img.style.opacity = '1'; };
         } else {
-            // NEW: Added &author=${book.author}
             fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(book.title)}&author=${encodeURIComponent(book.author)}&limit=1`)
             .then(res => res.json())
             .then(data => {
@@ -432,22 +505,18 @@ async function openModal(book) {
     currentImageIndex = 0; 
     updateCarousel(); 
 
-    // --- REVERTED TO CLASSIC SPINES FOR SHELF VIEW ---
     const allBooks = LibraryDB.getBooks();
     const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
     
     neighborsList.innerHTML = '';
     if (neighbors.length > 0) {
         neighborsArea.style.display = 'block';
-        
-        // Classic Brown/Tan Palette for Spines
         const spineColors = ['#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', '#8D6E63'];
 
         neighbors.forEach(n => {
             const spine = document.createElement('div');
-            spine.className = 'book-spine'; // Uses CSS to look like a spine
+            spine.className = 'book-spine';
             spine.innerText = n.title;
-            
             const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
             spine.style.height = `${randomHeight}px`;
             spine.style.backgroundColor = spineColors[Math.floor(Math.random() * spineColors.length)];
