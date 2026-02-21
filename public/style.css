@@ -130,20 +130,38 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 .filter-option div { flex-shrink: 0; } 
 .filter-option svg { width: 16px; height: 16px; min-width: 16px; flex-shrink: 0; fill: currentColor; }
 
-#results-area { display: flex; flex-direction: column; gap: 18px; padding-bottom: 100px; }
-.book-card { background: var(--bg-card); padding: 22px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid transparent; opacity: 0; animation: fadeInUp 0.6s var(--ease-bounce) forwards; transition: transform 0.2s, background-color 0.2s; position: relative; }
-.book-card:hover { background: var(--bg-chip); transform: translateY(-3px); }
-.chip { background: rgba(255, 196, 214, 0.1); color: var(--primary-pink); padding: 5px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; border: 1px solid rgba(255, 196, 214, 0.2); }
-.fav-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; z-index: 5; margin-left: 15px; padding: 10px; display: flex; align-items: center; justify-content: center; }
-.fav-btn:hover { transform: scale(1.1); }
-.fav-btn.active svg { fill: #ef4444; stroke: #ef4444; }
-.fav-btn svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; transition: all 0.2s; }
-
+/* FEATURED CARD UPDATE (FLEX WITH COVER) */
 .featured-section { margin-bottom: 30px; animation: fadeInUp 0.6s var(--ease-bounce); }
 .featured-label { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px; display: block; }
-.featured-card { background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-chip) 100%); border: 1px solid var(--border-color); padding: 25px; border-radius: var(--radius); cursor: pointer; position: relative; overflow: hidden; transition: transform 0.3s; }
-.featured-card::before { content: "★ Daily Pick"; position: absolute; top: 15px; right: 15px; background: var(--primary-pink); color: var(--bg-main); font-size: 0.7rem; font-weight: bold; padding: 5px 10px; border-radius: 10px; }
+.featured-card { 
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-chip) 100%); 
+    border: 1px solid var(--border-color); 
+    padding: 20px; 
+    border-radius: var(--radius); 
+    cursor: pointer; 
+    position: relative; 
+    overflow: hidden; 
+    transition: transform 0.3s; 
+    display: flex; /* NEW */
+    gap: 15px;     /* NEW */
+    align-items: center; /* NEW */
+}
+.featured-card::before { content: "★ Daily Pick"; position: absolute; top: 10px; right: 10px; background: var(--primary-pink); color: var(--bg-main); font-size: 0.7rem; font-weight: bold; padding: 4px 10px; border-radius: 10px; z-index: 10; }
 .featured-card:hover { transform: translateY(-3px); border-color: var(--primary-pink); box-shadow: 0 10px 20px -5px rgba(255, 196, 214, 0.2); }
+.featured-cover {
+    width: 80px; 
+    height: 120px; 
+    border-radius: 5px 8px 8px 5px; 
+    background-color: #5D4037; 
+    background-size: cover; 
+    background-position: center; 
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.4); 
+    flex-shrink: 0;
+    position: relative;
+    border-left: 3px solid rgba(255,255,255,0.1);
+}
+
+.chip { background: rgba(255, 196, 214, 0.1); color: var(--primary-pink); padding: 5px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; border: 1px solid rgba(255, 196, 214, 0.2); }
 
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000; }
 .modal-overlay.active { opacity: 1; pointer-events: all; }
@@ -169,64 +187,13 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 
 /* --- VIRTUAL SHELF (NEIGHBORS) --- */
 .neighbors-area { margin-top: 20px; text-align: left; }
-
-.neighbors-list { 
-    display: flex; 
-    gap: 2px;
-    margin-top: 10px; 
-    overflow-x: auto; 
-    padding: 20px 10px 0px 10px;
-    align-items: flex-end; 
-    height: 120px; 
-    border-bottom: 12px solid #5d4037; 
-    background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.2)); 
-    border-radius: 0 0 5px 5px;
-}
-
+.neighbors-list { display: flex; gap: 2px; margin-top: 10px; overflow-x: auto; padding: 20px 10px 0px 10px; align-items: flex-end; height: 120px; border-bottom: 12px solid #5d4037; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.2)); border-radius: 0 0 5px 5px; }
 .neighbors-list::-webkit-scrollbar { height: 8px; }
 .neighbors-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
 .neighbors-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
-
-.book-spine { 
-    width: 38px;
-    min-width: 38px; 
-    border-radius: 2px 4px 4px 2px; 
-    cursor: pointer; 
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    box-shadow: inset 3px 0 5px rgba(0,0,0,0.3), 2px 2px 5px rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.1);
-    writing-mode: vertical-rl; 
-    text-orientation: mixed;
-    color: rgba(255,255,255,0.95);
-    font-size: 0.7rem;
-    font-family: sans-serif; 
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 8px 0;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-    opacity: 0.9;
-}
-
-.book-spine:hover { 
-    transform: translateY(-15px) scale(1.1); 
-    z-index: 100;
-    opacity: 1;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.6);
-}
-
-/* Tweaks for the real book covers */
-.book-spine.has-cover {
-    writing-mode: horizontal-tb; /* Resets text so it doesn't mess up image */
-    color: transparent; /* Hides text so only cover shows */
-    text-shadow: none;
-    border: 1px solid rgba(255,255,255,0.2);
-}
+.book-spine { width: 38px; min-width: 38px; border-radius: 2px 4px 4px 2px; cursor: pointer; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; justify-content: center; align-items: center; position: relative; box-shadow: inset 3px 0 5px rgba(0,0,0,0.3), 2px 2px 5px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); writing-mode: vertical-rl; text-orientation: mixed; color: rgba(255,255,255,0.95); font-size: 0.7rem; font-family: sans-serif; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 8px 0; text-shadow: 0 1px 2px rgba(0,0,0,0.8); opacity: 0.9; }
+.book-spine:hover { transform: translateY(-15px) scale(1.1); z-index: 100; opacity: 1; box-shadow: 0 10px 20px rgba(0,0,0,0.6); }
+.book-spine.has-cover { writing-mode: horizontal-tb; color: transparent; text-shadow: none; border: 1px solid rgba(255,255,255,0.2); }
 
 .floating-actions { position: fixed; bottom: 30px; left: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 90; }
 .float-btn { width: 55px; height: 55px; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: var(--shadow); display: flex; justify-content: center; align-items: center; color: var(--primary-pink); transition: 0.3s var(--ease-bounce); flex-shrink: 0; }
@@ -247,75 +214,25 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 @keyframes menuSlide { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pulse { 0% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 0.7; } }
 
-/* --- UI UPGRADES --- */
-.modal-content .chip {
-    display: inline-block;
-    width: auto;
-    margin: 10px auto 20px auto; 
-    padding: 6px 16px;
-}
-
-.destination-badge {
-    display: inline-block;
-    background: rgba(219, 39, 119, 0.15); 
-    border: 2px solid var(--primary-pink);
-    padding: 10px 25px;
-    border-radius: 12px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin: 15px 0;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
+.modal-content .chip { display: inline-block; width: auto; margin: 10px auto 20px auto; padding: 6px 16px; }
+.destination-badge { display: inline-block; background: rgba(219, 39, 119, 0.15); border: 2px solid var(--primary-pink); padding: 10px 25px; border-radius: 12px; font-size: 1.2rem; font-weight: bold; margin: 15px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 
 /* SUCCESS SCREEN LOGIC */
-.success-icon {
-    width: 80px;
-    height: 80px;
-    background: rgba(74, 222, 128, 0.15); 
-    color: #4ade80; 
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0 auto 20px auto;
-    box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
-    animation: popIn 0.5s var(--ease-bounce);
-}
-
+.success-icon { width: 80px; height: 80px; background: rgba(74, 222, 128, 0.15); color: #4ade80; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px auto; box-shadow: 0 0 20px rgba(74, 222, 128, 0.3); animation: popIn 0.5s var(--ease-bounce); }
 .success-icon svg { width: 40px; height: 40px; }
-
 @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
 /* --- NEW AUTHOR HEADSHOT STYLES --- */
-.modal-header-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 15px;
-}
+.modal-header-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
+.author-headshot { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-pink); background: var(--bg-chip); box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: popIn 0.4s var(--ease-bounce); }
+.modal-text-group { text-align: left; }
 
-.author-headshot {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--primary-pink);
-    background: var(--bg-chip);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    animation: popIn 0.4s var(--ease-bounce);
-}
-
-.modal-text-group {
-    text-align: left;
-}
-
-/* --- NEW VIRTUAL SHELF GRID STYLES --- */
+/* --- THE GLOBAL VISUAL SHELF STYLES --- */
 .shelf-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 20px;
-    padding: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 20px 15px;
+    padding: 10px 0 100px 0;
 }
 
 .shelf-book-card {
@@ -325,6 +242,7 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
     transition: transform 0.2s;
     opacity: 0;
     animation: fadeInUp 0.5s var(--ease-bounce) forwards;
+    position: relative;
 }
 
 .shelf-book-card:hover {
@@ -335,14 +253,14 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
     width: 100%;
     aspect-ratio: 2 / 3;
     background-color: #5D4037;
-    border-radius: 8px 12px 12px 8px; /* Look like a book spine */
+    border-radius: 5px 10px 10px 5px; 
     background-size: cover;
     background-position: center;
-    box-shadow: 5px 5px 15px rgba(0,0,0,0.4);
+    box-shadow: 4px 4px 12px rgba(0,0,0,0.4);
     position: relative;
     overflow: hidden;
     margin-bottom: 10px;
-    border-left: 4px solid rgba(255,255,255,0.1);
+    border-left: 3px solid rgba(255,255,255,0.1);
 }
 
 .placeholder-text {
@@ -358,104 +276,56 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
     transition: opacity 0.3s;
 }
 
-.shelf-info {
-    text-align: center;
+.text-small {
+    font-size: 0.65rem;
 }
 
-.shelf-title {
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: var(--text-main);
-    line-height: 1.2;
-    margin-bottom: 2px;
-}
-
-.shelf-author {
-    font-size: 0.8rem;
+.fav-btn-grid {
+    position: absolute;
+    top: -5px;
+    right: 5px;
+    background: rgba(11, 17, 33, 0.8);
+    border: 1px solid rgba(255,255,255,0.2);
     color: var(--text-muted);
+    width: 32px;
+    height: 35px;
+    border-radius: 0 0 15px 15px; /* Ribbon shape */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
 }
+
+.fav-btn-grid svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+
+.fav-btn-grid:hover { height: 40px; background: rgba(11, 17, 33, 1); }
+.fav-btn-grid.active svg { fill: #ef4444; stroke: #ef4444; }
+
+.shelf-info { text-align: left; padding: 0 2px; }
+.shelf-title { font-size: 0.9rem; font-weight: bold; color: var(--text-main); line-height: 1.2; margin-bottom: 2px; }
+.shelf-author { font-size: 0.75rem; color: var(--text-muted); }
 
 /* =========================================================
    1. ALL MOBILE PHONES (Clean Modal UI)
    ========================================================= */
-body.is-mobile-device .qr-section {
-    display: none !important; /* Hides QR code since they are already on a phone */
-}
-
-body.is-mobile-device .carousel-wrapper {
-    height: 320px !important; /* Makes map bigger */
-    margin-bottom: 20px !important;
-}
-
-body.is-mobile-device .destination-badge {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 5px 0 15px 0 !important;
-    color: var(--text-muted) !important;
-}
-
-body.is-mobile-device .found-btn {
-    width: 100% !important; /* Forces button to stretch across modal */
-    padding: 18px !important;
-    border-radius: 20px !important;
-    font-size: 1.2rem !important;
-    margin-top: 10px !important;
-    background: var(--primary-pink);
-    color: var(--bg-main);
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-    box-shadow: 0 10px 25px rgba(219, 39, 119, 0.4);
-}
+body.is-mobile-device .qr-section { display: none !important; }
+body.is-mobile-device .carousel-wrapper { height: 320px !important; margin-bottom: 20px !important; }
+body.is-mobile-device .destination-badge { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; margin: 5px 0 15px 0 !important; color: var(--text-muted) !important; }
+body.is-mobile-device .found-btn { width: 100% !important; padding: 18px !important; border-radius: 20px !important; font-size: 1.2rem !important; margin-top: 10px !important; background: var(--primary-pink); color: var(--bg-main); border: none; cursor: pointer; font-weight: bold; box-shadow: 0 10px 25px rgba(219, 39, 119, 0.4); }
 
 /* =========================================================
    2. QR SCAN MODE ONLY (Full Screen Immersion)
    ========================================================= */
-body.companion-mode-active {
-    overflow: hidden !important;
-}
-
-body.companion-mode-active .top-controls,
-body.companion-mode-active .search-wrapper,
-body.companion-mode-active .hero,
-body.companion-mode-active .floating-actions,
-body.companion-mode-active .featured-section,
-body.companion-mode-active #results-area,
-body.companion-mode-active #virtual-shelf-area, /* Hide shelf in map mode */
-body.companion-mode-active #screensaver {
-    display: none !important;
-}
-
-body.companion-mode-active #book-modal.modal-overlay {
-    display: flex !important;
-    background: var(--bg-main) !important;
-    opacity: 1 !important;
-    pointer-events: all !important;
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 9999 !important;
-}
-
-body.companion-mode-active #book-modal .modal-content {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
-    border-radius: 0 !important;
-    border: none !important;
-    justify-content: center !important;
-    box-shadow: none !important;
-    transform: scale(1) !important;
-}
-
-body.companion-mode-active #success-modal.modal-overlay.active {
-    display: flex !important;
-    background: var(--bg-main) !important;
-    opacity: 1 !important;
-    pointer-events: all !important;
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 10000 !important;
-}
+body.companion-mode-active { overflow: hidden !important; }
+body.companion-mode-active .top-controls, body.companion-mode-active .search-wrapper, body.companion-mode-active .hero, body.companion-mode-active .floating-actions, body.companion-mode-active .featured-section, body.companion-mode-active #results-area, body.companion-mode-active #section-title, body.companion-mode-active #screensaver { display: none !important; }
+body.companion-mode-active #book-modal.modal-overlay { display: flex !important; background: var(--bg-main) !important; opacity: 1 !important; pointer-events: all !important; position: fixed !important; inset: 0 !important; z-index: 9999 !important; }
+body.companion-mode-active #book-modal .modal-content { width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; border-radius: 0 !important; border: none !important; justify-content: center !important; box-shadow: none !important; transform: scale(1) !important; }
+body.companion-mode-active #success-modal.modal-overlay.active { display: flex !important; background: var(--bg-main) !important; opacity: 1 !important; pointer-events: all !important; position: fixed !important; inset: 0 !important; z-index: 10000 !important; }
