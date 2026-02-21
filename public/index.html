@@ -7,7 +7,7 @@
     <title>LibNav | Smart Library</title>
     <meta name="description" content="Find a way to the story! A smart navigation system.">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=27">
+    <link rel="stylesheet" href="style.css?v=30">
 </head>
 <body>
 
@@ -155,9 +155,12 @@
 
                 <button id="add-book-btn" class="submit-btn" style="background:#4ade80; color:#0b1121; margin-top:10px;">+ Add to Cloud</button>
                 
-                <h3 style="margin:30px 0 10px 0; color:#ef4444;">Delete Books</h3>
-                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">Tap a book to remove it globally.</p>
+                <h3 style="margin:30px 0 10px 0; color:#ef4444;">System Data</h3>
                 <div id="admin-book-list" style="display:grid; grid-template-columns:1fr; gap:10px; max-height:200px; overflow-y:auto; padding-right:5px;"></div>
+                
+                <div style="margin-top:20px; border-top:1px solid var(--border-color); padding-top:20px;">
+                    <button id="factory-reset-btn" class="submit-btn" style="background:transparent; border:2px solid #ef4444; color:#ef4444;">⚠️ Soft Factory Reset</button>
+                </div>
             </div>
         </div>
     </div>
@@ -172,9 +175,9 @@
     </div>
 
     <div id="stats-modal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content" style="max-height:85vh; overflow-y:auto;">
             <button class="close-modal">&times;</button>
-            <h2 class="text-pink" style="margin-bottom:20px;">Global Insights</h2>
+            <h2 class="text-pink" style="margin-bottom:20px;">Website Statistics</h2>
             <div id="stats-content" style="text-align:left;"></div>
         </div>
     </div>
@@ -184,11 +187,23 @@
             <button class="close-modal">&times;</button>
             <h2 class="text-pink">Send Feedback</h2>
             <form id="feedback-form">
+                
+                <div class="star-rating-container" style="margin-bottom:15px; text-align:center;">
+                    <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:5px;">Rate your experience:</p>
+                    <div class="star-rating">
+                        <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="5 stars">★</label>
+                        <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4 stars">★</label>
+                        <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3 stars">★</label>
+                        <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 stars">★</label>
+                        <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 star">★</label>
+                    </div>
+                </div>
+
                 <input type="text" id="fb-name" class="form-input" placeholder="Name">
                 <input type="email" id="fb-email" class="form-input" placeholder="Email">
                 <textarea id="fb-message" class="form-input" placeholder="Message..." required></textarea>
                 <button type="submit" class="submit-btn" id="fb-submit-btn">Send</button>
-                <p id="fb-status"></p>
+                <p id="fb-status" style="margin-top:10px;"></p>
             </form>
         </div>
     </div>
