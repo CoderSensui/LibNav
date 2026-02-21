@@ -44,7 +44,6 @@ body {
 }
 .left-controls { display: flex; gap: 15px; align-items: center; pointer-events: auto; }
 
-/* Secret Admin Trigger added cursor rules */
 .header-logo {
     font-family: var(--font-head); font-size: 1.8rem; color: var(--primary-pink);
     cursor: pointer; text-shadow: 0 0 10px rgba(255, 196, 214, 0.5);
@@ -253,7 +252,9 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
     transform: translateZ(0); 
 }
 
-.shelf-book-card:hover { transform: translateY(-5px); }
+.shelf-book-card:hover {
+    transform: translateY(-5px);
+}
 
 .shelf-cover-wrapper {
     width: 100%;
@@ -274,6 +275,8 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
     opacity: 0; 
     transition: opacity 0.3s ease-in;
 }
+
+.text-small { font-size: 0.65rem; }
 
 .fav-btn-grid {
     position: absolute;
