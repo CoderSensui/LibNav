@@ -1,18 +1,33 @@
-/* database.js - Firebase Backend */
+/* database.js - Robust Firebase Cloud Engine */
 
 const LibraryDB = {
+    // ⚠️ REPLACE WITH YOUR ACTUAL FIREBASE URL
     dbUrl: "https://libnav-dc2c8-default-rtdb.firebaseio.com/", 
     books: [],
 
     init: async function() {
+        console.log("📡 Connecting to Global Cloud...");
         try {
-            const response = await fetch(`${this.dbUrl}books.json`);
-            if (!response.ok) throw new Error("Sync Failed");
+            const response = await fetch(`${this.dbUrl}.json`);
+            if (!response.ok) throw new Error("Cloud Connection Failed");
+            
             const data = await response.json();
-            this.books = data || [];
+            
+            // Defensive coding: Handle different Firebase data structures safely
+            if (data && data.books) {
+                this.books = Object.values(data.books); 
+            } else if (Array.isArray(data)) {
+                this.books = data;
+            } else if (data && typeof data === 'object') {
+                this.books = Object.values(data);
+            } else {
+                this.books = []; // Fallback if database is completely empty
+            }
+
+            console.log(`✅ Success: ${this.books.length} books found.`);
             return true;
         } catch (error) {
-            console.error("Firebase Error:", error);
+            console.error("❌ Firebase Error:", error);
             return false;
         }
     },
@@ -26,6 +41,7 @@ const LibraryDB = {
             });
             return response.ok;
         } catch (error) {
+            console.error("❌ Sync Error:", error);
             return false;
         }
     },
