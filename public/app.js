@@ -1,7 +1,7 @@
-/* app.js - vFinal (Stable Gemini-Pro Chat + Grid UI) */
+/* app.js - vFinal (OpenAI ChatGPT Integration) */
 
-// ⚠️ PASTE YOUR API KEY HERE:
-const GEMINI_API_KEY = "AIzaSyA64z6Ym8mRh3CxG2eNPeDFgG8kmp0xsvY"; 
+// Your OpenAI API Key is plugged in here!
+const OPENAI_API_KEY = "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";
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -77,7 +77,7 @@ async function init() {
     }
 }
 
-// --- LIBBY CHAT LOGIC ---
+// --- LIBBY CHAT LOGIC (Powered by OpenAI) ---
 
 chatOpenBtn.addEventListener('click', () => {
     chatModal.classList.add('active');
@@ -101,7 +101,7 @@ chatInput.addEventListener('keypress', (e) => {
 
 async function sendMessage() {
     const text = chatInput.value.trim();
-    if (!text) return; // Do nothing if input is empty
+    if (!text) return; 
 
     // 1. Show user message
     addMessage(text, 'user-msg');
@@ -111,15 +111,13 @@ async function sendMessage() {
     const loadingId = addMessage("Thinking...", 'bot-msg loading');
 
     try {
-        // 3. Prepare Context for AI
+        // 3. Prepare Context for OpenAI
         const allBooks = LibraryDB.getBooks();
         const libraryContext = allBooks.map(b => `- ${b.title} by ${b.author} (${b.genre})`).join("\n");
 
-        const promptText = `You are Libby, a helpful AI librarian for LibNav.
+        const systemPrompt = `You are Libby, a helpful AI librarian for LibNav.
 Here is the current library catalog:
 ${libraryContext}
-
-User Request: "${text}"
 
 Rules:
 1. Only recommend books from the catalog above.
@@ -127,20 +125,20 @@ Rules:
 3. Keep answers short and friendly.
 4. If you recommend a book, put its exact Title in **bold**.`;
 
-        const safeApiKey = GEMINI_API_KEY.trim();
-
-        if (!safeApiKey || safeApiKey === "") {
-            throw new Error("API Key is missing! Please add it to app.js");
-        }
-
-        // 4. API Call - UPGRADED TO STABLE 'v1' API
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${safeApiKey}`, {
+        // 4. OpenAI API Call
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENAI_API_KEY}`
+            },
             body: JSON.stringify({ 
-                contents: [{ 
-                    parts: [{ text: promptText }] 
-                }] 
+                model: 'gpt-4o-mini', // Fast, optimized model
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: text }
+                ],
+                temperature: 0.7
             })
         });
 
@@ -149,10 +147,10 @@ Rules:
         // 5. Catch exact errors
         if (!response.ok) {
             console.error("API Details:", data);
-            throw new Error(data.error?.message || "API Connection Failed");
+            throw new Error(data.error?.message || "OpenAI API Connection Failed");
         }
 
-        const aiText = data.candidates[0].content.parts[0].text;
+        const aiText = data.choices[0].message.content;
 
         // 6. Remove Loading & Show Result
         document.getElementById(loadingId).remove();
@@ -160,7 +158,6 @@ Rules:
 
     } catch (error) {
         document.getElementById(loadingId).remove();
-        // Print the specific error directly to the chat bubble
         addMessage("⚠️ Error: " + error.message, 'bot-msg');
         console.error("Libby Error:", error);
     }
