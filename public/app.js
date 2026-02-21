@@ -486,4 +486,147 @@ document.getElementById('stats-trigger').onclick = () => {
     document.getElementById('stats-content').innerHTML = `
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:20px;">
             <div style="background:var(--bg-chip); padding:15px; border-radius:15px; text-align:center;"><p style="color:var(--text-muted); font-size:0.8rem;">Total Books</p><h2 style="font-size:1.8rem;">${books.length}</h2></div>
-            <d
+            <div style="background:var(--bg-chip); padding:15px; border-radius:15px; text-align:center;"><p style="color:var(--text-muted); font-size:0.8rem;">Bookmarks</p><h2 style="font-size:1.8rem; color:#ef4444;">${favCount}</h2></div>
+        </div>
+        <div style="margin-bottom:20px;"><p style="color:var(--text-muted); font-size:0.9rem;">👑 Most Viewed Book</p><h3 class="text-pink" style="font-size:1.3rem; margin-top:5px;">${topBook}</h3></div>
+        <div style="margin-bottom:10px;"><p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:5px;">Genre Breakdown</p>${genreHTML}</div>
+    `;
+    document.getElementById('stats-modal').classList.add('active');
+};
+function updateHistory(title) { let hist = JSON.parse(localStorage.getItem('search_history')) || []; hist.push(title); localStorage.setItem('search_history', JSON.stringify(hist)); }
+
+const bookModal = document.getElementById('book-modal');
+const neighborsArea = document.getElementById('neighbors-area');
+const neighborsList = document.getElementById('neighbors-list');
+const qrContainer = document.getElementById('qrcode');
+
+async function openModal(book) {
+    if (!document.body.classList.contains('companion-mode-active')) {
+        updateHistory(book.title);
+    }
+
+    document.getElementById('modal-title').innerText = book.title;
+    document.getElementById('modal-author').innerText = book.author;
+    document.getElementById('modal-book-id').innerText = book.id;
+    document.getElementById('modal-genre').innerText = book.genre;
+
+    const authorImg = document.getElementById('modal-author-pic');
+    authorImg.style.display = 'none'; 
+    authorImg.src = '';
+    
+    if (authorCache[book.author]) {
+         authorImg.src = authorCache[book.author];
+         authorImg.style.display = 'block';
+    } else {
+        fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(book.author)}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.docs && data.docs[0] && data.docs[0].key) {
+                const authorKey = data.docs[0].key; 
+                const url = `https://covers.openlibrary.org/a/olid/${authorKey}-M.jpg`;
+                authorCache[book.author] = url;
+                authorImg.src = url;
+                authorImg.style.display = 'block';
+            }
+        }).catch(e => console.log(e));
+    }
+
+    qrContainer.innerHTML = '';
+    const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
+    new QRCode(qrContainer, {
+        text: deepLink,
+        width: 120, height: 120,
+        colorDark : "#0b1121", colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.M
+    });
+
+    currentImages = book.images || []; 
+    currentImageIndex = 0; 
+    updateCarousel(); 
+
+    const allBooks = LibraryDB.getBooks();
+    const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
+    
+    neighborsList.innerHTML = '';
+    if (neighbors.length > 0) {
+        neighborsArea.style.display = 'block';
+        const spineColors = ['#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', '#8D6E63'];
+
+        neighbors.forEach(n => {
+            const spine = document.createElement('div');
+            spine.className = 'book-spine';
+            spine.innerText = n.title;
+            const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
+            spine.style.height = `${randomHeight}px`;
+            spine.style.backgroundColor = spineColors[Math.floor(Math.random() * spineColors.length)];
+
+            spine.onclick = () => openModal(n);
+            neighborsList.appendChild(spine);
+        });
+    } else neighborsArea.style.display = 'none';
+    
+    bookModal.classList.add('active');
+}
+
+function updateCarousel() {
+    const actionArea = document.getElementById('mobile-action-area');
+    if (currentImages.length > 0) {
+        carouselImg.src = currentImages[currentImageIndex];
+        stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
+        prevBtn.disabled = currentImageIndex === 0;
+        nextBtn.disabled = currentImageIndex === currentImages.length - 1;
+        carouselImg.style.display = 'block';
+        
+        if (actionArea) {
+            if (document.body.classList.contains('is-mobile-device') || document.body.classList.contains('companion-mode-active')) {
+                if (currentImageIndex === currentImages.length - 1) {
+                    actionArea.style.display = 'block';
+                } else { actionArea.style.display = 'none'; }
+            } else { actionArea.style.display = 'none'; }
+        }
+    } else {
+        carouselImg.style.display = 'none';
+        stepCounter.innerText = "No map images available";
+        prevBtn.disabled = true; nextBtn.disabled = true;
+        if (actionArea) actionArea.style.display = 'none';
+    }
+}
+
+prevBtn.onclick = () => { if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } };
+nextBtn.onclick = () => { if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } };
+document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
+
+if (feedbackBtn) feedbackBtn.addEventListener('click', () => { feedbackModal.classList.add('active'); closeSidebar(); });
+if (feedbackForm) feedbackForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('fb-name').value;
+    const email = document.getElementById('fb-email').value;
+    const message = document.getElementById('fb-message').value;
+    fbSubmitBtn.disabled = true; fbSubmitBtn.innerText = "Sending...";
+    try {
+        const response = await fetch('/api/send-feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, message }) });
+        if (response.ok) { fbStatus.style.color = "#4ade80"; fbStatus.innerText = "Sent!"; feedbackForm.reset(); setTimeout(() => feedbackModal.classList.remove('active'), 2000); } else throw new Error();
+    } catch { fbStatus.style.color = "#ef4444"; fbStatus.innerText = "Error."; }
+    finally { fbSubmitBtn.disabled = false; fbSubmitBtn.innerText = "Send"; }
+});
+
+const themeBtn = document.getElementById('theme-toggle');
+const moonSVG = '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+const lightbulbSVG = '<svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>';
+
+themeBtn.onclick = () => {
+    document.body.classList.toggle('light-mode');
+    const isLight = document.body.classList.contains('light-mode');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    themeBtn.innerHTML = isLight ? moonSVG : lightbulbSVG;
+};
+
+function loadTheme() {
+    if(localStorage.getItem('theme') === 'light') { document.body.classList.add('light-mode'); themeBtn.innerHTML = moonSVG; } 
+    else { themeBtn.innerHTML = lightbulbSVG; }
+}
+
+function showSuccessScreen() { document.getElementById('book-modal').classList.remove('active'); document.getElementById('success-modal').classList.add('active'); }
+function closeSuccessScreen() { document.getElementById('success-modal').classList.remove('active'); window.location.href = window.location.pathname; }
+
+init();
