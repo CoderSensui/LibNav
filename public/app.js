@@ -1,8 +1,7 @@
-/* app.js - vFinal (Global Visual Bookshelf) */
+/* app.js - vFinal (Optimized + Lazy Loading) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
-const sectionTitle = document.getElementById('section-title');
 const hero = document.getElementById('hero');
 const featuredContainer = document.getElementById('featured-container');
 const hamburgerBtn = document.getElementById('hamburger-btn');
@@ -31,7 +30,6 @@ let idleTimeout;
 const coverCache = {}; 
 const authorCache = {}; 
 
-// Carousel State
 let currentImages = [];
 let currentImageIndex = 0;
 const carouselImg = document.getElementById('carousel-img');
@@ -68,12 +66,7 @@ async function init() {
 
     if (!document.body.classList.contains('companion-mode-active')) {
         loadFeaturedBook(); 
-        
-        // Auto-load all books on the homepage immediately
-        sectionTitle.style.display = 'block';
-        sectionTitle.innerText = "Browse Library";
         performSearch(''); 
-        
         resetIdleTimer();
     }
 }
@@ -108,10 +101,12 @@ function loadFeaturedBook() {
             </div>
         </div>`;
 
-    // Fetch API cover for Featured Book
+    // Fetch API cover for Featured Book (Use Medium Size -M)
     const featCoverId = `feat-cover-${featuredBook.id}`;
     if (coverCache[featuredBook.title]) {
-        document.getElementById(featCoverId).style.backgroundImage = `url(${coverCache[featuredBook.title]})`;
+        // Use cached URL but switch to M if available, otherwise reuse
+        const url = coverCache[featuredBook.title].replace('-S.jpg', '-M.jpg');
+        document.getElementById(featCoverId).style.backgroundImage = `url(${url})`;
         document.getElementById(featCoverId).querySelector('.placeholder-text').style.opacity = '0';
     } else {
         fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(featuredBook.title)}&limit=1`)
@@ -138,7 +133,6 @@ homeBtn.addEventListener('click', () => {
     hero.classList.remove('minimized');
     featuredContainer.style.display = 'block';
     homeBtn.classList.add('home-hidden');
-    sectionTitle.innerText = "Browse Library";
     performSearch(''); 
 });
 
@@ -180,7 +174,6 @@ quickBtns.forEach(btn => {
         });
         quickBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        sectionTitle.innerText = genre === 'All' ? 'All Books' : `${genre} Books`;
         performSearch('');
         closeSidebar();
     });
@@ -212,12 +205,10 @@ checkboxes.forEach(box => {
             hero.classList.add('minimized'); 
             featuredContainer.style.display = 'none'; 
             homeBtn.classList.remove('home-hidden'); 
-            sectionTitle.innerText = "Filtered Results";
         } else if (searchInput.value === '') { 
             hero.classList.remove('minimized'); 
             featuredContainer.style.display = 'block'; 
             homeBtn.classList.add('home-hidden'); 
-            sectionTitle.innerText = "Browse Library";
         }
         performSearch(searchInput.value);
     });
@@ -229,12 +220,10 @@ searchInput.addEventListener('input', (e) => {
         hero.classList.add('minimized'); 
         featuredContainer.style.display = 'none'; 
         homeBtn.classList.remove('home-hidden'); 
-        sectionTitle.innerText = `Search: "${term}"`;
     } else if (selectedGenres.size === 0) { 
         hero.classList.remove('minimized'); 
         featuredContainer.style.display = 'block'; 
         homeBtn.classList.add('home-hidden'); 
-        sectionTitle.innerText = "Browse Library";
     }
     performSearch(term);
 });
@@ -257,7 +246,7 @@ function performSearch(term) {
             if (selectedGenres.has('Favorites') && favorites.includes(book.id)) genreMatch = true;
             if (selectedGenres.has(book.genre)) genreMatch = true;
         } else {
-            genreMatch = true; // No filters active
+            genreMatch = true; 
         }
         return (titleMatch || authorMatch) && genreMatch;
     });
@@ -265,7 +254,7 @@ function performSearch(term) {
     renderResults(matches);
 }
 
-// THE NEW RENDER ENGINE (GLOBAL VIRTUAL SHELF)
+// OPTIMIZED RENDER ENGINE: Uses <img> with lazy loading
 function renderResults(books) {
     resultsArea.innerHTML = '';
     
@@ -274,15 +263,20 @@ function renderResults(books) {
         return;
     }
     
+    const fragment = document.createDocumentFragment();
+
     books.forEach((book, index) => {
         const card = document.createElement('div');
         card.className = 'shelf-book-card';
-        card.style.animationDelay = `${index * 0.03}s`; // Faster stagger
+        card.style.animationDelay = `${Math.min(index * 0.03, 0.5)}s`; // Cap animation delay
         
         const isFav = favorites.includes(book.id);
+        const coverId = `img-${book.id}`;
         
+        // Use an <img> tag for lazy loading performance
         card.innerHTML = `
-            <div class="shelf-cover" id="cover-${book.id}">
+            <div class="shelf-cover-wrapper">
+                <img id="${coverId}" class="shelf-cover-img" src="" loading="lazy" alt="${book.title}" onerror="this.style.opacity=0">
                 <span class="placeholder-text">${book.title}</span>
                 <button class="fav-btn-grid ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, ${book.id})">
                     <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
@@ -297,29 +291,31 @@ function renderResults(books) {
         card.onclick = (e) => { 
             if(!e.target.closest('.fav-btn-grid')) openModal(book); 
         };
-        resultsArea.appendChild(card);
+        fragment.appendChild(card);
 
-        // Fetch Cover Logic with Cache
-        const coverId = `cover-${book.id}`;
+        // Fetch Cover Logic (Optimized for Small Size -S)
         if (coverCache[book.title]) {
-             document.getElementById(coverId).style.backgroundImage = `url(${coverCache[book.title]})`;
-             document.getElementById(coverId).querySelector('.placeholder-text').style.opacity = '0';
+             const img = card.querySelector('.shelf-cover-img');
+             img.src = coverCache[book.title];
+             img.onload = () => { img.style.opacity = '1'; };
         } else {
             fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(book.title)}&limit=1`)
             .then(res => res.json())
             .then(data => {
                 if (data.docs && data.docs[0] && data.docs[0].cover_i) {
-                    const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
-                    coverCache[book.title] = url; // Save to memory cache
-                    const el = document.getElementById(coverId);
-                    if (el) {
-                        el.style.backgroundImage = `url(${url})`;
-                        el.querySelector('.placeholder-text').style.opacity = '0';
+                    const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-S.jpg`; // Small size
+                    coverCache[book.title] = url;
+                    const img = document.getElementById(coverId);
+                    if (img) {
+                        img.src = url;
+                        img.onload = () => { img.style.opacity = '1'; };
                     }
                 }
-            }).catch(e => console.log("Cover err:", e));
+            }).catch(() => {}); // Silent fail is fine
         }
     });
+    
+    resultsArea.appendChild(fragment);
 }
 
 function toggleFavorite(e, bookId) {
@@ -327,7 +323,7 @@ function toggleFavorite(e, bookId) {
     const index = favorites.indexOf(bookId);
     if (index === -1) favorites.push(bookId); else favorites.splice(index, 1);
     localStorage.setItem('libnav_favs', JSON.stringify(favorites));
-    performSearch(searchInput.value); // Re-renders the grid instantly (fast thanks to cache)
+    performSearch(searchInput.value); 
 }
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -346,7 +342,6 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         hero.classList.add('minimized');
         featuredContainer.style.display = 'none';
         homeBtn.classList.remove('home-hidden');
-        sectionTitle.innerText = `Search: "${transcript}"`;
         performSearch(transcript);
     };
 } else { micBtn.style.display = 'none'; }
@@ -396,7 +391,6 @@ async function openModal(book) {
     document.getElementById('modal-book-id').innerText = book.id;
     document.getElementById('modal-genre').innerText = book.genre;
 
-    // --- AUTHOR HEADSHOT LOGIC ---
     const authorImg = document.getElementById('modal-author-pic');
     authorImg.style.display = 'none'; 
     authorImg.src = '';
@@ -431,7 +425,6 @@ async function openModal(book) {
     currentImageIndex = 0; 
     updateCarousel(); 
 
-    // --- VIRTUAL SHELF (NEIGHBORS) ---
     const allBooks = LibraryDB.getBooks();
     const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
     
@@ -446,95 +439,4 @@ async function openModal(book) {
             spine.innerText = n.title;
             const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
             spine.style.height = `${randomHeight}px`;
-            spine.style.backgroundColor = spineColors[Math.floor(Math.random() * spineColors.length)];
-
-            spine.onclick = () => openModal(n);
-            neighborsList.appendChild(spine);
-
-            if (coverCache[n.title]) {
-                spine.classList.add('has-cover');
-                spine.style.backgroundImage = `url(${coverCache[n.title]})`;
-                spine.style.backgroundSize = 'cover';
-                spine.style.backgroundPosition = 'center';
-            } else {
-                fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(n.title)}&limit=1`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.docs && data.docs[0] && data.docs[0].cover_i) {
-                            const coverUrl = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
-                            coverCache[n.title] = coverUrl; 
-                            spine.classList.add('has-cover');
-                            spine.style.backgroundImage = `url(${coverUrl})`;
-                            spine.style.backgroundSize = 'cover';
-                            spine.style.backgroundPosition = 'center';
-                        }
-                    }).catch(err => console.log(err));
-            }
-        });
-    } else neighborsArea.style.display = 'none';
-    
-    bookModal.classList.add('active');
-}
-
-function updateCarousel() {
-    const actionArea = document.getElementById('mobile-action-area');
-    if (currentImages.length > 0) {
-        carouselImg.src = currentImages[currentImageIndex];
-        stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
-        prevBtn.disabled = currentImageIndex === 0;
-        nextBtn.disabled = currentImageIndex === currentImages.length - 1;
-        carouselImg.style.display = 'block';
-        
-        if (actionArea) {
-            if (document.body.classList.contains('is-mobile-device') || document.body.classList.contains('companion-mode-active')) {
-                if (currentImageIndex === currentImages.length - 1) {
-                    actionArea.style.display = 'block';
-                } else { actionArea.style.display = 'none'; }
-            } else { actionArea.style.display = 'none'; }
-        }
-    } else {
-        carouselImg.style.display = 'none';
-        stepCounter.innerText = "No map images available";
-        prevBtn.disabled = true; nextBtn.disabled = true;
-        if (actionArea) actionArea.style.display = 'none';
-    }
-}
-
-prevBtn.onclick = () => { if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } };
-nextBtn.onclick = () => { if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } };
-document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
-
-if (feedbackBtn) feedbackBtn.addEventListener('click', () => { feedbackModal.classList.add('active'); closeSidebar(); });
-if (feedbackForm) feedbackForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('fb-name').value;
-    const email = document.getElementById('fb-email').value;
-    const message = document.getElementById('fb-message').value;
-    fbSubmitBtn.disabled = true; fbSubmitBtn.innerText = "Sending...";
-    try {
-        const response = await fetch('/api/send-feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, message }) });
-        if (response.ok) { fbStatus.style.color = "#4ade80"; fbStatus.innerText = "Sent!"; feedbackForm.reset(); setTimeout(() => feedbackModal.classList.remove('active'), 2000); } else throw new Error();
-    } catch { fbStatus.style.color = "#ef4444"; fbStatus.innerText = "Error."; }
-    finally { fbSubmitBtn.disabled = false; fbSubmitBtn.innerText = "Send"; }
-});
-
-const themeBtn = document.getElementById('theme-toggle');
-const moonSVG = '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
-const lightbulbSVG = '<svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>';
-
-themeBtn.onclick = () => {
-    document.body.classList.toggle('light-mode');
-    const isLight = document.body.classList.contains('light-mode');
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    themeBtn.innerHTML = isLight ? moonSVG : lightbulbSVG;
-};
-
-function loadTheme() {
-    if(localStorage.getItem('theme') === 'light') { document.body.classList.add('light-mode'); themeBtn.innerHTML = moonSVG; } 
-    else { themeBtn.innerHTML = lightbulbSVG; }
-}
-
-function showSuccessScreen() { document.getElementById('book-modal').classList.remove('active'); document.getElementById('success-modal').classList.add('active'); }
-function closeSuccessScreen() { document.getElementById('success-modal').classList.remove('active'); window.location.href = window.location.pathname; }
-
-init();
+            spine.style.backgroundColor = spineColors[Math.floor(M
