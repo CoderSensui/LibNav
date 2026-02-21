@@ -169,6 +169,7 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 .modal-content { background: var(--bg-card); padding: 30px; width: 90%; max-width: 420px; border-radius: 30px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid var(--border-color); transform: scale(0.9); transition: transform 0.4s var(--ease-bounce); max-height: 90vh; overflow-y: auto; }
 .modal-overlay.active .modal-content { transform: scale(1); }
 
+/* --- CAROUSEL STYLES --- */
 .carousel-wrapper { width: 100%; margin: 20px 0; border-radius: 20px; border: 3px solid var(--bg-chip); overflow: hidden; background: var(--bg-main); display: flex; justify-content: center; align-items: center; position: relative; height: 250px; }
 .shelf-photo { width: 100%; height: 100%; display: block; object-fit: cover; }
 .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(11, 17, 33, 0.7); color: white; border: none; font-size: 2rem; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 50%; z-index: 10; transition: background 0.3s; }
@@ -185,6 +186,7 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 
 .close-modal { position: absolute; top: 20px; right: 20px; background: var(--bg-chip); width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: none; color: var(--text-main); z-index: 50; }
 
+/* --- VIRTUAL SHELF (NEIGHBORS) - REVERTED TO SPINES --- */
 .neighbors-area { margin-top: 20px; text-align: left; }
 .neighbors-list { display: flex; gap: 2px; margin-top: 10px; overflow-x: auto; padding: 20px 10px 0px 10px; align-items: flex-end; height: 120px; border-bottom: 12px solid #5d4037; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.2)); border-radius: 0 0 5px 5px; }
 .neighbors-list::-webkit-scrollbar { height: 8px; }
@@ -225,14 +227,17 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 .modal-content .chip { display: inline-block; width: auto; margin: 10px auto 20px auto; padding: 6px 16px; }
 .destination-badge { display: inline-block; background: rgba(219, 39, 119, 0.15); border: 2px solid var(--primary-pink); padding: 10px 25px; border-radius: 12px; font-size: 1.2rem; font-weight: bold; margin: 15px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 
+/* SUCCESS SCREEN LOGIC */
 .success-icon { width: 80px; height: 80px; background: rgba(74, 222, 128, 0.15); color: #4ade80; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px auto; box-shadow: 0 0 20px rgba(74, 222, 128, 0.3); animation: popIn 0.5s var(--ease-bounce); }
 .success-icon svg { width: 40px; height: 40px; }
 @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
+/* --- NEW AUTHOR HEADSHOT STYLES --- */
 .modal-header-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
 .author-headshot { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-pink); background: var(--bg-chip); box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: popIn 0.4s var(--ease-bounce); }
 .modal-text-group { text-align: left; }
 
+/* --- THE GLOBAL VISUAL SHELF STYLES (OPTIMIZED) --- */
 .shelf-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
@@ -310,13 +315,17 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 #admin-book-list::-webkit-scrollbar-track { background: transparent; }
 #admin-book-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
 
-/* Mobile View Adjustments */
+/* =========================================================
+   1. ALL MOBILE PHONES (Clean Modal UI)
+   ========================================================= */
 body.is-mobile-device .qr-section { display: none !important; }
 body.is-mobile-device .carousel-wrapper { height: 320px !important; margin-bottom: 20px !important; }
 body.is-mobile-device .destination-badge { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; margin: 5px 0 15px 0 !important; color: var(--text-muted) !important; }
 body.is-mobile-device .found-btn { width: 100% !important; padding: 18px !important; border-radius: 20px !important; font-size: 1.2rem !important; margin-top: 10px !important; background: var(--primary-pink); color: var(--bg-main); border: none; cursor: pointer; font-weight: bold; box-shadow: 0 10px 25px rgba(219, 39, 119, 0.4); }
 
-/* QR Scan Mode Active */
+/* =========================================================
+   2. QR SCAN MODE ONLY (Full Screen Immersion)
+   ========================================================= */
 body.companion-mode-active { overflow: hidden !important; }
 body.companion-mode-active .top-controls, body.companion-mode-active .search-wrapper, body.companion-mode-active .hero, body.companion-mode-active .floating-actions, body.companion-mode-active .featured-section, body.companion-mode-active #results-area, body.companion-mode-active #screensaver { display: none !important; }
 body.companion-mode-active #book-modal.modal-overlay { display: flex !important; background: var(--bg-main) !important; opacity: 1 !important; pointer-events: all !important; position: fixed !important; inset: 0 !important; z-index: 9999 !important; }
