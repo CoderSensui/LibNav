@@ -13,15 +13,15 @@ const LibraryDB = {
             
             const data = await response.json();
             
-            // Defensive coding: Handle different Firebase data structures safely
+            // Defensive coding: Handle different Firebase data structures and remove empty ghost nodes
             if (data && data.books) {
-                this.books = Object.values(data.books); 
+                this.books = Object.values(data.books).filter(b => b !== null && b !== undefined); 
             } else if (Array.isArray(data)) {
-                this.books = data;
+                this.books = data.filter(b => b !== null && b !== undefined);
             } else if (data && typeof data === 'object') {
-                this.books = Object.values(data);
+                this.books = Object.values(data).filter(b => b !== null && b !== undefined);
             } else {
-                this.books = []; // Fallback if database is completely empty
+                this.books = []; 
             }
 
             console.log(`✅ Success: ${this.books.length} books loaded.`);
@@ -54,7 +54,8 @@ const LibraryDB = {
     },
 
     deleteBook: async function(id) {
-        this.books = this.books.filter(b => b.id !== id);
+        // Safe global delete matching string or int IDs
+        this.books = this.books.filter(b => String(b.id) !== String(id));
         return await this.saveToCloud();
     }
 };
