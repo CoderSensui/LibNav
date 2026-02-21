@@ -220,25 +220,10 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
 .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 196, 214, 0.4); }
 
 /* --- 5 STAR RATING UI --- */
-.star-rating {
-    display: inline-flex;
-    flex-direction: row-reverse;
-    justify-content: center;
-    gap: 5px;
-}
+.star-rating { display: inline-flex; flex-direction: row-reverse; justify-content: center; gap: 5px; }
 .star-rating input { display: none; }
-.star-rating label {
-    font-size: 2.2rem;
-    color: var(--border-color);
-    cursor: pointer;
-    transition: color 0.2s;
-    text-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-.star-rating input:checked ~ label,
-.star-rating label:hover,
-.star-rating label:hover ~ label {
-    color: #fbbf24;
-}
+.star-rating label { font-size: 2.2rem; color: var(--border-color); cursor: pointer; transition: color 0.2s; text-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+.star-rating input:checked ~ label, .star-rating label:hover, .star-rating label:hover ~ label { color: #fbbf24; }
 
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes menuSlide { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
