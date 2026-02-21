@@ -1,4 +1,4 @@
-/* app.js - vFinal (Stable + Device Detection + UI Cleanup) */
+/* app.js - vFinal (Verified Device Routing + Clean Modal UI) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -39,42 +39,34 @@ async function init() {
     await LibraryDB.init(); 
     
     const urlParams = new URLSearchParams(window.location.search);
-    let viewMode = urlParams.get('view'); 
+    const viewMode = urlParams.get('view'); 
     const bookId = urlParams.get('book');
 
-    // --- AUTO-DETECT DEVICE ---
-    const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-    const detectedView = isMobileDevice ? 'mobile' : 'pc';
-
-    // 1. Apply a general mobile class so the UI is always clean on phones
+    // Detect if they are on a phone just to optimize the modal UI (No forced redirect)
+    const isMobileDevice = window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
     if (isMobileDevice) {
         document.body.classList.add('is-mobile-device');
     }
 
-    // 2. Fix the URL if it doesn't match the device
-    if (viewMode !== detectedView) {
-        viewMode = detectedView;
-        urlParams.set('view', viewMode);
-        window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
-    }
-
-    // --- ROUTING ---
     if (bookId) {
         const allBooks = LibraryDB.getBooks();
         const deepLinkedBook = allBooks.find(b => b.id == bookId);
         if (deepLinkedBook) {
-            // 3. If they deep-linked on a mobile device (QR Scan), activate FULL SCREEN Companion Mode
+            
+            // Activate Full Screen ONLY if they explicitly scanned the QR code (?view=mobile)
             if (viewMode === 'mobile') {
                 document.body.classList.add('companion-mode-active');
                 if(document.querySelector('.close-modal')) document.querySelector('.close-modal').style.display = 'none';
             } else {
+                // If they are just browsing, ensure the URL stays clean
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
+            
             openModal(deepLinkedBook);
         }
-    } 
-    
-    // Only load the main library homepage if we are NOT in the full-screen scanned mode
+    }
+
+    // Only load the main library homepage if we are NOT in full-screen map mode
     if (!document.body.classList.contains('companion-mode-active')) {
         loadFeaturedBook(); 
         performSearch(''); 
@@ -319,7 +311,6 @@ document.getElementById('stats-trigger').onclick = () => {
     `;
     document.getElementById('stats-modal').classList.add('active');
 };
-
 function updateHistory(title) { let hist = JSON.parse(localStorage.getItem('search_history')) || []; hist.push(title); localStorage.setItem('search_history', JSON.stringify(hist)); }
 
 const bookModal = document.getElementById('book-modal');
@@ -328,7 +319,7 @@ const neighborsList = document.getElementById('neighbors-list');
 const qrContainer = document.getElementById('qrcode');
 
 async function openModal(book) {
-    if (!document.body.classList.contains('mobile-view-active')) {
+    if (!document.body.classList.contains('companion-mode-active')) {
         updateHistory(book.title);
     }
 
@@ -392,8 +383,8 @@ function updateCarousel() {
         carouselImg.style.display = 'block';
         
         if (actionArea) {
-            // Trigger button if they are on a mobile device
-            if (document.body.classList.contains('is-mobile-device')) {
+            // Show the "I Found It" button if they are on ANY mobile device (normal or scanned)
+            if (document.body.classList.contains('is-mobile-device') || document.body.classList.contains('companion-mode-active')) {
                 if (currentImageIndex === currentImages.length - 1) {
                     actionArea.style.display = 'block';
                 } else {
@@ -471,8 +462,7 @@ function showSuccessScreen() {
 
 function closeSuccessScreen() {
     document.getElementById('success-modal').classList.remove('active');
-    // Clears the parameters and sends them to the main library page seamlessly
-    window.location.href = window.location.pathname; 
+    window.location.href = window.location.pathname; // Resets page
 }
 
 init();
