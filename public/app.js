@@ -1,4 +1,4 @@
-/* app.js - vFinal (Verified Device Routing + API Book Covers) */
+/* app.js - vFinal (Virtual Shelf + Author Headshots) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -20,11 +20,16 @@ const feedbackModal = document.getElementById('feedback-modal');
 const feedbackForm = document.getElementById('feedback-form');
 const fbStatus = document.getElementById('fb-status');
 const fbSubmitBtn = document.getElementById('fb-submit-btn');
+const virtualShelfBtn = document.getElementById('virtual-shelf-btn');
+const virtualShelfArea = document.getElementById('virtual-shelf-area');
+const shelfGrid = document.getElementById('shelf-grid');
 
 let selectedGenres = new Set(); 
 let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
 const IDLE_LIMIT = 30000;
 let idleTimeout;
+const coverCache = {}; // Cache for book covers
+const authorCache = {}; // Cache for author images
 
 // Carousel State
 let currentImages = [];
@@ -42,7 +47,6 @@ async function init() {
     const viewMode = urlParams.get('view'); 
     const bookId = urlParams.get('book');
 
-    // Detect if they are on a phone just to optimize the modal UI (No forced redirect)
     const isMobileDevice = window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
     if (isMobileDevice) {
         document.body.classList.add('is-mobile-device');
@@ -52,21 +56,16 @@ async function init() {
         const allBooks = LibraryDB.getBooks();
         const deepLinkedBook = allBooks.find(b => b.id == bookId);
         if (deepLinkedBook) {
-            
-            // Activate Full Screen ONLY if they explicitly scanned the QR code (?view=mobile)
             if (viewMode === 'mobile') {
                 document.body.classList.add('companion-mode-active');
                 if(document.querySelector('.close-modal')) document.querySelector('.close-modal').style.display = 'none';
             } else {
-                // If they are just browsing, ensure the URL stays clean
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
-            
             openModal(deepLinkedBook);
         }
     }
 
-    // Only load the main library homepage if we are NOT in full-screen map mode
     if (!document.body.classList.contains('companion-mode-active')) {
         loadFeaturedBook(); 
         performSearch(''); 
@@ -100,21 +99,91 @@ function loadFeaturedBook() {
 }
 
 homeBtn.addEventListener('click', () => {
+    resetView();
+    performSearch(''); 
+});
+
+// Resets the UI to the main search view
+function resetView() {
     searchInput.value = '';
     selectedGenres.clear();
     checkboxes.forEach(c => c.checked = false);
     quickBtns.forEach(b => b.classList.remove('active'));
     hero.classList.remove('minimized');
     featuredContainer.style.display = 'block';
+    resultsArea.style.display = 'flex'; // Show normal results
+    virtualShelfArea.style.display = 'none'; // Hide shelf
     homeBtn.classList.add('home-hidden');
-    resultsArea.innerHTML = ''; 
-});
+    resultsArea.innerHTML = '';
+}
 
 function openSidebar() { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); filterMenu.style.display = 'none'; }
 function closeSidebar() { sideMenu.classList.remove('active'); sideMenuOverlay.classList.remove('active'); }
 hamburgerBtn.addEventListener('click', openSidebar);
 closeMenuBtn.addEventListener('click', closeSidebar);
 sideMenuOverlay.addEventListener('click', closeSidebar);
+
+// Virtual Shelf Button Logic
+virtualShelfBtn.addEventListener('click', () => {
+    closeSidebar();
+    loadVirtualShelf();
+});
+
+function loadVirtualShelf() {
+    // Hide standard elements
+    hero.classList.add('minimized');
+    featuredContainer.style.display = 'none';
+    resultsArea.style.display = 'none'; // Hide list view
+    homeBtn.classList.remove('home-hidden');
+    
+    // Show Virtual Shelf
+    virtualShelfArea.style.display = 'block';
+    shelfGrid.innerHTML = ''; // Clear previous
+
+    const allBooks = LibraryDB.getBooks();
+    
+    // Build the grid
+    allBooks.forEach((book, index) => {
+        const card = document.createElement('div');
+        card.className = 'shelf-book-card';
+        card.style.animationDelay = `${index * 0.05}s`;
+        
+        // Default cover text
+        card.innerHTML = `
+            <div class="shelf-cover" id="cover-${book.id}">
+                <span class="placeholder-text">${book.title}</span>
+            </div>
+            <div class="shelf-info">
+                <p class="shelf-title">${book.title}</p>
+                <p class="shelf-author">${book.author}</p>
+            </div>
+        `;
+        
+        card.onclick = () => openModal(book);
+        shelfGrid.appendChild(card);
+
+        // Fetch Cover for Grid
+        const coverId = `cover-${book.id}`;
+        if (coverCache[book.title]) {
+             document.getElementById(coverId).style.backgroundImage = `url(${coverCache[book.title]})`;
+             document.getElementById(coverId).querySelector('.placeholder-text').style.opacity = '0';
+        } else {
+            fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(book.title)}&limit=1`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.docs && data.docs[0] && data.docs[0].cover_i) {
+                    const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
+                    coverCache[book.title] = url;
+                    const el = document.getElementById(coverId);
+                    if (el) {
+                        el.style.backgroundImage = `url(${url})`;
+                        el.querySelector('.placeholder-text').style.opacity = '0';
+                    }
+                }
+            });
+        }
+    });
+}
 
 filterToggle.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -124,14 +193,7 @@ filterToggle.addEventListener('click', (e) => {
 
 function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(goIdle, IDLE_LIMIT); }
 function goIdle() {
-    searchInput.value = '';
-    selectedGenres.clear();
-    checkboxes.forEach(c => c.checked = false);
-    quickBtns.forEach(b => b.classList.remove('active'));
-    hero.classList.remove('minimized');
-    featuredContainer.style.display = 'block';
-    homeBtn.classList.add('home-hidden');
-    resultsArea.innerHTML = ''; 
+    resetView();
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
     closeSidebar();
     filterMenu.style.display = 'none';
@@ -140,10 +202,10 @@ function goIdle() {
 window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
 
 quickBtns.forEach(btn => {
-    if(btn.id === 'open-feedback-btn') return;
+    if(btn.id === 'open-feedback-btn' || btn.id === 'virtual-shelf-btn') return;
     btn.addEventListener('click', () => {
         const genre = btn.dataset.genre;
-        searchInput.value = '';
+        resetView(); // Go to list view for genre filters
         hero.classList.add('minimized');
         featuredContainer.style.display = 'none';
         homeBtn.classList.remove('home-hidden');
@@ -162,6 +224,9 @@ quickBtns.forEach(btn => {
 
 checkboxes.forEach(box => {
     box.addEventListener('change', (e) => {
+        virtualShelfArea.style.display = 'none';
+        resultsArea.style.display = 'flex';
+        
         const val = e.target.value;
         if (val === 'All') {
             if (e.target.checked) {
@@ -195,6 +260,8 @@ checkboxes.forEach(box => {
 });
 
 searchInput.addEventListener('input', (e) => {
+    virtualShelfArea.style.display = 'none';
+    resultsArea.style.display = 'flex';
     const term = e.target.value.toLowerCase().trim();
     if (term.length > 0) { 
         hero.classList.add('minimized'); 
@@ -328,6 +395,28 @@ async function openModal(book) {
     document.getElementById('modal-book-id').innerText = book.id;
     document.getElementById('modal-genre').innerText = book.genre;
 
+    // --- AUTHOR HEADSHOT LOGIC ---
+    const authorImg = document.getElementById('modal-author-pic');
+    authorImg.style.display = 'none'; // Reset
+    authorImg.src = '';
+    
+    if (authorCache[book.author]) {
+         authorImg.src = authorCache[book.author];
+         authorImg.style.display = 'block';
+    } else {
+        fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(book.author)}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.docs && data.docs[0] && data.docs[0].key) {
+                const authorKey = data.docs[0].key; // e.g., OL26772A
+                const url = `https://covers.openlibrary.org/a/olid/${authorKey}-M.jpg`;
+                authorCache[book.author] = url;
+                authorImg.src = url;
+                authorImg.style.display = 'block';
+            }
+        });
+    }
+
     qrContainer.innerHTML = '';
     const deepLink = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
     new QRCode(qrContainer, {
@@ -369,17 +458,25 @@ async function openModal(book) {
             neighborsList.appendChild(spine);
 
             // Fetch Real Cover from Open Library API
-            fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(n.title)}&limit=1`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.docs && data.docs[0] && data.docs[0].cover_i) {
-                        const coverUrl = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
-                        spine.classList.add('has-cover');
-                        spine.style.backgroundImage = `url(${coverUrl})`;
-                        spine.style.backgroundSize = 'cover';
-                        spine.style.backgroundPosition = 'center';
-                    }
-                }).catch(err => console.log("No cover found for", n.title));
+            if (coverCache[n.title]) {
+                spine.classList.add('has-cover');
+                spine.style.backgroundImage = `url(${coverCache[n.title]})`;
+                spine.style.backgroundSize = 'cover';
+                spine.style.backgroundPosition = 'center';
+            } else {
+                fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(n.title)}&limit=1`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.docs && data.docs[0] && data.docs[0].cover_i) {
+                            const coverUrl = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
+                            coverCache[n.title] = coverUrl; // Cache it
+                            spine.classList.add('has-cover');
+                            spine.style.backgroundImage = `url(${coverUrl})`;
+                            spine.style.backgroundSize = 'cover';
+                            spine.style.backgroundPosition = 'center';
+                        }
+                    }).catch(err => console.log("No cover found for", n.title));
+            }
         });
     } else neighborsArea.style.display = 'none';
     
