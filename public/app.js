@@ -1,4 +1,4 @@
-/* app.js - vFinal (Clean, No AI) */
+/* app.js - vFinal (Cloud Database Admin + Grid UI) */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -21,15 +21,23 @@ const feedbackForm = document.getElementById('feedback-form');
 const fbStatus = document.getElementById('fb-status');
 const fbSubmitBtn = document.getElementById('fb-submit-btn');
 
+// ADMIN ELEMENTS
+const adminBtn = document.getElementById('admin-login-btn');
+const adminModal = document.getElementById('admin-modal');
+const adminAuthBtn = document.getElementById('admin-auth-btn');
+const adminPassInput = document.getElementById('admin-password');
+const adminDashboard = document.getElementById('admin-dashboard');
+const adminLoginScreen = document.getElementById('admin-login-screen');
+const addBookBtn = document.getElementById('add-book-btn');
+const factoryResetBtn = document.getElementById('factory-reset-btn');
+const adminBookList = document.getElementById('admin-book-list');
+
 let selectedGenres = new Set(); 
 let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
 const IDLE_LIMIT = 30000;
 let idleTimeout;
-
-// Global Memory Caches 
 const coverCache = {}; 
 const authorCache = {}; 
-
 let currentImages = [];
 let currentImageIndex = 0;
 const carouselImg = document.getElementById('carousel-img');
@@ -39,6 +47,7 @@ const stepCounter = document.getElementById('step-counter');
 
 async function init() {
     loadTheme();
+    // Initialize Cloud Database
     await LibraryDB.init(); 
     
     const urlParams = new URLSearchParams(window.location.search);
@@ -46,9 +55,7 @@ async function init() {
     const bookId = urlParams.get('book');
 
     const isMobileDevice = window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-    if (isMobileDevice) {
-        document.body.classList.add('is-mobile-device');
-    }
+    if (isMobileDevice) document.body.classList.add('is-mobile-device');
 
     if (bookId) {
         const allBooks = LibraryDB.getBooks();
@@ -70,6 +77,86 @@ async function init() {
         resetIdleTimer();
     }
 }
+
+// --- ADMIN PANEL LOGIC (CLOUD ENABLED) ---
+
+adminBtn.addEventListener('click', () => {
+    adminModal.classList.add('active');
+    closeSidebar();
+});
+
+adminAuthBtn.addEventListener('click', () => {
+    if(adminPassInput.value === 'admin123') {
+        adminLoginScreen.style.display = 'none';
+        adminDashboard.style.display = 'block';
+        renderAdminList();
+    } else {
+        alert('Wrong Password!');
+    }
+});
+
+function renderAdminList() {
+    const books = LibraryDB.getBooks();
+    adminBookList.innerHTML = books.map(b => `
+        <div style="background:var(--bg-chip); padding:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="overflow:hidden;">
+                <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${b.title}</strong>
+                <span style="font-size:0.8rem; color:var(--text-muted);">${b.author}</span>
+            </div>
+            <button onclick="handleDelete(${b.id})" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; flex-shrink:0; margin-left:10px;">Delete</button>
+        </div>
+    `).join('');
+}
+
+window.handleDelete = async function(id) {
+    if(confirm('Delete this book globally from the cloud?')) {
+        const btn = document.activeElement;
+        if(btn) btn.innerText = "..."; // Show loading state
+        
+        await LibraryDB.deleteBook(id);
+        
+        renderAdminList();
+        performSearch(searchInput.value); // Refresh main grid
+        alert("Deleted from Cloud!");
+    }
+};
+
+addBookBtn.addEventListener('click', async () => {
+    const title = document.getElementById('new-title').value;
+    const author = document.getElementById('new-author').value;
+    const genre = document.getElementById('new-genre').value;
+    
+    if(!title || !author) return alert('Please fill in all fields');
+    
+    addBookBtn.disabled = true;
+    addBookBtn.innerText = "Saving to Cloud...";
+    
+    const newBook = {
+        id: Date.now(), // Unique ID
+        title: title,
+        author: author,
+        genre: genre,
+        images: [
+            `https://placehold.co/600x400/1e293b/ef4444?text=${genre}+Step+1`,
+            `https://placehold.co/600x400/1e293b/4ade80?text=Arrived`
+        ]
+    };
+    
+    const success = await LibraryDB.addBook(newBook);
+    
+    if(success) {
+        alert('Book Added Successfully!');
+        document.getElementById('new-title').value = '';
+        document.getElementById('new-author').value = '';
+        renderAdminList();
+        performSearch(searchInput.value);
+    }
+    
+    addBookBtn.disabled = false;
+    addBookBtn.innerText = "+ Add Book";
+});
+
+// --- END ADMIN LOGIC ---
 
 function loadFeaturedBook() {
     const books = LibraryDB.getBooks();
@@ -111,9 +198,7 @@ function loadFeaturedBook() {
                 const url = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-M.jpg`;
                 coverCache[featuredBook.title] = url;
                 const el = document.getElementById(featCoverId);
-                if (el) {
-                    el.style.backgroundImage = `url(${url})`;
-                }
+                if (el) el.style.backgroundImage = `url(${url})`;
             }
         }).catch(err => console.log(err));
     }
@@ -153,7 +238,7 @@ function goIdle() {
 window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
 
 quickBtns.forEach(btn => {
-    if(btn.id === 'open-feedback-btn') return;
+    if(btn.id === 'open-feedback-btn' || btn.id === 'admin-login-btn') return;
     btn.addEventListener('click', () => {
         const genre = btn.dataset.genre;
         searchInput.value = '';
@@ -427,18 +512,22 @@ async function openModal(book) {
     currentImageIndex = 0; 
     updateCarousel(); 
 
+    // --- VIRTUAL SHELF (NEIGHBORS) - REVERTED TO SPINES ---
     const allBooks = LibraryDB.getBooks();
     const neighbors = allBooks.filter(b => b.genre === book.genre && b.id !== book.id); 
     
     neighborsList.innerHTML = '';
     if (neighbors.length > 0) {
         neighborsArea.style.display = 'block';
+        
+        // Classic Brown/Tan Palette for Spines
         const spineColors = ['#3E2723', '#4E342E', '#5D4037', '#6D4C41', '#795548', '#8D6E63'];
 
         neighbors.forEach(n => {
             const spine = document.createElement('div');
-            spine.className = 'book-spine';
+            spine.className = 'book-spine'; // Uses CSS to look like a spine
             spine.innerText = n.title;
+            
             const randomHeight = Math.floor(Math.random() * (110 - 85 + 1) + 85);
             spine.style.height = `${randomHeight}px`;
             spine.style.backgroundColor = spineColors[Math.floor(Math.random() * spineColors.length)];
