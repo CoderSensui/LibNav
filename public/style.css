@@ -301,29 +301,26 @@ input#search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* --- MOBILE COMPANION MODE UPGRADES --- */
-body.mobile-view-active {
+/* =========================================================
+   1. FULL-SCREEN COMPANION MODE (Triggered ONLY by QR Scan)
+   ========================================================= */
+body.companion-mode-active {
     background-color: var(--bg-card);
     overflow: hidden;
 }
 
-body.mobile-view-active .top-controls,
-body.mobile-view-active .search-wrapper,
-body.mobile-view-active .hero,
-body.mobile-view-active .floating-actions,
-body.mobile-view-active .featured-section,
-body.mobile-view-active #results-area,
-body.mobile-view-active #screensaver {
+body.companion-mode-active .top-controls,
+body.companion-mode-active .search-wrapper,
+body.companion-mode-active .hero,
+body.companion-mode-active .floating-actions,
+body.companion-mode-active .featured-section,
+body.companion-mode-active #results-area,
+body.companion-mode-active #screensaver,
+body.companion-mode-active .modal-overlay {
     display: none !important;
 }
 
-/* Hide original full-screen overlay backdrop */
-body.mobile-view-active .modal-overlay {
-    display: none !important;
-}
-
-/* MAP SCREEN */
-body.mobile-view-active #book-modal.modal-overlay {
+body.companion-mode-active #book-modal.modal-overlay {
     display: flex !important;
     background: var(--bg-main);
     opacity: 1 !important;
@@ -333,8 +330,7 @@ body.mobile-view-active #book-modal.modal-overlay {
     z-index: 9999;
 }
 
-/* SUCCESS SCREEN */
-body.mobile-view-active #success-modal.modal-overlay.active {
+body.companion-mode-active #success-modal.modal-overlay.active {
     display: flex !important;
     background: var(--bg-main);
     opacity: 1 !important;
@@ -344,8 +340,8 @@ body.mobile-view-active #success-modal.modal-overlay.active {
     z-index: 10000;
 }
 
-body.mobile-view-active #book-modal .modal-content,
-body.mobile-view-active #success-modal .modal-content {
+body.companion-mode-active #book-modal .modal-content,
+body.companion-mode-active #success-modal .modal-content {
     width: 100%;
     height: 100%;
     max-width: 100%;
@@ -353,7 +349,6 @@ body.mobile-view-active #success-modal .modal-content {
     border-radius: 0;
     border: none;
     padding: 20px;
-    padding-bottom: 100px; /* Space for fixed bottom button */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -361,23 +356,29 @@ body.mobile-view-active #success-modal .modal-content {
     transform: scale(1) !important;
 }
 
-/* -- MOBILE UX CLEANUP (No QR, Big Map, Bottom Button) -- */
-body.mobile-view-active .qr-section {
+/* =========================================================
+   2. GENERAL MOBILE UX (Applies anytime user is on a phone)
+   ========================================================= */
+
+/* Hide redundant QR code if they are already on a phone */
+body.is-mobile-device .qr-section {
     display: none !important;
 }
 
-body.mobile-view-active .carousel-wrapper {
-    height: 50vh !important;
+/* Make map bigger */
+body.is-mobile-device .carousel-wrapper {
+    height: 40vh !important;
     margin-bottom: 20px;
     border: none;
     background: transparent;
 }
 
-body.mobile-view-active .shelf-photo {
+body.is-mobile-device .shelf-photo {
     border-radius: 15px;
 }
 
-body.mobile-view-active .destination-badge {
+/* Simplify the target badge */
+body.is-mobile-device .destination-badge {
     background: transparent;
     border: none;
     box-shadow: none;
@@ -387,18 +388,16 @@ body.mobile-view-active .destination-badge {
     color: var(--text-muted);
 }
 
-body.mobile-view-active #mobile-action-area {
-    position: fixed;
-    bottom: 30px;
-    left: 20px;
-    right: 20px;
-    z-index: 1000;
+/* Style the big bottom button */
+body.is-mobile-device #mobile-action-area {
+    margin-top: 15px;
+    width: 100%;
 }
 
-body.mobile-view-active .found-btn {
+body.is-mobile-device .found-btn {
     width: 100%;
     padding: 18px;
     font-size: 1.3rem;
     box-shadow: 0 10px 25px rgba(219, 39, 119, 0.4);
-    border-radius: 25px;
-                 }
+    border-radius: 20px;
+}
