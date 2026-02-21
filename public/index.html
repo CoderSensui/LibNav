@@ -7,7 +7,7 @@
     <title>LibNav</title>
     <meta name="description" content="Find a way to the story! A smart navigation system.">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
@@ -32,6 +32,8 @@
         </div>
         <div class="menu-content">
             <div class="sidebar-buttons">
+                <button id="virtual-shelf-btn" class="quick-btn wide" style="border-color: var(--primary-pink); color: var(--primary-pink);">✨ Virtual Shelf</button>
+                <div style="height:1px; background:var(--border-color); margin:10px 0;"></div>
                 <button class="quick-btn wide" data-genre="All">All Books (A-Z)</button>
                 <button class="quick-btn wide" data-genre="Fiction">Fiction</button>
                 <button class="quick-btn wide" data-genre="Non-Fiction">Non-Fiction</button>
@@ -40,7 +42,7 @@
                 <button class="quick-btn wide" data-genre="History">History</button>
             </div>
             <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-                <button id="open-feedback-btn" class="quick-btn wide" style="color: var(--primary-pink); border-color: var(--primary-pink);">Send Feedback</button>
+                <button id="open-feedback-btn" class="quick-btn wide">Send Feedback</button>
             </div>
         </div>
     </div>
@@ -85,6 +87,11 @@
 
         <div id="featured-container"></div>
         <div id="results-area"></div>
+        
+        <div id="virtual-shelf-area" style="display: none;">
+            <h2 class="text-pink" style="text-align:center; margin-bottom:20px; font-family:var(--font-head);">📚 Virtual Shelf</h2>
+            <div id="shelf-grid" class="shelf-grid"></div>
+        </div>
     </div>
 
     <div class="floating-actions">
@@ -95,8 +102,15 @@
     <div id="book-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-modal">&times;</button>
-            <h2 id="modal-title" class="text-pink">Title</h2>
-            <p id="modal-author" style="color:var(--text-muted); margin-bottom:15px;">Author</p>
+            
+            <div class="modal-header-row">
+                <img id="modal-author-pic" class="author-headshot" src="" alt="Author" style="display:none;">
+                <div class="modal-text-group">
+                    <h2 id="modal-title" class="text-pink">Title</h2>
+                    <p id="modal-author" style="color:var(--text-muted);">Author</p>
+                </div>
+            </div>
+            
             <span id="modal-genre" class="chip">Genre</span>
             
             <div id="carousel-wrapper" class="carousel-wrapper">
