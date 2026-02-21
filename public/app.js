@@ -3,7 +3,7 @@
 // --- CONFIGURATION ---
 // ⚠️ SECURITY WARNING: In a real app, never store API keys in frontend code.
 // For this demo/school project, it is acceptable.
-const GEMINI_API_KEY = "AIzaSyCocE7oZcgoadKSGbysvVW2Svq_z7P6QcM"; 
+const GEMINI_API_KEY = "AIzaSyA64z6Ym8mRh3CxG2eNPeDFgG8kmp0xsvY"; 
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
