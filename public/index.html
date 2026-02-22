@@ -3,144 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0b1121">
+    <meta name="theme-color" content="#0f172a">
     <title>LibNav | Smart Library</title>
     
     <meta property="og:title" content="LibNav Smart Library">
-    <meta property="og:description" content="Find your way to the story. Real-time navigation for our school library.">
-    <meta property="og:image" content="https://placehold.co/1200x630/0b1121/ffc4d6?text=LibNav+Preview">
-    <meta property="og:url" content="https://libnav.vercel.app">
+    <meta property="og:description" content="Find your way to the story. Premium real-time navigation.">
+    <meta property="og:image" content="https://placehold.co/1200x630/0f172a/db2777?text=LibNav+Preview">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <link rel="manifest" href="manifest.json">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=65">
+    <link rel="stylesheet" href="style.css?v=70">
 </head>
 <body>
 
-    <div id="offline-banner" class="offline-banner">📡 You are offline. Viewing cached library.</div>
+    <div id="offline-banner" class="offline-banner"><i data-lucide="wifi-off" class="w-4 h-4"></i> You are offline. Viewing cached library.</div>
 
-    <div class="top-controls">
-        <div class="left-controls">
-            <button id="hamburger-btn" class="nav-btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            </button>
-            <button id="home-btn" class="nav-btn home-hidden">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                <span>Main Menu</span>
-            </button>
+    <header class="app-header">
+        <div class="header-left">
+            <div class="desktop-nav">
+                <a href="#" class="desk-nav-item active" data-section="home"><i data-lucide="home"></i> Home</a>
+                <a href="#" class="desk-nav-item" id="desk-cat-btn"><i data-lucide="layout-grid"></i> Genres</a>
+                <a href="#" class="desk-nav-item" data-section="about"><i data-lucide="info"></i> About</a>
+            </div>
         </div>
-        <h1 id="secret-admin-btn" class="header-logo">LibNav</h1>
-    </div>
+        <div class="header-right">
+            <button id="theme-toggle" class="icon-btn ripple"><i data-lucide="moon"></i></button>
+            <div id="secret-admin-btn" class="top-right-logo">LibNav</div>
+        </div>
+    </header>
 
     <div id="side-menu-overlay" class="menu-overlay"></div>
     <div id="side-menu" class="side-menu">
         <div class="menu-header">
-            <h2 class="text-pink">Categories</h2>
-            <button id="close-menu">&times;</button>
+            <h2 class="text-primary font-bold flex-center gap-2"><i data-lucide="library"></i> Categories</h2>
+            <button id="close-menu" class="icon-btn ripple"><i data-lucide="x"></i></button>
         </div>
-        <div class="menu-content">
-            <div class="sidebar-buttons">
-                <button class="quick-btn wide" data-genre="All">Browse Books (A-Z)</button>
-                <div style="height:1px; background:var(--border-color); margin:10px 0;"></div>
-                <button class="quick-btn wide" data-genre="Fiction">Fiction</button>
-                <button class="quick-btn wide" data-genre="Non-Fiction">Non-Fiction</button>
-                <button class="quick-btn wide" data-genre="Romance">Romance</button>
-                <button class="quick-btn wide" data-genre="Science">Science</button>
-                <button class="quick-btn wide" data-genre="History">History</button>
-            </div>
-            <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-                <button id="open-feedback-btn" class="quick-btn wide">Send Feedback</button>
-            </div>
+        <div class="menu-content sidebar-buttons">
+            <button class="quick-btn ripple active" data-genre="All"><i data-lucide="book-open"></i> All Books</button>
+            <div class="divider"></div>
+            <button class="quick-btn ripple" data-genre="Favorites"><i data-lucide="heart"></i> Saved</button>
+            <button class="quick-btn ripple" data-genre="Fiction"><i data-lucide="sparkles"></i> Fiction</button>
+            <button class="quick-btn ripple" data-genre="Non-Fiction"><i data-lucide="microscope"></i> Non-Fiction</button>
+            <button class="quick-btn ripple" data-genre="Romance"><i data-lucide="flower-2"></i> Romance</button>
+            <button class="quick-btn ripple" data-genre="Science"><i data-lucide="flask-conical"></i> Science</button>
+            <button class="quick-btn ripple" data-genre="History"><i data-lucide="landmark"></i> History</button>
         </div>
     </div>
 
-    <div class="container">
-        <div id="hero" class="hero">
-            <div id="minion-container">
-                <img id="minion-sprite" src="https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif" style="display:none; position:absolute; width:60px; z-index:99;">
+    <div class="container pb-24">
+        
+        <section id="home-section" class="content-section active">
+            <div id="hero" class="hero">
+                <div id="minion-container">
+                    <img id="minion-sprite" src="https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif" style="display:none; position:absolute; width:60px; z-index:99;">
+                </div>
+                <h1 class="hero-title" id="hero-title">LibNav</h1>
+                <p class="hero-subtitle">Find your way to the story</p>
             </div>
-            <h1 class="glow-text" id="hero-title">LibNav</h1>
-            <p style="color: var(--text-muted);">Find your way to the story!</p>
-        </div>
 
-        <div class="search-wrapper">
-            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="search-input" placeholder="Search title or author..." autocomplete="off">
-            <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
-            
-            <div class="search-actions">
-                <button id="mic-btn" class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></button>
-                <button id="filter-toggle" class="icon-btn"><svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg></button>
+            <div class="search-wrapper">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="search-input" placeholder="Search title or author..." autocomplete="off">
+                <div id="autocomplete-dropdown" class="autocomplete-dropdown shadow-premium"></div>
+                <div class="search-actions">
+                    <button id="mic-btn" class="icon-btn ripple"><i data-lucide="mic"></i></button>
+                </div>
             </div>
-            
-            <div id="filter-menu" class="filter-dropdown">
-                <label class="filter-option" style="font-weight:bold; color:var(--primary-pink);"><input type="checkbox" value="All"><span class="checkmark"></span><span>All Genres</span></label>
-                <div style="height:1px; background:var(--border-color); margin:5px 0;"></div>
-                <label class="filter-option"><input type="checkbox" value="Favorites"><span class="checkmark" style="border-color:#ef4444; color:#ef4444;"></span><div style="display:flex; align-items:center; gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#ef4444"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg><span>Bookmarks</span></div></label>
-                <label class="filter-option"><input type="checkbox" value="Fiction"><span class="checkmark"></span><span>Fiction</span></label>
-                <label class="filter-option"><input type="checkbox" value="Non-Fiction"><span class="checkmark"></span><span>Non-Fiction</span></label>
-                <label class="filter-option"><input type="checkbox" value="Romance"><span class="checkmark"></span><span>Romance</span></label>
-                <label class="filter-option"><input type="checkbox" value="Science"><span class="checkmark"></span><span>Science</span></label>
-                <label class="filter-option"><input type="checkbox" value="History"><span class="checkmark"></span><span>History</span></label>
-            </div>
-        </div>
 
-        <div id="featured-container"></div>
-        <div id="results-area" class="shelf-grid"></div>
+            <div id="featured-container"></div>
+            <div id="results-area" class="shelf-grid"></div>
+        </section>
+
+        <section id="about-section" class="content-section">
+            <div class="about-card shadow-premium">
+                <div class="flex-center gap-2 mb-4">
+                    <div class="icon-box"><i data-lucide="compass" class="text-primary"></i></div>
+                    <h2 class="text-xl font-bold">About LibNav</h2>
+                </div>
+                <p class="text-muted text-sm leading-relaxed mb-6">
+                    LibNav is a smart library navigation system designed to help you find physical books instantly. It bridges the gap between digital searching and physical shelves.
+                </p>
+
+                <div class="flex-center gap-2 mb-4">
+                    <div class="icon-box"><i data-lucide="book-open-check" class="text-primary"></i></div>
+                    <h2 class="text-xl font-bold">How to Use</h2>
+                </div>
+                <div class="space-y-4 mb-6">
+                    <div class="step-row">
+                        <div class="step-num">1</div>
+                        <div><span class="font-bold block">Search</span><span class="text-xs text-muted">Find your desired book via text or voice.</span></div>
+                    </div>
+                    <div class="step-row">
+                        <div class="step-num">2</div>
+                        <div><span class="font-bold block">Navigate</span><span class="text-xs text-muted">Tap a book to view the step-by-step visual map to its shelf.</span></div>
+                    </div>
+                    <div class="step-row">
+                        <div class="step-num">3</div>
+                        <div><span class="font-bold block">Companion Mode</span><span class="text-xs text-muted">On a PC? Scan the QR code to take the map on your phone.</span></div>
+                    </div>
+                </div>
+
+                <div class="warning-box">
+                    <div class="flex-center gap-2 mb-1 text-warning font-bold text-xs uppercase tracking-wider">
+                        <i data-lucide="alert-triangle" class="w-4 h-4"></i> Important Tip
+                    </div>
+                    <p class="text-xs text-muted">Don't forget to formally check out the book at the front desk before leaving the library!</p>
+                </div>
+                
+                <div class="mt-6 border-t pt-4">
+                    <button id="open-feedback-btn" class="w-full submit-btn ripple flex-center justify-center gap-2 bg-surface text-main border">
+                        <i data-lucide="message-square"></i> Send Feedback
+                    </button>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <div class="floating-actions">
-        <button id="stats-trigger" class="float-btn"><svg viewBox="0 0 24 24"><path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z"/></svg></button>
-        <button id="theme-toggle" class="float-btn"></button>
-    </div>
+    <nav class="bottom-nav shadow-premium-up">
+        <div class="nav-container relative">
+            <a href="#" data-section="home" class="nav-item active text-primary">
+                <i data-lucide="home"></i><span>Home</span>
+            </a>
+            <a href="#" id="mobile-cat-btn" class="nav-item text-muted">
+                <i data-lucide="layout-grid"></i><span>Genres</span>
+            </a>
+            <a href="#" data-section="about" class="nav-item text-muted">
+                <i data-lucide="info"></i><span>About</span>
+            </a>
+            <div class="nav-indicator absolute top-0 h-1 bg-primary rounded-b-md transition-transform" style="width: 33.33%; left:0;"></div>
+        </div>
+    </nav>
 
-    <div id="custom-popup" class="modal-overlay" style="z-index: 9999;">
-        <div class="modal-content" style="max-width:300px; text-align:center;">
-            <h3 id="popup-title" class="text-pink" style="margin-bottom:10px;">Alert</h3>
-            <p id="popup-message" style="margin-bottom:20px; color:var(--text-main);">Message</p>
-            <div id="popup-actions" style="display:flex; gap:10px; justify-content:center;">
-                <button id="popup-cancel" class="submit-btn" style="background:var(--bg-chip); color:var(--text-muted);">Cancel</button>
-                <button id="popup-confirm" class="submit-btn">OK</button>
+    <button id="stats-trigger" class="float-btn ripple shadow-premium"><i data-lucide="bar-chart-2"></i></button>
+
+    <div id="custom-popup" class="modal-overlay">
+        <div class="modal-content text-center scale-modal">
+            <div id="popup-icon" class="mx-auto w-16 h-16 flex-center justify-center mb-4 text-primary bg-primary-light rounded-full">
+                <i data-lucide="bell" class="w-8 h-8"></i>
+            </div>
+            <h3 id="popup-title" class="text-xl font-bold mb-2">Alert</h3>
+            <p id="popup-message" class="text-muted text-sm mb-6">Message</p>
+            <div class="flex gap-3 justify-center">
+                <button id="popup-cancel" class="submit-btn bg-surface text-muted border ripple" style="display:none;">Cancel</button>
+                <button id="popup-confirm" class="submit-btn ripple w-full">OK</button>
             </div>
         </div>
     </div>
 
     <div id="book-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="close-modal">&times;</button>
+        <div class="modal-content scale-modal book-modal-layout">
+            <button class="close-modal ripple"><i data-lucide="x"></i></button>
             <div class="modal-desktop-layout">
                 <div class="modal-left-col">
-                    <div class="modal-cover-wrapper skeleton">
-                        <img id="modal-book-cover-img" class="modal-book-cover" src="" alt="Cover">
+                    <div class="modal-cover-wrapper skeleton shadow-premium">
+                        <img id="modal-book-cover-img" class="modal-book-cover" src="">
                     </div>
                     <div class="modal-header-row">
-                        <img id="modal-author-pic" class="author-headshot skeleton" src="" alt="Author" style="display:none;">
+                        <img id="modal-author-pic" class="author-headshot skeleton shadow-premium" src="" style="display:none;">
                         <div class="modal-text-group">
-                            <h2 id="modal-title" class="text-pink">Title</h2>
-                            <p id="modal-author" style="color:var(--text-muted);">Author</p>
+                            <h2 id="modal-title" class="font-bold text-xl leading-tight">Title</h2>
+                            <p id="modal-author" class="text-sm text-muted">Author</p>
                         </div>
                     </div>
-                    <span id="modal-genre" class="chip" style="margin-bottom:15px;">Genre</span>
-                    <div class="destination-badge" style="margin-top:0;">Target: #<span id="modal-book-id" class="text-pink">0</span></div>
-                    <div class="qr-section">
-                        <div id="qrcode"></div>
-                        <p class="qr-text" style="margin-bottom:10px;">Scan for Mobile</p>
-                        <button id="share-book-btn" class="submit-btn" style="padding: 8px 15px; font-size:0.8rem; background:var(--bg-chip); color:var(--primary-pink); border:1px solid var(--border-color); display:flex; align-items:center; justify-content:center; gap:5px; margin-top:5px;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                            Share Link
+                    <span id="modal-genre" class="badge bg-primary-light text-primary">Genre</span>
+                    <div class="target-badge shadow-premium-sm">Target: #<span id="modal-book-id" class="text-primary">0</span></div>
+                    <div class="qr-section shadow-premium-sm">
+                        <div id="qrcode" class="p-1 bg-white rounded-lg"></div>
+                        <p class="text-xs text-muted font-bold mt-2"><i data-lucide="smartphone" class="w-3 h-3 inline"></i> Scan for Mobile</p>
+                        <button id="share-book-btn" class="w-full mt-3 submit-btn bg-surface text-primary border ripple flex-center justify-center gap-2 text-sm py-2">
+                            <i data-lucide="share-2" class="w-4 h-4"></i> Share
                         </button>
                     </div>
                 </div>
                 <div class="modal-right-col">
-                    <div id="carousel-wrapper" class="carousel-wrapper skeleton">
-                        <button id="prev-img-btn" class="carousel-btn prev">&lt;</button>
-                        <img id="carousel-img" src="" alt="Navigation Step" class="shelf-photo" style="opacity:0; transition:0.3s;">
-                        <button id="next-img-btn" class="carousel-btn next">&gt;</button>
-                        <div id="step-counter" class="step-counter">Step 1</div>
+                    <div id="carousel-wrapper" class="carousel-wrapper skeleton border">
+                        <button id="prev-img-btn" class="carousel-btn ripple"><i data-lucide="chevron-left"></i></button>
+                        <img id="carousel-img" src="" class="shelf-photo" style="opacity:0; transition:0.3s;">
+                        <button id="next-img-btn" class="carousel-btn ripple"><i data-lucide="chevron-right"></i></button>
+                        <div id="step-counter" class="step-counter backdrop-blur">Step 1</div>
                     </div>
-                    <div id="mobile-action-area" style="display: none;"><button class="found-btn" onclick="showSuccessScreen()">I Found It!</button></div>
-                    <div id="neighbors-area" class="neighbors-area">
-                        <p style="font-size:0.9rem; color:var(--text-muted);">Also in this section:</p>
+                    <div id="mobile-action-area" style="display: none;">
+                        <button class="submit-btn w-full ripple flex-center justify-center gap-2 shadow-premium" onclick="showSuccessScreen()">
+                            <i data-lucide="check-circle-2"></i> I Found It!
+                        </button>
+                    </div>
+                    <div id="neighbors-area" class="mt-4 text-left">
+                        <p class="text-xs font-bold text-muted uppercase tracking-wider mb-2">Also in this section</p>
                         <div id="neighbors-grid" class="neighbors-grid"></div>
                     </div>
                 </div>
@@ -149,22 +200,32 @@
     </div>
 
     <div id="admin-modal" class="modal-overlay">
-        <div class="modal-content" style="max-height:85vh; overflow-y:auto;">
-            <button class="close-modal">&times;</button>
-            <h2 class="text-pink">Admin Operations</h2>
-            <div id="admin-login-screen">
-                <p style="color:var(--text-muted); margin-bottom:15px;">Enter Access Key</p>
-                <input type="password" id="admin-password" class="form-input" placeholder="Password (admin123)">
-                <button id="admin-auth-btn" class="submit-btn">Login</button>
+        <div class="modal-content scale-modal text-left">
+            <button class="close-modal ripple"><i data-lucide="x"></i></button>
+            <div class="flex-center gap-2 mb-6">
+                <div class="icon-box"><i data-lucide="shield" class="text-primary"></i></div>
+                <h2 class="text-xl font-bold">Admin Panel</h2>
             </div>
-            <div id="admin-dashboard" style="display:none; text-align:left;">
-                <h3 style="margin:20px 0 10px 0;" id="admin-form-title">Add New Book</h3>
+            
+            <div id="admin-login-screen">
+                <p class="text-sm text-muted mb-2">Enter Access Key</p>
+                <div class="relative mb-4">
+                    <i data-lucide="lock" class="absolute left-3 top-3.5 text-muted w-5 h-5"></i>
+                    <input type="password" id="admin-password" class="form-input pl-10" placeholder="Password">
+                </div>
+                <button id="admin-auth-btn" class="submit-btn ripple w-full">Login</button>
+            </div>
+            
+            <div id="admin-dashboard" style="display:none;">
+                <h3 id="admin-form-title" class="font-bold mb-3 border-b pb-2">Add New Book</h3>
                 <input type="hidden" id="edit-book-id" value="">
+                
                 <input type="text" id="new-title" class="form-input" placeholder="Book Title">
                 <input type="text" id="new-author" class="form-input" placeholder="Author Name">
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 15px;">
+                
+                <div class="grid-2 gap-3 mb-3">
                     <div>
-                        <label style="font-size:0.8rem; color:var(--text-muted); font-weight:bold;">Genre</label>
+                        <label class="text-xs text-muted font-bold block mb-1">Genre</label>
                         <select id="new-genre" class="form-input">
                             <option value="Fiction">Fiction</option>
                             <option value="Non-Fiction">Non-Fiction</option>
@@ -174,69 +235,60 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-size:0.8rem; color:var(--text-muted); font-weight:bold;">Nav Steps</label>
+                        <label class="text-xs text-muted font-bold block mb-1">Nav Steps</label>
                         <select id="step-count-select" class="form-input">
                             <option value="2">2 Steps</option>
                             <option value="3">3 Steps</option>
-                            <option value="4">4 Steps (Max)</option>
+                            <option value="4">4 Steps</option>
                         </select>
                     </div>
                 </div>
+                
                 <div id="image-inputs-container"></div>
-                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:-5px; margin-bottom:10px;">Leave blank to use auto-placeholders.</p>
-                <button id="add-book-btn" class="submit-btn" style="background:#4ade80; color:#0b1121; margin-top:10px;">+ Add to Cloud</button>
-                <button id="cancel-edit-btn" class="submit-btn" style="background:#ef4444; color:white; margin-top:10px; display:none;">Cancel Edit</button>
-                <h3 style="margin:30px 0 10px 0; color:#ef4444;">System Data</h3>
-                <div id="admin-book-list" style="display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto; padding-right:5px;"></div>
-                <div style="margin-top:20px; border-top:1px solid var(--border-color); padding-top:20px;">
-                    <button id="factory-reset-btn" class="submit-btn" style="background:transparent; border:2px solid #ef4444; color:#ef4444;">⚠️ Soft Factory Reset</button>
-                </div>
+                <button id="add-book-btn" class="submit-btn w-full ripple shadow-premium mt-2 flex-center justify-center gap-2 bg-success text-white"><i data-lucide="upload-cloud"></i> Add to Cloud</button>
+                <button id="cancel-edit-btn" class="submit-btn w-full ripple mt-2 bg-surface text-muted border" style="display:none;">Cancel Edit</button>
+                
+                <h3 class="font-bold mt-6 mb-3 border-b pb-2 text-warning flex-center gap-2"><i data-lucide="database"></i> System Data</h3>
+                <div id="admin-book-list" class="space-y-2 max-h-48 overflow-y-auto pr-2"></div>
+                <button id="factory-reset-btn" class="submit-btn w-full mt-4 border border-warning text-warning bg-transparent ripple flex-center justify-center gap-2"><i data-lucide="alert-octagon"></i> Factory Reset</button>
             </div>
         </div>
     </div>
 
-    <div id="success-modal" class="modal-overlay">
-        <div class="modal-content" style="text-align: center; padding: 40px 20px;">
-            <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
-            <h2 class="text-pink" style="font-size: 2rem; margin-bottom: 10px;">Mission Accomplished!</h2>
-            <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 25px;">You found the book! Don't forget to check it out at the front desk before you leave.</p>
-            <button class="submit-btn" onclick="closeSuccessScreen()">Got it, thanks!</button>
-        </div>
-    </div>
-
     <div id="stats-modal" class="modal-overlay">
-        <div class="modal-content" style="max-height:85vh; overflow-y:auto;">
-            <button class="close-modal">&times;</button>
-            <h2 class="text-pink" style="margin-bottom:20px;">Website Statistics</h2>
-            <div id="stats-content" style="text-align:left;"></div>
+        <div class="modal-content scale-modal text-left">
+            <button class="close-modal ripple"><i data-lucide="x"></i></button>
+            <div class="flex-center gap-2 mb-6">
+                <div class="icon-box"><i data-lucide="activity" class="text-primary"></i></div>
+                <h2 class="text-xl font-bold">Live Statistics</h2>
+            </div>
+            <div id="stats-content"></div>
         </div>
     </div>
 
     <div id="feedback-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="close-modal">&times;</button>
-            <h2 class="text-pink">Send Feedback</h2>
+        <div class="modal-content scale-modal">
+            <button class="close-modal ripple"><i data-lucide="x"></i></button>
+            <div class="flex-center justify-center gap-2 mb-4">
+                <i data-lucide="star" class="text-warning"></i>
+                <h2 class="text-xl font-bold">Rate LibNav</h2>
+            </div>
             <form id="feedback-form">
-                <div class="star-rating-container" style="margin-bottom:15px; text-align:center;">
-                    <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:5px;">Rate your experience:</p>
-                    <div class="star-rating">
-                        <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="5 stars">★</label>
-                        <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4 stars">★</label>
-                        <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3 stars">★</label>
-                        <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 stars">★</label>
-                        <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 star">★</label>
-                    </div>
+                <div class="star-rating mb-4">
+                    <input type="radio" id="star5" name="rating" value="5"><label for="star5" class="ripple-text">★</label>
+                    <input type="radio" id="star4" name="rating" value="4"><label for="star4" class="ripple-text">★</label>
+                    <input type="radio" id="star3" name="rating" value="3"><label for="star3" class="ripple-text">★</label>
+                    <input type="radio" id="star2" name="rating" value="2"><label for="star2" class="ripple-text">★</label>
+                    <input type="radio" id="star1" name="rating" value="1"><label for="star1" class="ripple-text">★</label>
                 </div>
-                <input type="text" id="fb-name" class="form-input" placeholder="Name">
-                <input type="email" id="fb-email" class="form-input" placeholder="Email">
-                <textarea id="fb-message" class="form-input" placeholder="Message..." required></textarea>
-                <button type="submit" class="submit-btn" id="fb-submit-btn">Send</button>
-                <p id="fb-status" style="margin-top:10px;"></p>
+                <input type="text" id="fb-name" class="form-input" placeholder="Your Name">
+                <textarea id="fb-message" class="form-input" placeholder="Any suggestions?" required rows="3"></textarea>
+                <button type="submit" class="submit-btn w-full ripple mt-2">Send Feedback</button>
             </form>
         </div>
     </div>
 
-    <div id="screensaver" class="screensaver"><h1 class="glow-text">LibNav</h1><p>Touch to start searching!</p></div>
+    <div id="screensaver" class="screensaver"><h1 class="font-head text-primary text-5xl drop-shadow-glow">LibNav</h1><p class="mt-4 animate-pulse">Touch screen to start</p></div>
 
     <script src="database.js"></script>
     <script src="app.js"></script>
