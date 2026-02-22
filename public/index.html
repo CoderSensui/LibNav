@@ -13,7 +13,7 @@
     
     <link rel="manifest" href="manifest.json">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=60">
+    <link rel="stylesheet" href="style.css?v=70">
 </head>
 <body>
 
@@ -39,6 +39,15 @@
             <button id="close-menu">&times;</button>
         </div>
         <div class="menu-content">
+            <div class="sidebar-buttons">
+                <button class="quick-btn wide" data-genre="All">Browse Books (A-Z)</button>
+                <div style="height:1px; background:var(--border-color); margin:10px 0;"></div>
+                <button class="quick-btn wide" data-genre="Fiction">Fiction</button>
+                <button class="quick-btn wide" data-genre="Non-Fiction">Non-Fiction</button>
+                <button class="quick-btn wide" data-genre="Romance">Romance</button>
+                <button class="quick-btn wide" data-genre="Science">Science</button>
+                <button class="quick-btn wide" data-genre="History">History</button>
+            </div>
             <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
                 <button id="open-feedback-btn" class="quick-btn wide">Send Feedback</button>
             </div>
@@ -48,7 +57,7 @@
     <div class="container">
         <div id="hero" class="hero">
             <div id="minion-container">
-                <img id="minion-sprite" src="https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif" style="display:none; position:absolute; width:60px; z-index:99;">
+                <img id="minion-sprite" src="https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif" style="display:none; position:absolute; width:60px; z-index:99; pointer-events:none;">
             </div>
             <h1 class="glow-text" id="hero-title">LibNav</h1>
             <p style="color: var(--text-muted);">Find a way to the story!</p>
@@ -61,17 +70,19 @@
             
             <div class="search-actions">
                 <button id="mic-btn" class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></button>
+                <button id="filter-toggle" class="icon-btn"><svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg></button>
             </div>
-        </div>
-
-        <div class="category-pills">
-            <button class="pill-btn active" data-genre="All">All Books</button>
-            <button class="pill-btn" data-genre="Favorites">♥ Saved</button>
-            <button class="pill-btn" data-genre="Fiction">Fiction</button>
-            <button class="pill-btn" data-genre="Non-Fiction">Non-Fiction</button>
-            <button class="pill-btn" data-genre="Science">Science</button>
-            <button class="pill-btn" data-genre="History">History</button>
-            <button class="pill-btn" data-genre="Romance">Romance</button>
+            
+            <div id="filter-menu" class="filter-dropdown">
+                <label class="filter-option" style="font-weight:bold; color:var(--primary-pink);"><input type="checkbox" value="All"><span class="checkmark"></span><span>All Genres</span></label>
+                <div style="height:1px; background:var(--border-color); margin:5px 0;"></div>
+                <label class="filter-option"><input type="checkbox" value="Favorites"><span class="checkmark" style="border-color:#ef4444; color:#ef4444;"></span><div style="display:flex; align-items:center; gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#ef4444"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg><span>Bookmarks</span></div></label>
+                <label class="filter-option"><input type="checkbox" value="Fiction"><span class="checkmark"></span><span>Fiction</span></label>
+                <label class="filter-option"><input type="checkbox" value="Non-Fiction"><span class="checkmark"></span><span>Non-Fiction</span></label>
+                <label class="filter-option"><input type="checkbox" value="Romance"><span class="checkmark"></span><span>Romance</span></label>
+                <label class="filter-option"><input type="checkbox" value="Science"><span class="checkmark"></span><span>Science</span></label>
+                <label class="filter-option"><input type="checkbox" value="History"><span class="checkmark"></span><span>History</span></label>
+            </div>
         </div>
 
         <div id="featured-container"></div>
@@ -86,7 +97,7 @@
     <div id="custom-popup" class="modal-overlay" style="z-index: 9999;">
         <div class="modal-content" style="max-width:300px; text-align:center;">
             <h3 id="popup-title" class="text-pink" style="margin-bottom:10px;">Alert</h3>
-            <p id="popup-message" style="margin-bottom:20px; color:var(--text-main);">Message goes here</p>
+            <p id="popup-message" style="margin-bottom:20px; color:var(--text-main);">Message</p>
             <div id="popup-actions" style="display:flex; gap:10px; justify-content:center;">
                 <button id="popup-cancel" class="submit-btn" style="background:var(--bg-chip); color:var(--text-muted);">Cancel</button>
                 <button id="popup-confirm" class="submit-btn">OK</button>
@@ -230,4 +241,4 @@
     <script src="database.js"></script>
     <script src="app.js"></script>
 </body>
-    </html>
+</html>
