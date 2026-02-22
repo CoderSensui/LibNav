@@ -1,4 +1,4 @@
-/* app.js - Ultimate Monolith (Anti-Lag, Haptics, Dynamic Initials, Highlights) */
+/* app.js - Ultra-Optimized Monolith (Cache Fix, Minion, Popups, Pills) */
 
 const searchInput = document.getElementById('search-input');
 const autocompleteDropdown = document.getElementById('autocomplete-dropdown');
@@ -10,17 +10,14 @@ const sideMenu = document.getElementById('side-menu');
 const sideMenuOverlay = document.getElementById('side-menu-overlay');
 const closeMenuBtn = document.getElementById('close-menu');
 const homeBtn = document.getElementById('home-btn');
-const filterToggle = document.getElementById('filter-toggle'); 
-const filterMenu = document.getElementById('filter-menu');
-const checkboxes = document.querySelectorAll('.filter-option input[type="checkbox"]');
 const micBtn = document.getElementById('mic-btn');
 const screensaver = document.getElementById('screensaver');
-const quickBtns = document.querySelectorAll('.quick-btn');
 const feedbackBtn = document.getElementById('open-feedback-btn');
 const feedbackModal = document.getElementById('feedback-modal');
 const feedbackForm = document.getElementById('feedback-form');
 const fbStatus = document.getElementById('fb-status');
 const fbSubmitBtn = document.getElementById('fb-submit-btn');
+const offlineBanner = document.getElementById('offline-banner');
 
 const secretAdminBtn = document.getElementById('secret-admin-btn');
 const adminModal = document.getElementById('admin-modal');
@@ -47,14 +44,101 @@ const nextBtn = document.getElementById('next-img-btn');
 const stepCounter = document.getElementById('step-counter');
 const shareBookBtn = document.getElementById('share-book-btn');
 
+// POPUP ELEMENTS
+const popupOverlay = document.getElementById('custom-popup');
+const popupTitle = document.getElementById('popup-title');
+const popupMessage = document.getElementById('popup-message');
+const popupConfirm = document.getElementById('popup-confirm');
+const popupCancel = document.getElementById('popup-cancel');
+
+// MINION ELEMENTS
+const heroTitle = document.getElementById('hero-title');
+const minionSprite = document.getElementById('minion-sprite');
+
 let selectedGenres = new Set(); 
 let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
 const IDLE_LIMIT = 30000;
 let idleTimeout;
-const coverCache = {}; 
+const coverCache = {}; // Aggressive Cache
 const authorCache = {}; 
 let currentImages = [];
 let currentImageIndex = 0;
+
+// --- FEATURE: CUSTOM POPUP ---
+function showPopup(title, msg, onConfirm, showCancel = false) {
+    popupTitle.innerText = title;
+    popupMessage.innerText = msg;
+    popupOverlay.classList.add('active');
+    
+    popupCancel.style.display = showCancel ? 'block' : 'none';
+    popupConfirm.onclick = () => {
+        popupOverlay.classList.remove('active');
+        if(onConfirm) onConfirm();
+    };
+    popupCancel.onclick = () => popupOverlay.classList.remove('active');
+}
+
+// --- FEATURE: MINION EASTER EGG ---
+// Split hero title into spans
+heroTitle.innerHTML = heroTitle.textContent.split('').map(l => `<span class="hero-letter" style="display:inline-block; transition: transform 0.2s;">${l}</span>`).join('');
+const heroLetters = document.querySelectorAll('.hero-letter');
+
+let heroTapCount = 0;
+let heroTapTimer;
+
+heroTitle.addEventListener('click', () => {
+    heroTapCount++;
+    clearTimeout(heroTapTimer);
+    
+    // Check for triple tap (Admin)
+    if(heroTapCount === 3) {
+        adminModal.classList.add('active');
+        closeSidebar();
+        heroTapCount = 0;
+        return;
+    }
+    
+    // Single tap (Minion)
+    heroTapTimer = setTimeout(() => {
+        if(heroTapCount === 1) {
+            runMinionAnimation();
+        }
+        heroTapCount = 0;
+    }, 400);
+});
+
+function runMinionAnimation() {
+    minionSprite.style.display = 'block';
+    minionSprite.style.left = '-60px';
+    minionSprite.style.top = '0px';
+    
+    let pos = -60;
+    const interval = setInterval(() => {
+        pos += 5;
+        minionSprite.style.left = pos + 'px';
+        
+        // Bounce letters when minion is near
+        heroLetters.forEach((span, i) => {
+            const spanPos = (i * 30) + 20; // Approx letter width
+            if(Math.abs(pos - spanPos) < 20) {
+                span.style.transform = "translateY(-20px)";
+                setTimeout(() => span.style.transform = "translateY(0)", 200);
+            }
+        });
+
+        if(pos > 300) {
+            clearInterval(interval);
+            minionSprite.style.display = 'none';
+        }
+    }, 16);
+}
+
+// --- FEATURE: OFFLINE BANNER ---
+window.addEventListener('offline', () => { offlineBanner.classList.add('active'); offlineBanner.innerText = "📡 You are offline. Viewing cached library."; offlineBanner.style.background = "#ef4444"; });
+window.addEventListener('online', () => { 
+    offlineBanner.innerText = "🟢 Back online!"; offlineBanner.style.background = "#16a34a";
+    setTimeout(() => offlineBanner.classList.remove('active'), 3000); 
+});
 
 // --- FEATURE: HAPTICS ---
 const vibrate = () => { if (navigator.vibrate) navigator.vibrate(10); };
@@ -89,7 +173,13 @@ const imageObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
             const img = entry.target;
-            fetchCoverWithFallback(img.dataset.title, img.dataset.author, img.id, true);
+            // Use cache immediately if available
+            if(coverCache[img.dataset.title]) {
+                img.src = coverCache[img.dataset.title];
+                img.onload = () => { img.style.opacity = '1'; img.closest('.skeleton')?.classList.remove('skeleton'); };
+            } else {
+                fetchCoverWithFallback(img.dataset.title, img.dataset.author, img.id, true);
+            }
             observer.unobserve(img);
         }
     });
@@ -120,12 +210,11 @@ async function init() {
 }
 
 // --- ADMIN LOGIC ---
-secretAdminBtn.addEventListener('click', () => { adminModal.classList.add('active'); closeSidebar(); });
 adminAuthBtn.addEventListener('click', () => {
     if(adminPassInput.value === 'admin123') {
         adminLoginScreen.style.display = 'none'; adminDashboard.style.display = 'block';
         updateImageInputs(); renderAdminList();
-    } else alert('Wrong Password');
+    } else showPopup("Error", "Incorrect Password");
 });
 
 function updateImageInputs() {
@@ -155,6 +244,7 @@ window.handleEdit = function(id) {
     book.images.forEach((img, i) => { if(inputs[i] && !img.includes('placehold.co')) inputs[i].value = img; });
     addBookBtn.innerText = "💾 Update Book"; addBookBtn.style.background = "#3b82f6";
     cancelEditBtn.style.display = "block";
+    document.querySelector('#admin-modal .modal-content').scrollTo({top:0,behavior:'smooth'});
 };
 
 cancelEditBtn.onclick = () => {
@@ -169,24 +259,27 @@ addBookBtn.addEventListener('click', async () => {
     const author = document.getElementById('new-author').value.trim();
     const genre = document.getElementById('new-genre').value;
     const editingId = editBookIdInput.value;
-    if(!title || !author) return alert('Fill title/author');
+    
+    if(!title || !author) return showPopup("Missing Info", "Please fill in title and author.");
     
     const imageUrls = Array.from(document.querySelectorAll('.step-url-input')).map((input, i) => {
         return input.value.trim() || `https://placehold.co/600x400/252f46/ffc4d6?text=Step+${i+1}`;
     });
     
     addBookBtn.disabled = true; addBookBtn.innerText = "Saving...";
+    
     if(editingId) {
         const books = LibraryDB.getBooks();
         const index = books.findIndex(b => String(b.id) === String(editingId));
         if(index > -1) {
             books[index].title = title; books[index].author = author;
             books[index].genre = genre; books[index].images = imageUrls;
-            await LibraryDB.saveToCloud(); alert('Updated!');
+            await LibraryDB.saveToCloud(); 
+            showPopup("Success", "Book Updated Successfully!");
         }
     } else {
         await LibraryDB.addBook({ id: Date.now(), title, author, genre, images: imageUrls, views: 0 });
-        alert('Added Globally!');
+        showPopup("Success", "Book Added Globally!");
     }
     cancelEditBtn.click(); renderAdminList(); performSearch(searchInput.value); addBookBtn.disabled = false;
 });
@@ -201,8 +294,16 @@ function renderAdminList() {
             </div>
         </div>`).join('');
 }
-window.handleDelete = async (id) => { if(confirm('Delete?')) { await LibraryDB.deleteBook(id); renderAdminList(); performSearch(searchInput.value); } };
-factoryResetBtn.onclick = async () => { if(confirm("Reset Stats? Books will stay.")) { await LibraryDB.factoryReset(); window.location.reload(); } };
+window.handleDelete = async (id) => { 
+    showPopup("Confirm Delete", "Are you sure you want to delete this book?", async () => {
+        await LibraryDB.deleteBook(id); renderAdminList(); performSearch(searchInput.value);
+    }, true);
+};
+factoryResetBtn.onclick = async () => {
+    showPopup("Defense Mode", "Reset Stats & History? Books will remain.", async () => {
+        await LibraryDB.factoryReset(); window.location.reload();
+    }, true);
+};
 
 // --- FEATURED BOOK ---
 function loadFeaturedBook() {
@@ -224,6 +325,7 @@ function loadFeaturedBook() {
 
 function fetchCoverWithFallback(title, author, elementId, isImgTag) {
     if(coverCache[title]) { applyCover(coverCache[title], elementId, isImgTag); return; }
+    
     fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1`)
     .then(r=>r.json()).then(d => {
         if(d.docs?.[0]?.cover_i) {
@@ -286,7 +388,10 @@ async function openModal(book) {
         shareBookBtn.onclick = async () => {
             vibrate();
             if(navigator.share) await navigator.share({ title: 'LibNav', text: `Check out ${book.title}`, url: deepLink });
-            else { navigator.clipboard.writeText(deepLink); alert('Link copied!'); }
+            else { 
+                navigator.clipboard.writeText(deepLink); 
+                showPopup("Success", "Link copied to clipboard!");
+            }
         };
     }
 
@@ -324,45 +429,37 @@ function updateCarousel() {
     }
 }
 
-homeBtn.onclick = () => { searchInput.value=''; autocompleteDropdown.style.display='none'; selectedGenres.clear(); checkboxes.forEach(c=>c.checked=false); quickBtns.forEach(b=>b.classList.remove('active')); hero.classList.remove('minimized'); featuredContainer.style.display='block'; homeBtn.classList.add('home-hidden'); resultsArea.innerHTML = ''; };
-hamburgerBtn.onclick = () => { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); filterMenu.style.display='none'; };
+// HORIZONTAL PILLS LOGIC
+document.querySelectorAll('.pill-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        vibrate();
+        
+        searchInput.value = ''; 
+        selectedGenres.clear();
+        const genre = btn.dataset.genre;
+        
+        if(genre === 'All') {
+            hero.classList.remove('minimized'); featuredContainer.style.display = 'block'; homeBtn.classList.add('home-hidden');
+        } else {
+            hero.classList.add('minimized'); featuredContainer.style.display = 'none'; homeBtn.classList.remove('home-hidden');
+            selectedGenres.add(genre);
+        }
+        performSearch('');
+    });
+});
+
+homeBtn.onclick = () => { document.querySelector('.pill-btn[data-genre="All"]').click(); };
+hamburgerBtn.onclick = () => { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); };
 closeMenuBtn.onclick = () => { sideMenu.classList.remove('active'); sideMenuOverlay.classList.remove('active'); };
 sideMenuOverlay.onclick = closeMenuBtn.onclick;
-filterToggle.onclick = (e) => { e.stopPropagation(); filterMenu.style.display = (filterMenu.style.display==='flex'?'none':'flex'); sideMenu.classList.remove('active'); sideMenuOverlay.classList.remove('active'); };
 document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; };
 
-function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(() => { if(!document.body.classList.contains('companion-mode-active')) { homeBtn.click(); document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('active')); closeMenuBtn.click(); filterMenu.style.display='none'; screensaver.classList.add('active'); } }, IDLE_LIMIT); }
+function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(() => { if(!document.body.classList.contains('companion-mode-active')) { homeBtn.click(); document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('active')); closeMenuBtn.click(); screensaver.classList.add('active'); } }, IDLE_LIMIT); }
 window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
 
-quickBtns.forEach(btn => {
-    if(btn.id === 'open-feedback-btn') return;
-    btn.onclick = () => {
-        searchInput.value = ''; hero.classList.add('minimized'); featuredContainer.style.display = 'none'; homeBtn.classList.remove('home-hidden');
-        selectedGenres.clear(); selectedGenres.add(btn.dataset.genre);
-        checkboxes.forEach(box => { box.checked = (box.value === btn.dataset.genre); });
-        quickBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active');
-        performSearch(''); closeMenuBtn.onclick();
-    };
-});
-
-checkboxes.forEach(box => {
-    box.onchange = (e) => {
-        const val = e.target.value;
-        if(val === 'All') {
-            selectedGenres.clear(); if(e.target.checked) selectedGenres.add('All');
-            checkboxes.forEach(c => { if(c.value !== 'All') c.checked = false; });
-            quickBtns.forEach(b => b.classList.remove('active')); if(e.target.checked) document.querySelector('.quick-btn[data-genre="All"]').classList.add('active');
-        } else {
-            if(e.target.checked) { selectedGenres.delete('All'); document.querySelector('input[value="All"]').checked = false; document.querySelector('.quick-btn[data-genre="All"]').classList.remove('active'); selectedGenres.add(val); quickBtns.forEach(b => { if(b.dataset.genre===val) b.classList.add('active'); }); } 
-            else { selectedGenres.delete(val); quickBtns.forEach(b => { if(b.dataset.genre===val) b.classList.remove('active'); }); }
-        }
-        if (selectedGenres.size > 0) { hero.classList.add('minimized'); featuredContainer.style.display = 'none'; homeBtn.classList.remove('home-hidden'); } 
-        else if (searchInput.value === '') { hero.classList.remove('minimized'); featuredContainer.style.display = 'block'; homeBtn.classList.add('home-hidden'); }
-        performSearch(searchInput.value);
-    };
-});
-
-// AUTOCOMPLETE & HIGHLIGHTING
+// SEARCH, AUTOCOMPLETE & RENDER
 searchInput.addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase().trim();
     if (term.length > 0) { hero.classList.add('minimized'); featuredContainer.style.display = 'none'; homeBtn.classList.remove('home-hidden'); } 
@@ -404,7 +501,6 @@ function performSearch(term) {
 function renderResults(books) {
     resultsArea.innerHTML = '';
     if (books.length === 0) { resultsArea.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;">No books found.</div>'; return; }
-    
     const frag = document.createDocumentFragment();
     const term = searchInput.value.trim();
     const regex = new RegExp(`(${term})`, 'gi');
@@ -441,10 +537,10 @@ window.toggleFavorite = function(e, bookId) {
     performSearch(searchInput.value); loadFeaturedBook();
 }
 
+// ... (Voice, Stats, Feedback Logic identical to previous versions) ...
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
+    const recognition = new SpeechRecognition(); recognition.lang = 'en-US';
     micBtn.onclick = () => { if (micBtn.classList.contains('listening')) recognition.stop(); else recognition.start(); };
     recognition.onstart = () => { micBtn.classList.add('listening'); searchInput.placeholder = "Listening..."; };
     recognition.onend = () => { micBtn.classList.remove('listening'); searchInput.placeholder = "Search..."; };
@@ -492,8 +588,9 @@ if (feedbackForm) feedbackForm.onsubmit = async (e) => {
         await LibraryDB.submitRating(ratingValue);
         const payload = { name, email, message: `[Rating: ${ratingValue}/5]\n\n${message}` };
         await fetch('/api/send-feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        fbStatus.style.color = "#4ade80"; fbStatus.innerText = "Sent!"; feedbackForm.reset(); setTimeout(() => feedbackModal.classList.remove('active'), 2000); 
-    } catch { fbStatus.style.color = "#4ade80"; fbStatus.innerText = "Saved!"; setTimeout(() => feedbackModal.classList.remove('active'), 2000); }
+        showPopup("Success", "Feedback Sent! Thank you.");
+        feedbackForm.reset(); setTimeout(() => feedbackModal.classList.remove('active'), 1000); 
+    } catch { showPopup("Saved", "Rating Saved Locally."); setTimeout(() => feedbackModal.classList.remove('active'), 1000); }
     finally { fbSubmitBtn.disabled = false; fbSubmitBtn.innerText = "Send"; }
 };
 
