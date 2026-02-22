@@ -1,8 +1,8 @@
-/* app.js - Flawless Logic & Safe Timings */
+/* app.js - Fully Debugged UI & Restored Logic */
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // SAFE ICONS - Forced delay to ensure DOM is ready
+    // SAFE ICONS
     function refreshIcons() {
         setTimeout(() => {
             try { if(typeof lucide !== 'undefined') lucide.createIcons(); } 
@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentImages = [];
     let currentImageIndex = 0;
 
-    // --- DYNAMIC TIPS ARRAY ---
     const tips = [
         "Use the microphone icon to search for books hands-free.",
         "Bookmark a book to instantly find it later.",
@@ -53,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
         "Switch to Dark Mode for comfortable viewing in low light."
     ];
 
-    // --- SMART THEME ENGINE ---
     function getInitialTheme() {
         const saved = localStorage.getItem('theme');
         if (saved) return saved;
@@ -62,30 +60,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const hour = new Date().getHours();
         return (hour >= 6 && hour < 18) ? 'light' : 'dark';
     }
+    
     function applyTheme(mode) {
         const dBtn = document.getElementById('desk-theme-toggle');
         const sBtn = document.getElementById('section-theme-toggle');
         if(mode === 'light') {
             document.body.classList.add('light-mode');
             if(dBtn) dBtn.innerHTML = '<i data-lucide="moon"></i>';
-            if(sBtn) sBtn.innerHTML = '<i data-lucide="moon" class="text-muted"></i> Switch to Dark Mode';
+            if(sBtn) sBtn.innerHTML = '<i data-lucide="moon" class="text-primary icon-small"></i> Switch to Dark Mode';
         } else {
             document.body.classList.remove('light-mode');
             if(dBtn) dBtn.innerHTML = '<i data-lucide="sun"></i>';
-            if(sBtn) sBtn.innerHTML = '<i data-lucide="sun" class="text-muted"></i> Switch to Light Mode';
+            if(sBtn) sBtn.innerHTML = '<i data-lucide="sun" class="text-primary icon-small"></i> Switch to Light Mode';
         }
         refreshIcons();
     }
+    
     function toggleThemeAction() {
         vibrate();
         const isLight = document.body.classList.toggle('light-mode');
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
         applyTheme(isLight ? 'light' : 'dark');
     }
+    
     document.getElementById('desk-theme-toggle')?.addEventListener('click', toggleThemeAction);
     document.getElementById('section-theme-toggle')?.addEventListener('click', toggleThemeAction);
 
-    // --- CUSTOM POPUP (NO ALERTS) ---
     const popupOverlay = document.getElementById('custom-popup');
     function showPopup(title, msg, onConfirm, showCancel = false, type = 'bell') {
         document.getElementById('popup-title').innerText = title;
@@ -107,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelBtn.onclick = () => popupOverlay.classList.remove('active');
     }
 
-    // --- MINION EASTER EGG (Middle Logo) ---
     const heroTitle = document.getElementById('hero-title');
     const minionSprite = document.getElementById('minion-sprite');
     heroTitle.innerHTML = heroTitle.textContent.split('').map(l => `<span class="hero-letter" style="display:inline-block; transition: transform 0.2s;">${l}</span>`).join('');
@@ -126,10 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 16);
     });
 
-    // --- ADMIN PANEL TRIGGER ---
     secretAdminBtn.addEventListener('click', () => { adminModal.classList.add('active'); closeSidebar(); });
 
-    // --- NETWORK BANNER ---
     window.addEventListener('offline', () => { offlineBanner.classList.add('active'); });
     window.addEventListener('online', () => { 
         offlineBanner.innerHTML = '<i data-lucide="wifi" class="icon-small"></i> <span>Back online!</span>'; refreshIcons();
@@ -137,6 +134,19 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { offlineBanner.classList.remove('active'); setTimeout(()=> {offlineBanner.innerHTML='<i data-lucide="wifi-off" class="icon-small"></i> <span>You are offline.</span>'; offlineBanner.style.background="var(--warning)"; refreshIcons();}, 300); }, 3000); 
     });
     const vibrate = () => { if (navigator.vibrate) navigator.vibrate(15); };
+
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                if(coverCache[img.dataset.title]) {
+                    img.src = coverCache[img.dataset.title];
+                    img.onload = () => { img.style.opacity = '1'; img.closest('.skeleton')?.classList.remove('skeleton'); };
+                } else fetchCoverWithFallback(img.dataset.title, img.dataset.author, img.id, true);
+                observer.unobserve(img);
+            }
+        });
+    }, { rootMargin: '200px 0px' });
 
     function generateInitialsImage(name) {
         const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -174,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshIcons();
     }
 
-    // --- NAVIGATION LOGIC ---
+    // --- HOME RESET LOGIC ---
     function resetToHome() {
         vibrate();
         document.querySelectorAll('.nav-item').forEach(item => { item.classList.remove('active', 'text-primary'); item.classList.add('text-muted'); });
@@ -201,13 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('bottom-home-btn')?.addEventListener('click', (e) => { e.preventDefault(); resetToHome(); });
     document.querySelector('.desk-nav-item[data-section="home"]')?.addEventListener('click', (e) => { e.preventDefault(); resetToHome(); });
 
-    // Handle Sections dynamically (About, Tools)
     document.querySelectorAll('[data-section]').forEach(item => {
         if(item.dataset.section === 'home') return;
         item.onclick = (e) => { 
             e.preventDefault(); vibrate();
             
-            // Switch Bottom Nav
             document.querySelectorAll('.nav-item').forEach(i => { i.classList.remove('active', 'text-primary'); i.classList.add('text-muted'); });
             const mobileItem = document.querySelector(`.bottom-nav .nav-item[data-section="${item.dataset.section}"]`);
             if(mobileItem) {
@@ -217,17 +225,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(indicator) indicator.style.transform = `translateX(${index * 100}%)`; 
             }
             
-            // Switch Desktop Nav
             document.querySelectorAll('.desk-nav-item').forEach(d => d.classList.remove('active'));
             const deskItem = document.querySelector(`.desk-nav-item[data-section="${item.dataset.section}"]`);
             if(deskItem) deskItem.classList.add('active');
             
-            // Dynamic Tips for Tools Section
             if(item.dataset.section === 'tools') {
                 document.getElementById('dynamic-tip').innerText = tips[Math.floor(Math.random() * tips.length)];
             }
             
-            // Show Section
             document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
             document.getElementById(`${item.dataset.section}-section`).classList.add('active');
         };
@@ -244,17 +249,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     sideMenuOverlay.onclick = closeSidebar;
     document.querySelectorAll('.absolute-close').forEach(btn => btn.onclick = (e) => {
-        closeSidebar();
-        e.target.closest('.modal-overlay')?.classList.remove('active');
+        closeSidebar(); e.target.closest('.modal-overlay')?.classList.remove('active');
     });
 
-    // --- FIX: ADMIN LOGIC & RENDER ---
+    // --- ADMIN LOGIC ---
     adminAuthBtn.onclick = () => {
         if(adminPassInput.value === 'admin123') { adminLoginScreen.style.display = 'none'; adminDashboard.style.display = 'block'; updateImageInputs(); renderAdminList(); } 
         else showPopup("Error", "Incorrect Password", null, false, "alert-triangle");
     };
-    
-    // Generates the proper inputs dynamically based on Steps selected
     function updateImageInputs() {
         const container = document.getElementById('image-inputs-container');
         container.innerHTML = ''; 
@@ -291,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('add-book-btn').onclick = async () => {
         const title = document.getElementById('new-title').value.trim(); const author = document.getElementById('new-author').value.trim(); const genre = document.getElementById('new-genre').value; const editingId = document.getElementById('edit-book-id').value;
         if(!title || !author) return showPopup("Missing Info", "Fill in title and author.", null, false, "alert-triangle");
-        const imageUrls = Array.from(document.querySelectorAll('.step-url-input')).map((input, i) => input.value.trim() || `https://placehold.co/600x400/1e293b/db2777?text=Step+${i+1}`);
+        const imageUrls = Array.from(document.querySelectorAll('.step-url-input')).map((input, i) => input.value.trim() || `https://placehold.co/600x400/121212/db2777?text=Step+${i+1}`);
         document.getElementById('add-book-btn').disabled = true;
         if(editingId) {
             const books = LibraryDB.getBooks(); const index = books.findIndex(b => String(b.id) === String(editingId));
@@ -302,18 +304,21 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('cancel-edit-btn').click(); renderAdminList(); performSearch(searchInput.value); document.getElementById('add-book-btn').disabled = false;
     };
 
-    // FIXED: Properly renders from the DB
+    // FIXED: Properly renders Admin List Buttons with Text and Gaps
     function renderAdminList() {
         const books = LibraryDB.getBooks();
         const listContainer = document.getElementById('admin-book-list');
         if(!books || books.length === 0) { listContainer.innerHTML = '<p class="text-muted text-sm py-4 text-center">No books found in database.</p>'; return; }
         
         listContainer.innerHTML = books.map(b => `
-            <div class="bg-surface p-4 rounded-xl border border-color flex justify-between items-center shadow-premium-sm">
-                <div class="overflow-hidden"><strong class="block truncate text-base text-main mb-1">${b.title}</strong><small class="text-muted text-sm block truncate">${b.author}</small></div>
-                <div class="flex gap-3 flex-shrink-0 ml-2">
-                    <button onclick="handleEdit('${b.id}')" class="icon-btn text-primary bg-primary-light w-10 h-10 border-none"><i data-lucide="edit-2" class="icon-small"></i></button>
-                    <button onclick="handleDelete('${b.id}')" class="icon-btn text-warning bg-warning/10 w-10 h-10 border-none"><i data-lucide="trash-2" class="icon-small"></i></button>
+            <div class="bg-surface p-4 rounded-xl border border-color flex flex-col gap-2 shadow-premium-sm">
+                <div class="flex flex-col gap-1 w-full overflow-hidden">
+                    <strong class="block truncate text-base text-main">${b.title}</strong>
+                    <small class="text-muted text-sm block truncate">${b.author}</small>
+                </div>
+                <div class="flex gap-2 w-full mt-2">
+                    <button onclick="handleEdit('${b.id}')" class="submit-btn bg-primary-light text-primary flex-center justify-center gap-2 py-2 text-sm w-full"><i data-lucide="edit-2" class="icon-small"></i> Edit</button>
+                    <button onclick="handleDelete('${b.id}')" class="submit-btn bg-warning/10 text-warning flex-center justify-center gap-2 py-2 text-sm w-full"><i data-lucide="trash-2" class="icon-small"></i> Delete</button>
                 </div>
             </div>`).join(''); 
         refreshIcons();
@@ -328,15 +333,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const idx = Math.abs(new Date().toDateString().split('').reduce((a,b)=>a+(b.charCodeAt(0)),0)) % books.length; const b = books[idx];
         const isFav = favorites.some(id => String(id) === String(b.id));
         featuredContainer.innerHTML = `
-            <div class="mb-8"><span class="text-sm font-bold text-muted uppercase tracking-wider mb-3 block flex-center gap-2"><i data-lucide="star" class="icon-small text-warning"></i> Daily Global Pick</span>
+            <div class="mb-8"><span class="text-sm font-bold text-muted uppercase tracking-wider mb-3 flex-center gap-2"><i data-lucide="star" class="icon-small text-warning"></i> Daily Global Pick</span>
                 <div class="featured-card shadow-premium" onclick="openModalById('${b.id}')">
                     <div class="featured-cover"><img id="fc-img" src="" class="shelf-cover-img">
                     <button class="fav-btn-grid ${isFav?'active':''}" onclick="toggleFavorite(event,'${b.id}')"><i data-lucide="bookmark" class="icon-small"></i></button></div>
-                    <div class="text-left w-full"><h2 class="font-bold text-2xl leading-tight mb-2 text-main">${b.title}</h2><p class="text-base text-muted mb-4 font-light">by ${b.author}</p><span class="badge bg-primary-light text-primary">${b.genre}</span></div>
+                    <div class="flex flex-col text-left w-full gap-2">
+                        <h2 class="font-bold text-2xl leading-tight text-main">${b.title}</h2>
+                        <p class="text-base text-muted font-light">${b.author}</p>
+                        <div class="mt-2"><span class="badge bg-primary-light text-primary">${b.genre}</span></div>
+                    </div>
                 </div>
             </div>`;
-        
-        // Use IntersectionObserver logic just to fetch immediately
         fetchCoverWithFallback(b.title, b.author, 'fc-img', true); refreshIcons();
     }
 
@@ -362,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => String(x.id) === String(id)); if(b) openModal(b); };
 
-    // --- FIX: MAP BUTTONS & MODAL (No Opacity Fades to prevent invisible elements) ---
+    // --- FIX: MAP BUTTONS & MODAL ---
     const prevBtn = document.getElementById('prev-img-btn');
     const nextBtn = document.getElementById('next-img-btn');
 
@@ -376,8 +383,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-title').innerText = book.title; document.getElementById('modal-author').innerText = book.author;
         document.getElementById('modal-book-id').innerText = book.id; document.getElementById('modal-genre').innerText = book.genre;
         
+        // Modal Main Cover
         const cover = document.getElementById('modal-book-cover-img'); 
-        cover.src=''; cover.style.opacity='0'; cover.parentElement.classList.add('skeleton');
+        cover.style.opacity='0'; cover.parentElement.classList.add('skeleton');
+        
+        // Bypass Intersection observer here, load directly
         fetchCoverWithFallback(book.title, book.author, 'modal-book-cover-img', true);
 
         qrContainer.innerHTML = ''; const dl = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
@@ -388,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         currentImages = book.images || []; currentImageIndex = 0; updateCarousel();
         
-        // RESTORED: Also in this section logic (No opacity transitions to guarantee loading)
+        // FIX: NEIGHBORS GRID (Direct load, no opacity transition to prevent invisible images)
         const all = LibraryDB.getBooks();
         let neighbors = all.filter(b => b.genre === book.genre && String(b.id) !== String(book.id)).sort(()=>0.5-Math.random()).slice(0, 4);
         neighborsGrid.innerHTML = '';
@@ -405,7 +415,6 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshIcons();
     }
 
-    // FIX: Map strictly updates images without opacity bugs
     function updateCarousel() {
         const wrap = document.getElementById('carousel-wrapper'); const aa = document.getElementById('mobile-action-area');
         if(currentImages && currentImages.length > 0) {
@@ -422,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- SEARCH LOGIC ---
+    // --- SEARCH ---
     document.querySelectorAll('.quick-btn').forEach(btn => {
         if(btn.id === 'open-feedback-btn') return;
         btn.onclick = () => {
@@ -470,8 +479,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 hits.forEach(s => {
                     const d = document.createElement('div'); d.className = 'autocomplete-item ripple';
                     const ht = s.title.replace(new RegExp(`(${t})`, 'gi'), '<span class="highlight-text">$1</span>');
-                    // FIX: Beautiful gap for autocomplete
-                    d.innerHTML = `<i data-lucide="search" class="icon-small text-primary flex-shrink-0"></i><div class="flex flex-col text-left w-full ml-4"><span class="text-base font-bold text-main block">${ht}</span><span class="text-sm text-muted font-light block mt-1">${s.author}</span></div>`;
+                    // FIX: Beautiful gap for autocomplete flex column
+                    d.innerHTML = `<i data-lucide="search" class="icon-small text-primary flex-shrink-0"></i><div class="flex flex-col text-left w-full gap-1 ml-4"><span class="text-base font-bold text-main">${ht}</span><span class="text-sm text-muted font-light">${s.author}</span></div>`;
                     d.onclick = () => { searchInput.value = s.title; autocompleteDropdown.style.display = 'none'; performSearch(s.title); openModal(s); };
                     autocompleteDropdown.appendChild(d);
                 }); refreshIcons();
@@ -495,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderResults(books) {
         resultsArea.innerHTML = '';
-        if (books.length === 0) { resultsArea.innerHTML = '<div class="col-span-full text-center p-8 text-muted"><i data-lucide="book-x" class="w-16 h-16 mx-auto mb-4 opacity-50"></i><p>No books found.</p></div>'; refreshIcons(); return; }
+        if (books.length === 0) { resultsArea.innerHTML = '<div class="col-span-full text-center p-8 text-muted flex flex-col items-center gap-3"><i data-lucide="book-x" class="w-16 h-16 opacity-50"></i><p>No books found.</p></div>'; refreshIcons(); return; }
         const frag = document.createDocumentFragment(); const term = searchInput.value.trim(); const regex = new RegExp(`(${term})`, 'gi');
         books.forEach((book, i) => {
             const card = document.createElement('div'); card.className = 'shelf-book-card';
@@ -510,17 +519,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i data-lucide="bookmark" class="icon-small"></i>
                     </button>
                 </div>
-                <div class="shelf-info"><p class="shelf-title text-main">${titleHtml}</p><p class="shelf-author text-muted font-light">${book.author}</p></div>
+                <div class="flex flex-col gap-1 px-1">
+                    <p class="shelf-title text-main">${titleHtml}</p>
+                    <p class="shelf-author text-muted font-light">${book.author}</p>
+                </div>
             `;
             card.onclick = (e) => { if(!e.target.closest('.fav-btn-grid')) openModal(book); }; frag.appendChild(card);
-            
-            // Re-bind intersection observer 
-            const imgEl = card.querySelector('img');
-            if(imgEl) setTimeout(() => imageObserver.observe(imgEl), 0);
+            setTimeout(() => imageObserver.observe(document.getElementById(coverId)), 0);
         });
         resultsArea.appendChild(frag); refreshIcons();
     }
 
+    // --- UTILS ---
+    document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; if(!e.target.closest('.search-wrapper') && !e.target.closest('#filter-toggle')) filterMenu.style.display='none'; };
+    function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(() => { if(!document.body.classList.contains('companion-mode-active')) { resetToHome(); document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('active')); screensaver.classList.add('active'); } }, IDLE_LIMIT); }
+    window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
+    
     // --- TOOLS: STATS & FEEDBACK ---
     const openStats = () => {
         vibrate(); 
@@ -533,18 +547,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0});
         const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None"});
         const genres = {}; books.forEach(b=>genres[b.genre]=(genres[b.genre]||0)+1);
-        const avg = ratings.length ? `⭐ ${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)} <span class="text-xs font-normal text-muted">(${ratings.length} Reviews)</span>` : "No Ratings";
+        
+        // FIX: Spacing for Stats Details
+        const avg = ratings.length ? `⭐ ${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)} <span class="text-xs font-normal text-muted ml-2">(${ratings.length} Reviews)</span>` : "No Ratings";
         
         document.getElementById('stats-content').innerHTML = `
             <div class="bg-primary-light p-4 rounded-xl text-center mb-6 text-primary font-bold text-sm flex-center justify-center gap-3 border border-primary/20"><i data-lucide="server" class="w-5 h-5"></i> Cloud Uptime: ${uptimeStr}</div>
             <div class="grid-2 gap-4 mb-6">
-                <div class="bg-surface p-5 rounded-xl border border-color text-center shadow-premium-sm"><p class="text-xs text-muted mb-2 font-bold uppercase">Total Books</p><h2 class="text-3xl font-bold text-primary">${books.length}</h2></div>
-                <div class="bg-surface p-5 rounded-xl border border-color text-center shadow-premium-sm"><p class="text-xs text-muted mb-2 font-bold uppercase">Bookmarks</p><h2 class="text-3xl font-bold text-warning">${favorites.length}</h2></div>
+                <div class="bg-surface p-5 rounded-xl border border-color text-center shadow-premium-sm flex flex-col gap-2"><p class="text-xs text-muted font-bold uppercase">Total Books</p><h2 class="text-3xl font-bold text-primary">${books.length}</h2></div>
+                <div class="bg-surface p-5 rounded-xl border border-color text-center shadow-premium-sm flex flex-col gap-2"><p class="text-xs text-muted font-bold uppercase">Bookmarks</p><h2 class="text-3xl font-bold text-warning">${favorites.length}</h2></div>
             </div>
-            <div class="bg-surface p-5 rounded-xl border border-color text-center mb-6 shadow-premium-sm"><p class="text-xs text-muted mb-2 font-bold uppercase">Global Rating</p><h2 class="text-2xl font-bold text-warning flex-center justify-center gap-2">${avg}</h2></div>
+            <div class="bg-surface p-5 rounded-xl border border-color text-center mb-6 shadow-premium-sm flex flex-col gap-2"><p class="text-xs text-muted font-bold uppercase">Global Rating</p><h2 class="text-2xl font-bold text-warning flex-center justify-center">${avg}</h2></div>
             <div class="mb-6"><p class="text-sm font-bold text-muted uppercase tracking-wider mb-3 flex-center gap-2"><i data-lucide="trending-up" class="w-4 h-4 text-primary"></i> Top Pick</p><div class="flex justify-between items-center bg-surface p-4 rounded-xl border border-color shadow-premium-sm"><strong class="text-main text-lg">${mostViewed.title}</strong><span class="text-sm bg-success/10 text-success px-3 py-1 rounded font-bold">${mostViewed.views} Views</span></div></div>
             <div class="mb-6"><p class="text-sm font-bold text-muted uppercase tracking-wider mb-3 flex-center gap-2"><i data-lucide="clock" class="w-4 h-4 text-primary"></i> Newest Arrival</p><div class="bg-surface p-4 rounded-xl border border-color shadow-premium-sm"><strong class="text-main text-lg">${newest.title}</strong></div></div>
-            <div class="mb-4"><p class="text-sm font-bold text-muted uppercase tracking-wider mb-3 flex-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4 text-primary"></i> Composition</p>${Object.entries(genres).map(([k,v])=>`<div class="flex justify-between p-3 border-b border-color text-base text-main"><span>${k}</span><span class="text-primary font-bold">${v}</span></div>`).join('')}</div>
+            <div class="mb-4 flex flex-col gap-2"><p class="text-sm font-bold text-muted uppercase tracking-wider mb-2 flex-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4 text-primary"></i> Composition</p>${Object.entries(genres).map(([k,v])=>`<div class="flex justify-between p-3 border-b border-color text-base text-main"><span>${k}</span><span class="text-primary font-bold">${v}</span></div>`).join('')}</div>
         `; refreshIcons(); document.getElementById('stats-modal').classList.add('active');
     };
     document.getElementById('section-stats-btn')?.addEventListener('click', openStats);
@@ -568,7 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try { 
             await LibraryDB.submitRating(ratingValue); 
             
-            // Send to Email API
+            // EMAIL LOGIC
             const combinedMessage = `[User Rating: ${ratingValue}/5 Stars]\n\n${message}`;
             const payload = { name: name, email: email, message: combinedMessage };
             
@@ -582,12 +598,11 @@ document.addEventListener('DOMContentLoaded', () => {
             fForm.reset(); setTimeout(() => document.getElementById('feedback-modal').classList.remove('active'), 1000); 
         } 
         catch { showPopup("Error", "Message saved locally. Will send when online.", null, false, "alert-triangle"); setTimeout(() => document.getElementById('feedback-modal').classList.remove('active'), 1000);} 
-        finally { btn.innerHTML = '<i data-lucide="send" class="w-5 h-5"></i> Send feedback to developer'; btn.disabled = false; refreshIcons();}
+        finally { btn.innerHTML = '<i data-lucide="send" class="icon-small"></i> Send feedback to developer'; btn.disabled = false; refreshIcons();}
     };
 
     window.showSuccessScreen = function() { vibrate(); document.getElementById('book-modal').classList.remove('active'); document.getElementById('success-modal').classList.add('active'); }
     window.closeSuccessScreen = function() { document.getElementById('success-modal').classList.remove('active'); window.location.href = window.location.pathname; }
 
-    // Start Engine safely
     init();
 });
