@@ -163,14 +163,17 @@
             
             <div class="book-modal-grid">
                 <div class="book-left">
-                    <div class="book-header-group">
-                        <div class="author-avatar skeleton"><img id="modal-author-pic" src=""></div>
-                        <div class="book-cover-wrap skeleton"><img id="modal-book-cover-img" src=""></div>
+                    <div class="fancy-book-header">
+                        <div class="cover-avatar-group">
+                            <div class="book-cover-wrap skeleton"><img id="modal-book-cover-img" src=""></div>
+                            <div class="author-avatar skeleton"><img id="modal-author-pic" src=""></div>
+                        </div>
+                        <div class="book-text-info">
+                            <h2 id="modal-title">Title</h2>
+                            <p id="modal-author">Author</p>
+                            <span id="modal-genre" class="book-badge">Genre</span>
+                        </div>
                     </div>
-                    
-                    <h2 id="modal-title">Title</h2>
-                    <p id="modal-author">Author</p>
-                    <span id="modal-genre" class="book-badge">Genre</span>
                     
                     <div class="target-badge desktop-only-qr">Target: #<span id="modal-book-id">0</span></div>
                     
@@ -193,6 +196,12 @@
                     </div>
                 </div>
             </div>
+
+            <div class="virtual-shelf-footer">
+                <h3>Also in this section</h3>
+                <div id="related-shelf" class="related-grid"></div>
+            </div>
+
         </div>
     </div>
 
@@ -296,6 +305,7 @@
         <p>Touch screen to start</p>
     </div>
 
+    <script src="database.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
