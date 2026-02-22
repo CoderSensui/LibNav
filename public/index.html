@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0b1121">
+    <meta name="theme-color" content="#000000">
     <title>LibNav | Smart Library</title>
     <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=800">
 </head>
 <body>
+
+    <div id="offline-banner" class="offline-banner">
+        <i data-lucide="wifi-off"></i> <span>You are offline. Viewing cached library.</span>
+    </div>
 
     <header class="app-header">
         <div class="header-left">
@@ -29,9 +33,9 @@
 
     <div id="side-menu-overlay" class="menu-overlay"></div>
     <div id="side-menu" class="side-menu">
-        <div class="menu-header-wrapper">
+        <button id="close-menu" class="close-btn-side"><i data-lucide="x"></i></button>
+        <div class="menu-header">
             <h2><i data-lucide="library"></i> Categories</h2>
-            <button id="close-menu" class="close-btn-side"><i data-lucide="x"></i></button>
         </div>
         <div class="menu-content">
             <button class="menu-item active" data-genre="All"><i data-lucide="book-open"></i> All Books</button>
@@ -46,10 +50,9 @@
     </div>
 
     <main class="main-container">
-        
         <section id="home-section" class="content-section active">
             <div id="hero" class="hero">
-                <div id="minion-container"><img id="minion-sprite" src="https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif" alt="Minion"></div>
+                <div id="minion-container"><img id="minion-sprite" src="https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif"></div>
                 <h1 id="hero-title" class="hero-title">LibNav</h1>
                 <p class="hero-subtitle">Find your way to the story</p>
             </div>
@@ -88,8 +91,8 @@
                 </div>
                 <div class="action-list">
                     <button id="section-theme-toggle" class="action-btn"><i data-lucide="moon"></i> Toggle Dark/Light Mode</button>
-                    <button id="section-stats-btn" class="action-btn"><i data-lucide="activity"></i> View Live Statistics</button>
-                    <button id="section-feedback-btn" class="action-btn"><i data-lucide="message-square"></i> Send Feedback</button>
+                    <button id="section-stats-btn" class="action-btn"><i data-lucide="bar-chart-2"></i> View Live Statistics</button>
+                    <button id="section-feedback-btn" class="action-btn"><i data-lucide="message-square"></i> Send feedback to developer</button>
                 </div>
                 <div class="tip-box">
                     <div class="tip-header"><i data-lucide="lightbulb"></i> Quick Tip</div>
@@ -99,20 +102,18 @@
         </section>
 
         <section id="about-section" class="content-section">
-            <div class="card-box about-box">
-                <div class="card-header borderless">
-                    <div class="icon-box dark-icon"><i data-lucide="compass"></i></div>
+            <div class="card-box">
+                <div class="card-header">
+                    <div class="icon-box"><i data-lucide="compass"></i></div>
                     <h2>About LibNav</h2>
                 </div>
                 <p class="about-desc">LibNav is a smart library navigation system designed to help you find physical books instantly. It bridges the gap between digital searching and physical shelves.</p>
-                
-                <div class="divider dark-divider"></div>
 
-                <div class="card-header borderless">
-                    <div class="icon-box dark-icon"><i data-lucide="book-open-check"></i></div>
+                <div class="card-header secondary">
+                    <div class="icon-box"><i data-lucide="book-open-check"></i></div>
                     <h2>How to Use</h2>
                 </div>
-
+                
                 <div class="steps-container">
                     <div class="step-item">
                         <div class="step-num">1</div>
@@ -128,8 +129,8 @@
                     </div>
                 </div>
 
-                <div class="tip-box warning solid-warning">
-                    <div class="tip-header"><i data-lucide="alert-triangle"></i> IMPORTANT REMINDER</div>
+                <div class="tip-box warning">
+                    <div class="tip-header"><i data-lucide="alert-triangle"></i> Important Reminder</div>
                     <p>Don't forget to formally check out the book at the front desk before leaving the library!</p>
                 </div>
             </div>
@@ -137,16 +138,16 @@
     </main>
 
     <nav class="bottom-nav">
-        <a href="#" data-section="home" class="nav-tab active"><i data-lucide="home"></i><span>Home</span></a>
+        <a href="#" id="bottom-home-btn" data-section="home" class="nav-tab active"><i data-lucide="home"></i><span>Home</span></a>
         <a href="#" data-section="tools" class="nav-tab"><i data-lucide="wrench"></i><span>Tools</span></a>
         <a href="#" data-section="about" class="nav-tab"><i data-lucide="info"></i><span>About</span></a>
     </nav>
 
-    <div id="custom-popup" class="modal-overlay" style="z-index: 9999;">
+    <div id="custom-popup" class="modal-overlay" style="z-index: 9999 !important;">
         <div class="popup-box">
             <div id="popup-icon" class="popup-icon-wrapper"><i data-lucide="bell"></i></div>
             <h3 id="popup-title">Alert</h3>
-            <p id="popup-message">Message goes here</p>
+            <p id="popup-message">Message</p>
             <div class="popup-actions">
                 <button id="popup-cancel" class="btn-secondary" style="display:none;">Cancel</button>
                 <button id="popup-confirm" class="btn-primary">OK</button>
@@ -156,86 +157,49 @@
 
     <div id="book-modal" class="modal-overlay">
         <div class="modal-box book-layout">
+            
+            <button id="top-share-btn" class="share-btn-top"><i data-lucide="share-2"></i></button>
             <button class="close-btn"><i data-lucide="x"></i></button>
             
             <div class="book-modal-grid">
                 <div class="book-left">
-                    <div class="fancy-book-header">
-                        <div class="cover-avatar-group">
-                            <div class="book-cover-wrap skeleton"><img id="modal-book-cover-img" src="" alt="Book Cover"></div>
-                            <div class="author-avatar skeleton"><img id="modal-author-pic" src="" alt="Author Avatar"></div>
-                        </div>
-                        <div class="book-text-info">
-                            <h2 id="modal-title">Title</h2>
-                            <p id="modal-author">Author</p>
-                            <span id="modal-genre" class="book-badge">Genre</span>
-                        </div>
+                    <div class="book-header-group">
+                        <div class="author-avatar skeleton"><img id="modal-author-pic" src=""></div>
+                        <div class="book-cover-wrap skeleton"><img id="modal-book-cover-img" src=""></div>
                     </div>
                     
-                    <button id="mobile-share-btn" class="btn-primary full-width mobile-only-share" style="margin-top: 20px;">
-                        <i data-lucide="share-2"></i> Share Book
-                    </button>
+                    <h2 id="modal-title">Title</h2>
+                    <p id="modal-author">Author</p>
+                    <span id="modal-genre" class="book-badge">Genre</span>
                     
-                    <div class="desktop-only-qr qr-action-area">
-                        <div class="target-badge">Target Shelf: #<span id="modal-book-id">0</span></div>
-                        <div class="qr-box">
-                            <div id="qrcode"></div>
-                            <p><i data-lucide="smartphone"></i> Scan Map to Mobile</p>
-                        </div>
+                    <div class="target-badge desktop-only-qr">Target: #<span id="modal-book-id">0</span></div>
+                    
+                    <div class="qr-box desktop-only-qr">
+                        <div id="qrcode"></div>
+                        <p><i data-lucide="smartphone"></i> Scan for Mobile</p>
                     </div>
                 </div>
                 
                 <div class="book-right">
                     <div id="carousel-wrapper" class="map-carousel">
                         <button id="prev-img-btn" class="nav-arrow left"><i data-lucide="chevron-left"></i></button>
-                        <img id="carousel-img" src="" alt="Map Step">
+                        <img id="carousel-img" src="">
                         <button id="next-img-btn" class="nav-arrow right"><i data-lucide="chevron-right"></i></button>
                         <div id="step-counter" class="step-tag">Step 1</div>
                     </div>
+                    
+                    <div id="mobile-action-area" class="action-area" style="display: none;">
+                        <button class="btn-primary full-width large" onclick="showSuccessScreen()"><i data-lucide="check-circle-2"></i> I Found It!</button>
+                    </div>
                 </div>
             </div>
-
-            <div class="virtual-shelf-footer">
-                <h3>Also in this section</h3>
-                <div id="related-shelf" class="related-grid"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="stats-modal" class="modal-overlay">
-        <div class="modal-box stats-layout">
-            <button class="close-btn"><i data-lucide="x"></i></button>
-            <div class="card-header center borderless"><div class="icon-box"><i data-lucide="activity"></i></div><h2>Live Statistics</h2></div>
-            <div id="stats-content">
-                </div>
-        </div>
-    </div>
-
-    <div id="feedback-modal" class="modal-overlay">
-        <div class="modal-box">
-            <button class="close-btn"><i data-lucide="x"></i></button>
-            <div class="card-header center borderless"><i data-lucide="star" style="color:var(--warning); width:32px; height:32px;"></i><h2>Feedback</h2></div>
-            
-            <form id="feedback-form" class="form-layout">
-                <div class="star-rating">
-                    <input type="radio" id="star5" name="rating" value="5" checked><label for="star5">★</label>
-                    <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
-                    <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
-                    <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
-                    <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
-                </div>
-                <input type="text" id="fb-name" class="input-field" placeholder="Your Name" required>
-                <input type="email" id="fb-email" class="input-field" placeholder="Your Email (Optional)">
-                <textarea id="fb-message" class="input-field" placeholder="How can we improve?" required rows="4"></textarea>
-                <button type="submit" class="btn-primary full-width" id="fb-submit-btn"><i data-lucide="send"></i> Send feedback</button>
-            </form>
         </div>
     </div>
 
     <div id="admin-modal" class="modal-overlay">
         <div class="modal-box admin-layout">
             <button class="close-btn"><i data-lucide="x"></i></button>
-            <div class="card-header borderless"><div class="icon-box"><i data-lucide="shield"></i></div><h2>Admin Panel</h2></div>
+            <div class="card-header" style="border:none;"><div class="icon-box"><i data-lucide="shield"></i></div><h2>Admin Panel</h2></div>
             
             <div id="admin-login-screen">
                 <p class="input-label">Enter Access Key</p>
@@ -243,19 +207,20 @@
                     <i data-lucide="lock"></i>
                     <input type="password" id="admin-password" class="input-field" placeholder="Password">
                 </div>
-                <button id="admin-auth-btn" class="btn-primary full-width mt">Login</button>
+                <button id="admin-auth-btn" class="btn-primary full-width">Login</button>
             </div>
             
             <div id="admin-dashboard" style="display:none;">
                 <h3 id="admin-form-title" class="sub-title">Add New Book</h3>
                 <input type="hidden" id="edit-book-id" value="">
+                
                 <input type="text" id="new-title" class="input-field" placeholder="Book Title">
                 <input type="text" id="new-author" class="input-field" placeholder="Author Name">
                 
                 <div class="form-grid">
                     <div>
                         <label class="input-label">Genre</label>
-                        <select id="new-genre" class="input-field">
+                        <select id="new-genre" class="input-field" style="padding-left:15px;">
                             <option value="Fiction">Fiction</option>
                             <option value="Non-Fiction">Non-Fiction</option>
                             <option value="Romance">Romance</option>
@@ -265,7 +230,7 @@
                     </div>
                     <div>
                         <label class="input-label">Nav Steps</label>
-                        <select id="step-count-select" class="input-field">
+                        <select id="step-count-select" class="input-field" style="padding-left:15px;">
                             <option value="2">2 Steps</option>
                             <option value="3">3 Steps</option>
                             <option value="4">4 Steps</option>
@@ -275,15 +240,60 @@
                 
                 <div id="image-inputs-container" class="dynamic-inputs"></div>
                 
-                <div class="admin-btn-group">
-                    <button id="add-book-btn" class="btn-success full-width"><i data-lucide="upload-cloud"></i> Save</button>
-                    <button id="cancel-edit-btn" class="btn-secondary full-width" style="display:none;">Cancel</button>
-                </div>
+                <button id="add-book-btn" class="btn-success full-width"><i data-lucide="upload-cloud"></i> Add to Cloud</button>
+                <button id="cancel-edit-btn" class="btn-secondary full-width mt" style="display:none;">Cancel Edit</button>
                 
-                <h3 class="sub-title warning mt" style="margin-top:30px;"><i data-lucide="database"></i> System Data</h3>
+                <h3 class="sub-title warning mt"><i data-lucide="database"></i> System Data</h3>
                 <div id="admin-book-list" class="admin-list"></div>
+                
+                <button id="factory-reset-btn" class="btn-outline-warning full-width mt"><i data-lucide="alert-octagon"></i> Factory Reset</button>
             </div>
         </div>
+    </div>
+
+    <div id="stats-modal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="close-btn"><i data-lucide="x"></i></button>
+            <div class="card-header" style="border:none;"><div class="icon-box"><i data-lucide="activity"></i></div><h2>Live Statistics</h2></div>
+            <div id="stats-content"></div>
+        </div>
+    </div>
+
+    <div id="feedback-modal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="close-btn"><i data-lucide="x"></i></button>
+            <div class="card-header center"><i data-lucide="star" style="color:var(--warning); width:32px; height:32px;"></i><h2>Rate LibNav</h2></div>
+            <p style="text-align:center; color:var(--text-muted); margin-bottom:20px;">Tell us what you think! This will be sent directly to the developers.</p>
+            
+            <form id="feedback-form" class="form-layout">
+                <div class="star-rating">
+                    <input type="radio" id="star5" name="rating" value="5" checked><label for="star5">★</label>
+                    <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
+                    <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
+                    <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
+                    <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
+                </div>
+                <input type="text" id="fb-name" class="input-field" placeholder="Your Name" style="padding-left:20px;">
+                <input type="email" id="fb-email" class="input-field" placeholder="Your Email (Optional)" style="padding-left:20px;">
+                <textarea id="fb-message" class="input-field" placeholder="How can we improve?" required rows="4" style="padding-left:20px;"></textarea>
+                <button type="submit" class="btn-primary full-width" id="fb-submit-btn"><i data-lucide="send"></i> Send feedback</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="success-modal" class="modal-overlay">
+        <div class="popup-box">
+            <button class="close-btn"><i data-lucide="x"></i></button>
+            <div class="success-icon"><i data-lucide="check-circle-2"></i></div>
+            <h2>Mission Accomplished!</h2>
+            <p style="margin: 15px 0 25px 0; color:var(--text-muted);">You found the book! Don't forget to formally check it out at the front desk before you leave.</p>
+            <button class="btn-primary full-width" onclick="closeSuccessScreen()">Got it, thanks!</button>
+        </div>
+    </div>
+
+    <div id="screensaver" class="screensaver">
+        <h1 class="hero-title">LibNav</h1>
+        <p>Touch screen to start</p>
     </div>
 
     <script src="app.js"></script>
