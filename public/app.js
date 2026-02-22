@@ -1,4 +1,4 @@
-/* app.js - Ultra-Optimized Monolith (Cache Fix, Minion, Popups, Pills) */
+/* app.js - Reverted & Optimized (No Pills, Minion, Popups, Caching) */
 
 const searchInput = document.getElementById('search-input');
 const autocompleteDropdown = document.getElementById('autocomplete-dropdown');
@@ -10,8 +10,12 @@ const sideMenu = document.getElementById('side-menu');
 const sideMenuOverlay = document.getElementById('side-menu-overlay');
 const closeMenuBtn = document.getElementById('close-menu');
 const homeBtn = document.getElementById('home-btn');
+const filterToggle = document.getElementById('filter-toggle'); 
+const filterMenu = document.getElementById('filter-menu');
+const checkboxes = document.querySelectorAll('.filter-option input[type="checkbox"]');
 const micBtn = document.getElementById('mic-btn');
 const screensaver = document.getElementById('screensaver');
+const quickBtns = document.querySelectorAll('.quick-btn');
 const feedbackBtn = document.getElementById('open-feedback-btn');
 const feedbackModal = document.getElementById('feedback-modal');
 const feedbackForm = document.getElementById('feedback-form');
@@ -78,36 +82,11 @@ function showPopup(title, msg, onConfirm, showCancel = false) {
     popupCancel.onclick = () => popupOverlay.classList.remove('active');
 }
 
-// --- FEATURE: MINION EASTER EGG ---
-// Split hero title into spans
+// --- FEATURE: MINION EASTER EGG (Middle Logo) ---
 heroTitle.innerHTML = heroTitle.textContent.split('').map(l => `<span class="hero-letter" style="display:inline-block; transition: transform 0.2s;">${l}</span>`).join('');
 const heroLetters = document.querySelectorAll('.hero-letter');
 
-let heroTapCount = 0;
-let heroTapTimer;
-
 heroTitle.addEventListener('click', () => {
-    heroTapCount++;
-    clearTimeout(heroTapTimer);
-    
-    // Check for triple tap (Admin)
-    if(heroTapCount === 3) {
-        adminModal.classList.add('active');
-        closeSidebar();
-        heroTapCount = 0;
-        return;
-    }
-    
-    // Single tap (Minion)
-    heroTapTimer = setTimeout(() => {
-        if(heroTapCount === 1) {
-            runMinionAnimation();
-        }
-        heroTapCount = 0;
-    }, 400);
-});
-
-function runMinionAnimation() {
     minionSprite.style.display = 'block';
     minionSprite.style.left = '-60px';
     minionSprite.style.top = '0px';
@@ -117,9 +96,8 @@ function runMinionAnimation() {
         pos += 5;
         minionSprite.style.left = pos + 'px';
         
-        // Bounce letters when minion is near
         heroLetters.forEach((span, i) => {
-            const spanPos = (i * 30) + 20; // Approx letter width
+            const spanPos = (i * 30) + 20; 
             if(Math.abs(pos - spanPos) < 20) {
                 span.style.transform = "translateY(-20px)";
                 setTimeout(() => span.style.transform = "translateY(0)", 200);
@@ -131,7 +109,7 @@ function runMinionAnimation() {
             minionSprite.style.display = 'none';
         }
     }, 16);
-}
+});
 
 // --- FEATURE: OFFLINE BANNER ---
 window.addEventListener('offline', () => { offlineBanner.classList.add('active'); offlineBanner.innerText = "📡 You are offline. Viewing cached library."; offlineBanner.style.background = "#ef4444"; });
@@ -168,12 +146,11 @@ function generateInitialsImage(name) {
     return canvas.toDataURL();
 }
 
-// --- FEATURE: ANTI-LAG (INTERSECTION OBSERVER) ---
+// --- FEATURE: ANTI-LAG & AGGRESSIVE CACHING ---
 const imageObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
             const img = entry.target;
-            // Use cache immediately if available
             if(coverCache[img.dataset.title]) {
                 img.src = coverCache[img.dataset.title];
                 img.onload = () => { img.style.opacity = '1'; img.closest('.skeleton')?.classList.remove('skeleton'); };
@@ -210,6 +187,8 @@ async function init() {
 }
 
 // --- ADMIN LOGIC ---
+secretAdminBtn.addEventListener('click', () => { adminModal.classList.add('active'); closeSidebar(); });
+
 adminAuthBtn.addEventListener('click', () => {
     if(adminPassInput.value === 'admin123') {
         adminLoginScreen.style.display = 'none'; adminDashboard.style.display = 'block';
@@ -294,11 +273,13 @@ function renderAdminList() {
             </div>
         </div>`).join('');
 }
+
 window.handleDelete = async (id) => { 
     showPopup("Confirm Delete", "Are you sure you want to delete this book?", async () => {
         await LibraryDB.deleteBook(id); renderAdminList(); performSearch(searchInput.value);
     }, true);
 };
+
 factoryResetBtn.onclick = async () => {
     showPopup("Defense Mode", "Reset Stats & History? Books will remain.", async () => {
         await LibraryDB.factoryReset(); window.location.reload();
@@ -340,9 +321,13 @@ function fetchCoverWithFallback(title, author, elementId, isImgTag) {
                 } else {
                     const fallback = generateInitialsImage(title); coverCache[title] = fallback; applyCover(fallback, elementId, isImgTag);
                 }
-            }).catch(() => applyCover(generateInitialsImage(title), elementId, isImgTag));
+            }).catch(() => {
+                const fallback = generateInitialsImage(title); coverCache[title] = fallback; applyCover(fallback, elementId, isImgTag);
+            });
         }
-    }).catch(() => applyCover(generateInitialsImage(title), elementId, isImgTag));
+    }).catch(() => {
+        const fallback = generateInitialsImage(title); coverCache[title] = fallback; applyCover(fallback, elementId, isImgTag);
+    });
 }
 
 function applyCover(url, elementId, isImgTag) {
@@ -388,10 +373,7 @@ async function openModal(book) {
         shareBookBtn.onclick = async () => {
             vibrate();
             if(navigator.share) await navigator.share({ title: 'LibNav', text: `Check out ${book.title}`, url: deepLink });
-            else { 
-                navigator.clipboard.writeText(deepLink); 
-                showPopup("Success", "Link copied to clipboard!");
-            }
+            else { navigator.clipboard.writeText(deepLink); showPopup("Success", "Link copied to clipboard!"); }
         };
     }
 
@@ -429,37 +411,46 @@ function updateCarousel() {
     }
 }
 
-// HORIZONTAL PILLS LOGIC
-document.querySelectorAll('.pill-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        vibrate();
-        
-        searchInput.value = ''; 
-        selectedGenres.clear();
-        const genre = btn.dataset.genre;
-        
-        if(genre === 'All') {
-            hero.classList.remove('minimized'); featuredContainer.style.display = 'block'; homeBtn.classList.add('home-hidden');
-        } else {
-            hero.classList.add('minimized'); featuredContainer.style.display = 'none'; homeBtn.classList.remove('home-hidden');
-            selectedGenres.add(genre);
-        }
-        performSearch('');
-    });
-});
-
-homeBtn.onclick = () => { document.querySelector('.pill-btn[data-genre="All"]').click(); };
-hamburgerBtn.onclick = () => { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); };
+// SIDE MENU LOGIC (Reverted)
+homeBtn.onclick = () => { searchInput.value=''; autocompleteDropdown.style.display='none'; selectedGenres.clear(); checkboxes.forEach(c=>c.checked=false); quickBtns.forEach(b=>b.classList.remove('active')); hero.classList.remove('minimized'); featuredContainer.style.display='block'; homeBtn.classList.add('home-hidden'); resultsArea.innerHTML = ''; };
+hamburgerBtn.onclick = () => { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); filterMenu.style.display='none'; };
 closeMenuBtn.onclick = () => { sideMenu.classList.remove('active'); sideMenuOverlay.classList.remove('active'); };
 sideMenuOverlay.onclick = closeMenuBtn.onclick;
+filterToggle.onclick = (e) => { e.stopPropagation(); filterMenu.style.display = (filterMenu.style.display==='flex'?'none':'flex'); sideMenu.classList.remove('active'); sideMenuOverlay.classList.remove('active'); };
 document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; };
 
-function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(() => { if(!document.body.classList.contains('companion-mode-active')) { homeBtn.click(); document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('active')); closeMenuBtn.click(); screensaver.classList.add('active'); } }, IDLE_LIMIT); }
+function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(() => { if(!document.body.classList.contains('companion-mode-active')) { homeBtn.click(); document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('active')); closeMenuBtn.click(); filterMenu.style.display='none'; screensaver.classList.add('active'); } }, IDLE_LIMIT); }
 window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
 
-// SEARCH, AUTOCOMPLETE & RENDER
+quickBtns.forEach(btn => {
+    if(btn.id === 'open-feedback-btn') return;
+    btn.onclick = () => {
+        searchInput.value = ''; hero.classList.add('minimized'); featuredContainer.style.display = 'none'; homeBtn.classList.remove('home-hidden');
+        selectedGenres.clear(); selectedGenres.add(btn.dataset.genre);
+        checkboxes.forEach(box => { box.checked = (box.value === btn.dataset.genre); });
+        quickBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active');
+        performSearch(''); closeMenuBtn.onclick();
+    };
+});
+
+checkboxes.forEach(box => {
+    box.onchange = (e) => {
+        const val = e.target.value;
+        if(val === 'All') {
+            selectedGenres.clear(); if(e.target.checked) selectedGenres.add('All');
+            checkboxes.forEach(c => { if(c.value !== 'All') c.checked = false; });
+            quickBtns.forEach(b => b.classList.remove('active')); if(e.target.checked) document.querySelector('.quick-btn[data-genre="All"]').classList.add('active');
+        } else {
+            if(e.target.checked) { selectedGenres.delete('All'); document.querySelector('input[value="All"]').checked = false; document.querySelector('.quick-btn[data-genre="All"]').classList.remove('active'); selectedGenres.add(val); quickBtns.forEach(b => { if(b.dataset.genre===val) b.classList.add('active'); }); } 
+            else { selectedGenres.delete(val); quickBtns.forEach(b => { if(b.dataset.genre===val) b.classList.remove('active'); }); }
+        }
+        if (selectedGenres.size > 0) { hero.classList.add('minimized'); featuredContainer.style.display = 'none'; homeBtn.classList.remove('home-hidden'); } 
+        else if (searchInput.value === '') { hero.classList.remove('minimized'); featuredContainer.style.display = 'block'; homeBtn.classList.add('home-hidden'); }
+        performSearch(searchInput.value);
+    };
+});
+
+// AUTOCOMPLETE & HIGHLIGHTING
 searchInput.addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase().trim();
     if (term.length > 0) { hero.classList.add('minimized'); featuredContainer.style.display = 'none'; homeBtn.classList.remove('home-hidden'); } 
@@ -501,6 +492,7 @@ function performSearch(term) {
 function renderResults(books) {
     resultsArea.innerHTML = '';
     if (books.length === 0) { resultsArea.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;">No books found.</div>'; return; }
+    
     const frag = document.createDocumentFragment();
     const term = searchInput.value.trim();
     const regex = new RegExp(`(${term})`, 'gi');
@@ -537,7 +529,6 @@ window.toggleFavorite = function(e, bookId) {
     performSearch(searchInput.value); loadFeaturedBook();
 }
 
-// ... (Voice, Stats, Feedback Logic identical to previous versions) ...
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition(); recognition.lang = 'en-US';
