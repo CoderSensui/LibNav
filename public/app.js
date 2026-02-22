@@ -1,5 +1,3 @@
-/* app.js - Full Fixed Engine */
-
 document.addEventListener('DOMContentLoaded', () => {
 
     function renderIcons() {
@@ -17,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const screensaver = document.getElementById('screensaver');
     const adminModal = document.getElementById('admin-modal');
     const bookModal = document.getElementById('book-modal');
-    const neighborsGrid = document.getElementById('neighbors-grid');
     const carouselImg = document.getElementById('carousel-img');
     const stepCounter = document.getElementById('step-counter');
 
@@ -26,10 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const IDLE_LIMIT = 30000;
     let idleTimeout;
     const coverCache = {}; 
-    const authorCache = {}; 
     let currentImages = [];
     let currentImageIndex = 0;
-    let currentGenre = ""; // Track for step text
+    let currentGenre = "";
 
     const tips = [
         "Use the microphone icon to search for books hands-free.",
@@ -49,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
         applyTheme(isLight ? 'light' : 'dark');
     }
-
     document.getElementById('section-theme-toggle')?.addEventListener('click', toggleThemeAction);
 
     function showPopup(title, msg, onConfirm, showCancel = false) {
@@ -59,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pop.style.display = 'flex';
         
         const cancelBtn = document.getElementById('popup-cancel');
-        cancelBtn.style.display = showCancel ? 'block' : 'none';
+        cancelBtn.style.display = showCancel ? 'flex' : 'none';
         
         document.getElementById('popup-confirm').onclick = () => { pop.style.display = 'none'; if(onConfirm) onConfirm(); };
         cancelBtn.onclick = () => pop.style.display = 'none';
@@ -107,12 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function init() {
         const saved = localStorage.getItem('theme') || 'dark';
         applyTheme(saved);
-        
-        try {
-            await LibraryDB.init(); 
-        } catch(e) {
-            resultsArea.innerHTML = '<p style="color:red; text-align:center;">Database Error</p>';
-        }
+        try { await LibraryDB.init(); } catch(e) {}
         
         if (window.innerWidth <= 849) document.body.classList.add('is-mobile-device');
         
@@ -165,9 +155,39 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-menu').onclick = closeSidebar; sideMenuOverlay.onclick = closeSidebar;
     
     document.querySelectorAll('.close-btn').forEach(btn => btn.onclick = (e) => {
-        e.target.closest('.modal-overlay').style.display = 'none';
+        const overlay = e.target.closest('.modal-overlay');
+        if(overlay) overlay.style.display = 'none';
     });
 
+    // FIX: DIRECT BINDING FOR SIDEBAR ITEMS
+    document.querySelectorAll('.menu-item').forEach(btn => {
+        btn.onclick = () => {
+            const genre = btn.dataset.genre;
+            searchInput.value = ''; selectedGenres.clear(); 
+            
+            document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
+                if(b.classList) b.classList.remove('active'); 
+                else b.checked = false; 
+            }); 
+            
+            btn.classList.add('active');
+            
+            if(genre === 'All') { 
+                hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; 
+                featuredContainer.style.display = 'block'; 
+            } else { 
+                selectedGenres.add(genre);
+                hero.style.height = '0'; hero.style.opacity = '0'; hero.style.margin = '0'; 
+                featuredContainer.style.display = 'none'; 
+            }
+            
+            performSearch(''); 
+            closeSidebar(); 
+            switchSection('home');
+        };
+    });
+
+    // --- ADMIN LOGIC ---
     document.getElementById('admin-auth-btn').onclick = () => {
         if (document.getElementById('admin-password').value === 'admin123') { 
             document.getElementById('admin-login-screen').style.display = 'none'; 
@@ -185,7 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const input = document.createElement('input'); 
             input.type = 'url';
             input.className = 'input-field step-url-input'; 
-            input.style.borderLeft = "4px solid var(--primary)";
             input.placeholder = (i === count) ? `Final Image URL (Leave blank for default)` : `Step ${i} Image URL (Leave blank for default)`;
             container.appendChild(input);
         }
@@ -202,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputs = document.querySelectorAll('.step-url-input'); 
         book.images.forEach((img, i) => { if (inputs[i] && !img.includes('placehold.co')) inputs[i].value = img; });
         document.getElementById('add-book-btn').innerHTML = '<i data-lucide="save"></i> Update Book'; 
-        document.getElementById('cancel-edit-btn').style.display = "block"; renderIcons();
+        document.getElementById('cancel-edit-btn').style.display = "flex"; renderIcons();
     };
 
     document.getElementById('cancel-edit-btn').onclick = () => {
@@ -228,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderAdminList() {
         const books = LibraryDB.getBooks();
         const listContainer = document.getElementById('admin-book-list');
-        if (!books || books.length === 0) { listContainer.innerHTML = '<p>No books found.</p>'; return; }
+        if (!books || books.length === 0) { listContainer.innerHTML = '<p style="text-align:center;color:var(--text-muted);">No books found.</p>'; return; }
         listContainer.innerHTML = books.map(b => `
             <div class="admin-list-item">
                 <div class="info"><strong>${b.title}</strong><small>${b.author}</small></div>
@@ -253,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="featured-card" onclick="openModalById('${b.id}')">
                     <div class="feat-img-wrap"><img id="fc-img" src="">
                     <button class="fav-btn ${isFav?'active':''}" onclick="toggleFavorite(event,'${b.id}')"><i data-lucide="bookmark"></i></button></div>
-                    <div class="feat-info"><h2>${b.title}</h2><p>by ${b.author}</p><span class="book-badge">${b.genre}</span></div>
+                    <div class="feat-info"><h2>${b.title}</h2><p>${b.author}</p><span class="book-badge">${b.genre}</span></div>
                 </div>
             </div>`;
         fetchCoverWithFallback(b.title, b.author, 'fc-img', true); renderIcons();
@@ -271,16 +290,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }).catch(() => { const fb = generateInitialsImage(title); coverCache[title] = fb; applyCover(fb, elementId, isImgTag); });
     }
-    
-    function fetchAuthorPic(author, elementId) {
-        const el = document.getElementById(elementId);
-        if(!el) return;
-        if(authorCache[author]) { el.src = authorCache[author]; el.onload = () => el.parentElement.classList.remove('skeleton'); return; }
-        fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(author)}`).then(r => r.json()).then(d => {
-            if(d.docs?.[0]?.key) { const u = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg`; authorCache[author] = u; el.src = u; }
-            else { el.src = generateInitialsImage(author); }
-            el.onload = () => el.parentElement.classList.remove('skeleton');
-        }).catch(() => { el.src = generateInitialsImage(author); el.parentElement.classList.remove('skeleton'); });
+
+    // NEW: Fetch Author Picture
+    function fetchAuthorPic(author) {
+        const el = document.getElementById('modal-author-pic');
+        el.src = generateInitialsImage(author); // Fallback init
+        fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(author)}`).then(r=>r.json()).then(d=>{
+            if(d.docs?.[0]?.key) el.src = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg`;
+        });
     }
 
     function applyCover(url, elId, isImgTag) {
@@ -309,30 +326,24 @@ document.addEventListener('DOMContentLoaded', () => {
         cover.src = ''; cover.style.opacity = '0'; cover.parentElement.classList.add('skeleton');
         fetchCoverWithFallback(book.title, book.author, 'modal-book-cover-img', true);
         
-        // Fetch Author
-        const authPic = document.getElementById('modal-author-pic');
-        authPic.src = ''; authPic.parentElement.classList.add('skeleton');
-        fetchAuthorPic(book.author, 'modal-author-pic');
+        fetchAuthorPic(book.author);
 
         qrContainer.innerHTML = ''; const dl = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
         try { new QRCode(qrContainer, { text: dl, width: 120, height: 120, colorDark : "#121212", colorLight : "#ffffff" }); } catch(err) {}
 
-        const sb = document.getElementById('share-book-btn');
-        if (sb) sb.onclick = async () => { if (navigator.share) await navigator.share({title: 'LibNav', text: `Check out ${book.title}`, url: dl}); else { navigator.clipboard.writeText(dl); showPopup("Success", "Link copied!", null, false); } };
+        // --- NEW SHARE LOGIC ---
+        const handleShare = async () => { 
+            if (navigator.share) await navigator.share({title: 'LibNav', text: `Check out ${book.title}`, url: dl}); 
+            else { navigator.clipboard.writeText(dl); showPopup("Success", "Link copied!", null, false); } 
+        };
+        
+        const mobileShare = document.getElementById('mobile-share-btn');
+        if(mobileShare) mobileShare.onclick = handleShare;
+        
+        const pcShare = document.getElementById('share-book-btn');
+        if(pcShare) pcShare.onclick = handleShare;
 
         currentImages = book.images || []; currentImageIndex = 0; currentGenre = book.genre; updateCarousel();
-        
-        const all = LibraryDB.getBooks();
-        let neighbors = all.filter(b => b.genre === book.genre && String(b.id) !== String(book.id)).sort(()=>0.5-Math.random()).slice(0, 4);
-        neighborsGrid.innerHTML = '';
-        if (neighbors.length > 0) {
-            document.getElementById('neighbors-area').style.display = 'block';
-            neighbors.forEach(n => {
-                const card = document.createElement('div'); card.className = 'neighbor-card'; const imgId = `n-${n.id}-${Date.now()}`;
-                card.innerHTML = `<img id="${imgId}" src="">`; card.onclick = () => openModal(n);
-                neighborsGrid.appendChild(card); fetchCoverWithFallback(n.title, n.author, imgId, true);
-            });
-        } else document.getElementById('neighbors-area').style.display = 'none';
         renderIcons();
     }
 
@@ -342,42 +353,16 @@ document.addEventListener('DOMContentLoaded', () => {
             stepCounter.innerText = `${currentGenre} Step ${currentImageIndex + 1}`;
             carouselImg.src = currentImages[currentImageIndex]; 
             prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1";
+            prevBtn.style.pointerEvents = currentImageIndex === 0 ? "none" : "auto";
             nextBtn.style.opacity = currentImageIndex === currentImages.length - 1 ? "0.3" : "1";
+            nextBtn.style.pointerEvents = currentImageIndex === currentImages.length - 1 ? "none" : "auto";
             carouselImg.style.display = 'block';
-            if (aa) aa.style.display = (currentImageIndex === currentImages.length - 1 && document.body.classList.contains('is-mobile-device')) ? 'block' : 'none';
+            if (aa) aa.style.display = (currentImageIndex === currentImages.length - 1 && document.body.classList.contains('is-mobile-device')) ? 'flex' : 'none';
         } else { 
             carouselImg.style.display = 'none'; stepCounter.innerText = "No map available"; 
-            if (aa && document.body.classList.contains('is-mobile-device')) aa.style.display = 'block';
+            if (aa && document.body.classList.contains('is-mobile-device')) aa.style.display = 'flex';
         }
     }
-
-    // --- FIX SIDEBAR CLICKABILITY ---
-    document.querySelectorAll('.menu-item').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetGenre = btn.dataset.genre;
-            searchInput.value = ''; selectedGenres.clear(); 
-            
-            document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
-                if(b.classList) b.classList.remove('active'); 
-                else b.checked = false; 
-            }); 
-            
-            btn.classList.add('active');
-            
-            if(targetGenre === 'All') { 
-                hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; 
-                featuredContainer.style.display = 'block'; 
-                // "All" filter logic reset handled correctly
-            } 
-            else { 
-                selectedGenres.add(targetGenre);
-                hero.style.height = '0'; hero.style.opacity = '0'; hero.style.margin = '0'; 
-                featuredContainer.style.display = 'none'; 
-            }
-            performSearch(''); closeSidebar(); switchSection('home');
-        });
-    });
 
     document.querySelectorAll('.filter-option input').forEach(box => {
         box.onchange = (e) => {
@@ -409,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 hits.forEach(s => {
                     const d = document.createElement('div'); d.className = 'auto-item';
                     const ht = s.title.replace(new RegExp(`(${t})`, 'gi'), '<span class="text-primary font-bold">$1</span>');
-                    d.innerHTML = `<i data-lucide="search" style="color:var(--primary);"></i><div class="auto-text"><strong>${ht}</strong><small style="color:var(--text-muted);">${s.author}</small></div>`;
+                    d.innerHTML = `<i data-lucide="search" style="color:var(--primary);"></i><div class="auto-text"><strong>${ht}</strong><small>${s.author}</small></div>`;
                     d.onclick = () => { searchInput.value = s.title; autocompleteDropdown.style.display = 'none'; performSearch(s.title); openModal(s); };
                     autocompleteDropdown.appendChild(d);
                 }); renderIcons();
@@ -420,13 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function performSearch(term) {
         let books = LibraryDB.getBooks(); term = term.toLowerCase().trim();
-        
-        // If empty term and "All" is selected or empty set -> render all books
-        if (term === '' && (selectedGenres.size === 0 || selectedGenres.has('All'))) { 
-            renderResults(books); 
-            return; 
-        }
-        
+        if (term === '' && (selectedGenres.size === 0 || selectedGenres.has('All'))) { resultsArea.innerHTML = ''; return; }
         let matches = books.filter(b => {
             const tm = b.title.toLowerCase().includes(term); const am = b.author.toLowerCase().includes(term); let gm = false;
             if (selectedGenres.has('All') || selectedGenres.size === 0) gm = true;
@@ -439,12 +418,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderResults(books) {
         resultsArea.innerHTML = '';
-        if (books.length === 0) { resultsArea.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);"><i data-lucide="book-x" style="width:50px;height:50px;margin-bottom:10px;opacity:0.5;"></i><p>No books found.</p></div>'; renderIcons(); return; }
+        if (books.length === 0) { resultsArea.innerHTML = '<div class="empty-state"><i data-lucide="book-x"></i><p>No books found.</p></div>'; renderIcons(); return; }
         const frag = document.createDocumentFragment(); const term = searchInput.value.trim(); const regex = new RegExp(`(${term})`, 'gi');
         books.forEach((book, i) => {
             const card = document.createElement('div'); card.className = 'book-card';
             const isFav = favorites.some(id => String(id) === String(book.id)); const coverId = `img-${book.id}`;
-            const titleHtml = term ? book.title.replace(regex, '<span style="color:var(--primary);">$1</span>') : book.title;
+            const titleHtml = term ? book.title.replace(regex, '<span class="text-primary">$1</span>') : book.title;
 
             card.innerHTML = `
                 <div class="cover-box skeleton">
@@ -460,9 +439,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.toggleFavorite = function(e, bookId) {
-        e.stopPropagation(); vibrate(); const index = favorites.findIndex(id => String(id) === String(bookId));
+        e.stopPropagation(); vibrate(); 
+        const btn = e.target.closest('.fav-btn');
+        btn.classList.toggle('active'); // Visual instant fix
+        
+        const index = favorites.findIndex(id => String(id) === String(bookId));
         if (index === -1) favorites.push(String(bookId)); else favorites.splice(index, 1);
-        localStorage.setItem('libnav_favs', JSON.stringify(favorites)); performSearch(searchInput.value); loadFeaturedBook();
+        localStorage.setItem('libnav_favs', JSON.stringify(favorites));
+        // No full reload needed
     }
 
     document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; if(!e.target.closest('.search-wrapper') && !e.target.closest('#filter-toggle')) filterMenu.style.display='none'; };
@@ -503,33 +487,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const message = document.getElementById('fb-message').value;
         const rating = document.querySelector('input[name="rating"]:checked')?.value || 5; 
         
-        btn.innerHTML = '<i data-lucide="loader-2" class="lucide-spin"></i> Sending...'; renderIcons(); btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2"></i> Sending...'; renderIcons(); btn.disabled = true;
         try { 
             await LibraryDB.submitRating(parseInt(rating)); 
             const combinedMessage = `[User Rating: ${rating}/5 Stars]\n\n${message}`;
             const payload = { name: name, email: email, message: combinedMessage };
             
             await fetch('/api/send-feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            showPopup("Success", "Feedback Sent via Email! Thank you.", null, false, "check-circle"); 
+            showPopup("Success", "Feedback Sent via Email! Thank you.", null, false); 
             fForm.reset(); document.getElementById('feedback-modal').style.display = 'none';
         } 
-        catch { showPopup("Error", "Message saved locally.", null, false, "alert-triangle"); document.getElementById('feedback-modal').style.display = 'none';} 
-        finally { btn.innerHTML = '<i data-lucide="send"></i> Send feedback to developer'; btn.disabled = false; renderIcons();}
+        catch { showPopup("Error", "Message saved locally.", null, false); document.getElementById('feedback-modal').style.display = 'none';} 
+        finally { btn.innerHTML = '<i data-lucide="send"></i> Send feedback'; btn.disabled = false; renderIcons();}
     };
 
     window.showSuccessScreen = function() { document.getElementById('book-modal').style.display = 'none'; document.getElementById('success-modal').style.display = 'flex'; }
     window.closeSuccessScreen = function() { document.getElementById('success-modal').style.display = 'none'; window.location.href = window.location.pathname; }
 
-    // --- FIX MIC ERROR HANDLING ---
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; 
-        const recognition = new SpeechRecognition(); 
-        recognition.lang = 'en-US';
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; const recognition = new SpeechRecognition(); recognition.lang = 'en-US';
         micBtn.onclick = () => { if (micBtn.classList.contains('active-mic')) recognition.stop(); else recognition.start(); };
         recognition.onstart = () => { micBtn.classList.add('active-mic'); searchInput.placeholder = "Listening..."; };
-        recognition.onend = () => { micBtn.classList.remove('active-mic'); searchInput.placeholder = "Search title or author..."; };
+        recognition.onend = () => { micBtn.classList.remove('active-mic'); searchInput.placeholder = "Search..."; };
         recognition.onresult = (e) => { searchInput.value = e.results[0][0].transcript; searchInput.dispatchEvent(new Event('input')); };
-        recognition.onerror = (e) => { console.log('Mic Error', e); searchInput.placeholder = "Mic blocked/error."; setTimeout(()=>{searchInput.placeholder = "Search title or author...";}, 2000); };
     } else micBtn.style.display = 'none';
 
     init();
