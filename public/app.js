@@ -1,11 +1,13 @@
-/* app.js - Fully Debugged & Restored Engine */
+/* app.js - Flawless Logic & Safe Timings */
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // SAFE ICONS - Forced to run repeatedly after async loads
+    // SAFE ICONS - Forced delay to ensure DOM is ready
     function refreshIcons() {
-        try { if(typeof lucide !== 'undefined') lucide.createIcons(); } 
-        catch(err) { console.error("Icon error", err); }
+        setTimeout(() => {
+            try { if(typeof lucide !== 'undefined') lucide.createIcons(); } 
+            catch(err) { console.log("Lucide skipped"); }
+        }, 50);
     }
 
     const searchInput = document.getElementById('search-input');
@@ -61,8 +63,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return (hour >= 6 && hour < 18) ? 'light' : 'dark';
     }
     function applyTheme(mode) {
-        if(mode === 'light') { document.body.classList.add('light-mode'); } 
-        else { document.body.classList.remove('light-mode'); }
+        const dBtn = document.getElementById('desk-theme-toggle');
+        const sBtn = document.getElementById('section-theme-toggle');
+        if(mode === 'light') {
+            document.body.classList.add('light-mode');
+            if(dBtn) dBtn.innerHTML = '<i data-lucide="moon"></i>';
+            if(sBtn) sBtn.innerHTML = '<i data-lucide="moon" class="text-muted"></i> Switch to Dark Mode';
+        } else {
+            document.body.classList.remove('light-mode');
+            if(dBtn) dBtn.innerHTML = '<i data-lucide="sun"></i>';
+            if(sBtn) sBtn.innerHTML = '<i data-lucide="sun" class="text-muted"></i> Switch to Light Mode';
+        }
+        refreshIcons();
     }
     function toggleThemeAction() {
         vibrate();
@@ -80,10 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('popup-message').innerText = msg;
         
         const iconEl = document.getElementById('popup-icon');
-        iconEl.innerHTML = `<i data-lucide="${type}" class="w-10 h-10"></i>`;
-        if(type === 'check-circle') { iconEl.className = 'mx-auto w-20 h-20 flex-center justify-center mb-6 text-success bg-success/10 rounded-full shadow-premium-sm'; }
-        else if(type === 'alert-triangle') { iconEl.className = 'mx-auto w-20 h-20 flex-center justify-center mb-6 text-warning bg-warning/10 rounded-full shadow-premium-sm'; }
-        else { iconEl.className = 'mx-auto w-20 h-20 flex-center justify-center mb-6 text-primary bg-primary-light rounded-full shadow-premium-sm'; }
+        iconEl.innerHTML = `<i data-lucide="${type}" class="w-8 h-8"></i>`;
+        if(type === 'check-circle') { iconEl.className = 'mx-auto w-16 h-16 flex-center justify-center mb-4 text-success bg-success/10 rounded-full shadow-premium-sm'; }
+        else if(type === 'alert-triangle') { iconEl.className = 'mx-auto w-16 h-16 flex-center justify-center mb-4 text-warning bg-warning/10 rounded-full shadow-premium-sm'; }
+        else { iconEl.className = 'mx-auto w-16 h-16 flex-center justify-center mb-4 text-primary bg-primary-light rounded-full shadow-premium-sm'; }
         
         refreshIcons();
         popupOverlay.classList.add('active');
@@ -144,9 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(getInitialTheme());
         try {
             const connected = await LibraryDB.init(); 
-            if (!connected) resultsArea.innerHTML = '<div class="text-center p-8 text-muted w-full col-span-full">Database Connection Failed. Please refresh.</div>';
+            if (!connected) resultsArea.innerHTML = '<div class="text-center p-8 text-muted w-full col-span-full font-medium">Database Connection Failed. Please refresh.</div>';
         } catch(e) {
-            resultsArea.innerHTML = '<div class="text-center p-8 text-muted w-full col-span-full">Firebase Connection Error.</div>';
+            resultsArea.innerHTML = '<div class="text-center p-8 text-muted w-full col-span-full font-medium">Firebase Connection Error.</div>';
         }
         
         if (window.innerWidth <= 849) document.body.classList.add('is-mobile-device');
@@ -183,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('.quick-btn[data-genre="All"]')?.classList.add('active');
         
         hero.classList.remove('minimized'); featuredContainer.style.display = 'block'; resultsArea.innerHTML = ''; 
-        closeSidebar();
+        closeSidebar(); refreshIcons();
     }
 
     document.getElementById('bottom-home-btn')?.addEventListener('click', (e) => { e.preventDefault(); resetToHome(); });
@@ -230,22 +242,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const hamburgerBtn = document.getElementById('hamburger-btn');
     if(hamburgerBtn) hamburgerBtn.onclick = openSidebar;
     
-    closeMenuBtn.onclick = closeSidebar; sideMenuOverlay.onclick = closeSidebar;
+    sideMenuOverlay.onclick = closeSidebar;
     document.querySelectorAll('.absolute-close').forEach(btn => btn.onclick = (e) => {
         closeSidebar();
         e.target.closest('.modal-overlay')?.classList.remove('active');
     });
 
-    // --- RESTORED ADMIN LOGIC (FIXED) ---
+    // --- FIX: ADMIN LOGIC & RENDER ---
     adminAuthBtn.onclick = () => {
         if(adminPassInput.value === 'admin123') { adminLoginScreen.style.display = 'none'; adminDashboard.style.display = 'block'; updateImageInputs(); renderAdminList(); } 
         else showPopup("Error", "Incorrect Password", null, false, "alert-triangle");
     };
+    
+    // Generates the proper inputs dynamically based on Steps selected
     function updateImageInputs() {
-        imageInputsContainer.innerHTML = ''; const count = parseInt(document.getElementById('step-count-select').value);
+        const container = document.getElementById('image-inputs-container');
+        container.innerHTML = ''; 
+        const count = parseInt(document.getElementById('step-count-select').value) || 2;
         for (let i=1; i<=count; i++) {
-            const input = document.createElement('input'); input.className = 'form-input step-url-input border-l-4 border-primary'; input.placeholder = (i===count) ? `Final Image URL` : `Step ${i} URL`;
-            imageInputsContainer.appendChild(input);
+            const input = document.createElement('input'); 
+            input.type = 'url';
+            input.className = 'form-input step-url-input border-l-4 border-primary'; 
+            input.placeholder = (i===count) ? `Final Image URL (Leave blank for default)` : `Step ${i} Image URL (Leave blank for default)`;
+            container.appendChild(input);
         }
     }
     document.getElementById('step-count-select').onchange = updateImageInputs;
@@ -257,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('new-genre').value = book.genre; document.getElementById('step-count-select').value = book.images.length || 2;
         updateImageInputs();
         const inputs = document.querySelectorAll('.step-url-input'); book.images.forEach((img, i) => { if(inputs[i] && !img.includes('placehold.co')) inputs[i].value = img; });
-        const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Update Book'; btn.className = 'submit-btn w-full ripple mt-4 flex-center justify-center gap-3 bg-primary text-white shadow-premium py-4';
+        const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="save" class="icon-small"></i> Update Book'; btn.className = 'submit-btn w-full ripple mt-4 flex-center justify-center gap-3 bg-primary text-white shadow-premium py-4';
         document.getElementById('cancel-edit-btn').style.display = "block"; refreshIcons();
         document.querySelector('#admin-modal .modal-content').scrollTo({top:0,behavior:'smooth'});
     };
@@ -265,14 +284,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cancel-edit-btn').onclick = () => {
         document.getElementById('edit-book-id').value = ''; document.getElementById('admin-form-title').innerText = "Add New Book";
         document.getElementById('new-title').value = ''; document.getElementById('new-author').value = '';
-        const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="upload-cloud" class="w-5 h-5"></i> Add to Cloud'; btn.className = 'submit-btn w-full ripple mt-4 flex-center justify-center gap-3 bg-success text-white shadow-premium py-4';
+        const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="upload-cloud" class="icon-small"></i> Add to Cloud'; btn.className = 'submit-btn w-full ripple mt-4 flex-center justify-center gap-3 bg-success text-white shadow-premium py-4';
         document.getElementById('cancel-edit-btn').style.display = "none"; updateImageInputs(); refreshIcons();
     };
 
     document.getElementById('add-book-btn').onclick = async () => {
         const title = document.getElementById('new-title').value.trim(); const author = document.getElementById('new-author').value.trim(); const genre = document.getElementById('new-genre').value; const editingId = document.getElementById('edit-book-id').value;
         if(!title || !author) return showPopup("Missing Info", "Fill in title and author.", null, false, "alert-triangle");
-        const imageUrls = Array.from(document.querySelectorAll('.step-url-input')).map((input, i) => input.value.trim() || `https://placehold.co/600x400/0f172a/db2777?text=Step+${i+1}`);
+        const imageUrls = Array.from(document.querySelectorAll('.step-url-input')).map((input, i) => input.value.trim() || `https://placehold.co/600x400/1e293b/db2777?text=Step+${i+1}`);
         document.getElementById('add-book-btn').disabled = true;
         if(editingId) {
             const books = LibraryDB.getBooks(); const index = books.findIndex(b => String(b.id) === String(editingId));
@@ -283,18 +302,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('cancel-edit-btn').click(); renderAdminList(); performSearch(searchInput.value); document.getElementById('add-book-btn').disabled = false;
     };
 
-    // FIXED: Render Admin List
+    // FIXED: Properly renders from the DB
     function renderAdminList() {
         const books = LibraryDB.getBooks();
         const listContainer = document.getElementById('admin-book-list');
-        if(!books || books.length === 0) { listContainer.innerHTML = '<p class="text-muted text-sm py-4 text-center">No books in database.</p>'; return; }
+        if(!books || books.length === 0) { listContainer.innerHTML = '<p class="text-muted text-sm py-4 text-center">No books found in database.</p>'; return; }
         
         listContainer.innerHTML = books.map(b => `
             <div class="bg-surface p-4 rounded-xl border border-color flex justify-between items-center shadow-premium-sm">
                 <div class="overflow-hidden"><strong class="block truncate text-base text-main mb-1">${b.title}</strong><small class="text-muted text-sm block truncate">${b.author}</small></div>
                 <div class="flex gap-3 flex-shrink-0 ml-2">
-                    <button onclick="handleEdit('${b.id}')" class="icon-btn text-primary bg-primary-light w-10 h-10 border-none"><i data-lucide="edit-2" class="w-5 h-5"></i></button>
-                    <button onclick="handleDelete('${b.id}')" class="icon-btn text-warning bg-warning/10 w-10 h-10 border-none"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                    <button onclick="handleEdit('${b.id}')" class="icon-btn text-primary bg-primary-light w-10 h-10 border-none"><i data-lucide="edit-2" class="icon-small"></i></button>
+                    <button onclick="handleDelete('${b.id}')" class="icon-btn text-warning bg-warning/10 w-10 h-10 border-none"><i data-lucide="trash-2" class="icon-small"></i></button>
                 </div>
             </div>`).join(''); 
         refreshIcons();
@@ -312,10 +331,12 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="mb-8"><span class="text-sm font-bold text-muted uppercase tracking-wider mb-3 block flex-center gap-2"><i data-lucide="star" class="icon-small text-warning"></i> Daily Global Pick</span>
                 <div class="featured-card shadow-premium" onclick="openModalById('${b.id}')">
                     <div class="featured-cover"><img id="fc-img" src="" class="shelf-cover-img">
-                    <button class="fav-btn-grid ${isFav?'active':''}" onclick="toggleFavorite(event,'${b.id}')"><i data-lucide="bookmark" class="w-5 h-5"></i></button></div>
-                    <div class="text-left w-full"><h2 class="font-bold text-2xl leading-tight mb-2 text-main">${b.title}</h2><p class="text-base text-muted mb-4">by ${b.author}</p><span class="badge bg-primary-light text-primary">${b.genre}</span></div>
+                    <button class="fav-btn-grid ${isFav?'active':''}" onclick="toggleFavorite(event,'${b.id}')"><i data-lucide="bookmark" class="icon-small"></i></button></div>
+                    <div class="text-left w-full"><h2 class="font-bold text-2xl leading-tight mb-2 text-main">${b.title}</h2><p class="text-base text-muted mb-4 font-light">by ${b.author}</p><span class="badge bg-primary-light text-primary">${b.genre}</span></div>
                 </div>
             </div>`;
+        
+        // Use IntersectionObserver logic just to fetch immediately
         fetchCoverWithFallback(b.title, b.author, 'fc-img', true); refreshIcons();
     }
 
@@ -341,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => String(x.id) === String(id)); if(b) openModal(b); };
 
-    // --- FIX: MAP BUTTONS & MODAL ---
+    // --- FIX: MAP BUTTONS & MODAL (No Opacity Fades to prevent invisible elements) ---
     const prevBtn = document.getElementById('prev-img-btn');
     const nextBtn = document.getElementById('next-img-btn');
 
@@ -359,16 +380,6 @@ document.addEventListener('DOMContentLoaded', () => {
         cover.src=''; cover.style.opacity='0'; cover.parentElement.classList.add('skeleton');
         fetchCoverWithFallback(book.title, book.author, 'modal-book-cover-img', true);
 
-        const authorImg = document.getElementById('modal-author-pic'); authorImg.style.display = 'none'; authorImg.src = ''; authorImg.classList.add('skeleton');
-        if (authorCache[book.author]) { authorImg.src = authorCache[book.author]; authorImg.style.display = 'block'; authorImg.classList.remove('skeleton'); } 
-        else if(book.author) {
-            fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(book.author)}`).then(r => r.json()).then(d => {
-                if(d.docs?.[0]?.key) { const u = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg`; authorCache[book.author] = u; authorImg.src = u; }
-                else { authorImg.src = generateInitialsImage(book.author); }
-                authorImg.style.display = 'block'; authorImg.onload = () => authorImg.classList.remove('skeleton');
-            }).catch(() => {});
-        }
-
         qrContainer.innerHTML = ''; const dl = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
         try { new QRCode(qrContainer, { text: dl, width: 120, height: 120, colorDark : "#121212", colorLight : "#ffffff" }); } catch(err) {}
 
@@ -377,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         currentImages = book.images || []; currentImageIndex = 0; updateCarousel();
         
-        // FIX: NEIGHBORS GRID (Direct load, no opacity transition to prevent invisible images)
+        // RESTORED: Also in this section logic (No opacity transitions to guarantee loading)
         const all = LibraryDB.getBooks();
         let neighbors = all.filter(b => b.genre === book.genre && String(b.id) !== String(book.id)).sort(()=>0.5-Math.random()).slice(0, 4);
         neighborsGrid.innerHTML = '';
@@ -385,7 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('neighbors-area').style.display = 'block';
             neighbors.forEach(n => {
                 const card = document.createElement('div'); card.className = 'neighbor-card shadow-premium-sm'; const imgId = `n-${n.id}-${Date.now()}`;
-                // Opacity removed to guarantee it shows
                 card.innerHTML = `<img id="${imgId}" style="width: 100%; height: 100%; object-fit: cover;" src="">`; 
                 card.onclick = () => openModal(n);
                 neighborsGrid.appendChild(card); fetchCoverWithFallback(n.title, n.author, imgId, true);
@@ -395,18 +405,24 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshIcons();
     }
 
+    // FIX: Map strictly updates images without opacity bugs
     function updateCarousel() {
         const wrap = document.getElementById('carousel-wrapper'); const aa = document.getElementById('mobile-action-area');
-        if(currentImages.length>0) {
-            wrap.classList.add('skeleton'); carouselImg.style.opacity='0';
-            carouselImg.onload = () => { carouselImg.style.opacity='1'; wrap.classList.remove('skeleton'); };
-            carouselImg.src = currentImages[currentImageIndex]; stepCounter.innerText = `Step ${currentImageIndex+1} of ${currentImages.length}`;
-            prevBtn.disabled = currentImageIndex === 0; nextBtn.disabled = currentImageIndex === currentImages.length-1; carouselImg.style.display = 'block';
+        if(currentImages && currentImages.length > 0) {
+            carouselImg.src = currentImages[currentImageIndex]; 
+            stepCounter.innerText = `Step ${currentImageIndex+1} of ${currentImages.length}`;
+            prevBtn.disabled = currentImageIndex === 0; 
+            nextBtn.disabled = currentImageIndex === currentImages.length-1; 
+            carouselImg.style.display = 'block';
             if(aa) aa.style.display = (currentImageIndex===currentImages.length-1 && document.body.classList.contains('is-mobile-device')) ? 'block' : 'none';
-        } else { carouselImg.style.display = 'none'; wrap.classList.remove('skeleton'); stepCounter.innerText = "No map available"; }
+        } else { 
+            carouselImg.style.display = 'none'; 
+            stepCounter.innerText = "No map available"; 
+            if(aa && document.body.classList.contains('is-mobile-device')) aa.style.display = 'block';
+        }
     }
 
-    // --- SEARCH & CATEGORY ---
+    // --- SEARCH LOGIC ---
     document.querySelectorAll('.quick-btn').forEach(btn => {
         if(btn.id === 'open-feedback-btn') return;
         btn.onclick = () => {
@@ -455,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const d = document.createElement('div'); d.className = 'autocomplete-item ripple';
                     const ht = s.title.replace(new RegExp(`(${t})`, 'gi'), '<span class="highlight-text">$1</span>');
                     // FIX: Beautiful gap for autocomplete
-                    d.innerHTML = `<i data-lucide="search" class="w-5 h-5 text-primary flex-shrink-0"></i><div class="flex flex-col text-left w-full ml-4"><span class="text-base font-bold text-main block">${ht}</span><span class="text-sm text-muted block mt-1">${s.author}</span></div>`;
+                    d.innerHTML = `<i data-lucide="search" class="icon-small text-primary flex-shrink-0"></i><div class="flex flex-col text-left w-full ml-4"><span class="text-base font-bold text-main block">${ht}</span><span class="text-sm text-muted font-light block mt-1">${s.author}</span></div>`;
                     d.onclick = () => { searchInput.value = s.title; autocompleteDropdown.style.display = 'none'; performSearch(s.title); openModal(s); };
                     autocompleteDropdown.appendChild(d);
                 }); refreshIcons();
@@ -491,22 +507,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="shelf-cover-wrapper skeleton shadow-premium-sm">
                     <img id="${coverId}" class="shelf-cover-img" data-title="${book.title}" data-author="${book.author}" src="">
                     <button class="fav-btn-grid ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${book.id}')">
-                        <i data-lucide="bookmark" class="w-5 h-5"></i>
+                        <i data-lucide="bookmark" class="icon-small"></i>
                     </button>
                 </div>
-                <div class="shelf-info"><p class="shelf-title text-main">${titleHtml}</p><p class="shelf-author text-muted">${book.author}</p></div>
+                <div class="shelf-info"><p class="shelf-title text-main">${titleHtml}</p><p class="shelf-author text-muted font-light">${book.author}</p></div>
             `;
             card.onclick = (e) => { if(!e.target.closest('.fav-btn-grid')) openModal(book); }; frag.appendChild(card);
-            // We use intersection observer for standard grids
-            setTimeout(() => imageObserver.observe(document.getElementById(coverId)), 0);
+            
+            // Re-bind intersection observer 
+            const imgEl = card.querySelector('img');
+            if(imgEl) setTimeout(() => imageObserver.observe(imgEl), 0);
         });
         resultsArea.appendChild(frag); refreshIcons();
-    }
-
-    window.toggleFavorite = function(e, bookId) {
-        e.stopPropagation(); vibrate(); const index = favorites.findIndex(id => String(id) === String(bookId));
-        if (index === -1) favorites.push(String(bookId)); else favorites.splice(index, 1);
-        localStorage.setItem('libnav_favs', JSON.stringify(favorites)); performSearch(searchInput.value); loadFeaturedBook();
     }
 
     // --- TOOLS: STATS & FEEDBACK ---
@@ -556,7 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try { 
             await LibraryDB.submitRating(ratingValue); 
             
-            // Reverted back to the original API call logic for emails
+            // Send to Email API
             const combinedMessage = `[User Rating: ${ratingValue}/5 Stars]\n\n${message}`;
             const payload = { name: name, email: email, message: combinedMessage };
             
@@ -575,14 +587,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.showSuccessScreen = function() { vibrate(); document.getElementById('book-modal').classList.remove('active'); document.getElementById('success-modal').classList.add('active'); }
     window.closeSuccessScreen = function() { document.getElementById('success-modal').classList.remove('active'); window.location.href = window.location.pathname; }
-
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; const recognition = new SpeechRecognition(); recognition.lang = 'en-US';
-        micBtn.onclick = () => { vibrate(); if (micBtn.classList.contains('text-warning')) recognition.stop(); else recognition.start(); };
-        recognition.onstart = () => { micBtn.classList.add('text-warning'); searchInput.placeholder = "Listening..."; };
-        recognition.onend = () => { micBtn.classList.remove('text-warning'); searchInput.placeholder = "Search..."; };
-        recognition.onresult = (e) => { searchInput.value = e.results[0][0].transcript; searchInput.dispatchEvent(new Event('input')); };
-    } else micBtn.style.display = 'none';
 
     // Start Engine safely
     init();
