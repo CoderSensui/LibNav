@@ -7,7 +7,7 @@
     <title>LibNav | Smart Library</title>
     <meta name="description" content="Find a way to the story! A smart navigation system.">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=31">
+    <link rel="stylesheet" href="style.css?v=35">
 </head>
 <body>
 
@@ -90,26 +90,33 @@
     <div id="book-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-modal">&times;</button>
-            <div class="modal-header-row">
-                <img id="modal-author-pic" class="author-headshot" src="" alt="Author" style="display:none;">
-                <div class="modal-text-group">
-                    <h2 id="modal-title" class="text-pink">Title</h2>
-                    <p id="modal-author" style="color:var(--text-muted);">Author</p>
+            <div class="modal-desktop-layout">
+                <div class="modal-left-col">
+                    <div class="modal-header-row">
+                        <img id="modal-author-pic" class="author-headshot" src="" alt="Author" style="display:none;">
+                        <div class="modal-text-group">
+                            <h2 id="modal-title" class="text-pink">Title</h2>
+                            <p id="modal-author" style="color:var(--text-muted);">Author</p>
+                        </div>
+                    </div>
+                    <span id="modal-genre" class="chip">Genre</span>
+                    <div class="destination-badge">Target: #<span id="modal-book-id" class="text-pink">0</span></div>
+                    <div class="qr-section"><div id="qrcode"></div><p class="qr-text">Scan for Mobile</p></div>
                 </div>
-            </div>
-            <span id="modal-genre" class="chip">Genre</span>
-            <div id="carousel-wrapper" class="carousel-wrapper">
-                <button id="prev-img-btn" class="carousel-btn prev">&lt;</button>
-                <img id="carousel-img" src="" alt="Navigation Step" class="shelf-photo">
-                <button id="next-img-btn" class="carousel-btn next">&gt;</button>
-                <div id="step-counter" class="step-counter">Step 1</div>
-            </div>
-            <div class="destination-badge">Target: Book #<span id="modal-book-id" class="text-pink">0</span></div>
-            <div id="mobile-action-area" style="display: none;"><button class="found-btn" onclick="showSuccessScreen()">I Found It!</button></div>
-            <div class="qr-section"><div id="qrcode"></div><p class="qr-text">Scan to take map with you</p></div>
-            <div id="neighbors-area" class="neighbors-area">
-                <p style="font-size:0.9rem; color:var(--text-muted);">Also in this section:</p>
-                <div id="neighbors-list" class="neighbors-list"></div>
+                
+                <div class="modal-right-col">
+                    <div id="carousel-wrapper" class="carousel-wrapper">
+                        <button id="prev-img-btn" class="carousel-btn prev">&lt;</button>
+                        <img id="carousel-img" src="" alt="Navigation Step" class="shelf-photo">
+                        <button id="next-img-btn" class="carousel-btn next">&gt;</button>
+                        <div id="step-counter" class="step-counter">Step 1</div>
+                    </div>
+                    <div id="mobile-action-area" style="display: none;"><button class="found-btn" onclick="showSuccessScreen()">I Found It!</button></div>
+                    <div id="neighbors-area" class="neighbors-area">
+                        <p style="font-size:0.9rem; color:var(--text-muted);">Also in this section:</p>
+                        <div id="neighbors-list" class="neighbors-list"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -151,7 +158,7 @@
                 </div>
 
                 <div id="image-inputs-container"></div>
-                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:-5px; margin-bottom:10px;">Leave blank to auto-generate placeholder images.</p>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:-5px; margin-bottom:10px;">Leave blank to use auto-placeholders.</p>
 
                 <button id="add-book-btn" class="submit-btn" style="background:#4ade80; color:#0b1121; margin-top:10px;">+ Add to Cloud</button>
                 
