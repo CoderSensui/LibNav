@@ -1,9 +1,10 @@
-/* app.js - Premium Modern Logic */
+/* app.js - Fully Restored & Optimized Logic */
 
 const searchInput = document.getElementById('search-input');
 const autocompleteDropdown = document.getElementById('autocomplete-dropdown');
 const resultsArea = document.getElementById('results-area');
 const featuredContainer = document.getElementById('featured-container');
+const hero = document.getElementById('hero');
 const sideMenu = document.getElementById('side-menu');
 const sideMenuOverlay = document.getElementById('side-menu-overlay');
 const closeMenuBtn = document.getElementById('close-menu');
@@ -92,7 +93,7 @@ function showPopup(title, msg, onConfirm, showCancel = false, type = 'bell') {
     cancelBtn.onclick = () => popupOverlay.classList.remove('active');
 }
 
-// --- MINION & ADMIN ---
+// --- MINION EASTER EGG (Middle Logo) ---
 const heroTitle = document.getElementById('hero-title');
 const minionSprite = document.getElementById('minion-sprite');
 heroTitle.innerHTML = heroTitle.textContent.split('').map(l => `<span class="hero-letter" style="display:inline-block; transition: transform 0.2s;">${l}</span>`).join('');
@@ -109,14 +110,15 @@ heroTitle.addEventListener('click', () => {
     }, 16);
 });
 
+// --- ADMIN PANEL TRIGGER ---
 secretAdminBtn.addEventListener('click', () => { adminModal.classList.add('active'); closeSidebar(); });
 
-// --- NETWORK & SYSTEM ---
+// --- NETWORK BANNER ---
 window.addEventListener('offline', () => { offlineBanner.classList.add('active'); });
 window.addEventListener('online', () => { 
-    offlineBanner.innerHTML = '<i data-lucide="wifi" class="w-4 h-4"></i> Back online!'; refreshIcons();
+    offlineBanner.innerHTML = '<i data-lucide="wifi" class="w-4 h-4"></i> <span>Back online!</span>'; refreshIcons();
     offlineBanner.style.background = "var(--success)";
-    setTimeout(() => { offlineBanner.classList.remove('active'); setTimeout(()=> {offlineBanner.innerHTML='<i data-lucide="wifi-off" class="w-4 h-4"></i> You are offline.'; offlineBanner.style.background="var(--warning)"; refreshIcons();}, 300); }, 3000); 
+    setTimeout(() => { offlineBanner.classList.remove('active'); setTimeout(()=> {offlineBanner.innerHTML='<i data-lucide="wifi-off" class="w-4 h-4"></i> <span>You are offline.</span>'; offlineBanner.style.background="var(--warning)"; refreshIcons();}, 300); }, 3000); 
 });
 const vibrate = () => { if (navigator.vibrate) navigator.vibrate(10); };
 
@@ -166,51 +168,63 @@ async function init() {
     refreshIcons();
 }
 
-// --- TABS NAVIGATION ---
-const sections = document.querySelectorAll('.content-section');
-const navItems = document.querySelectorAll('.nav-item');
-const indicator = document.querySelector('.nav-indicator');
-
-function switchTab(sectionId, index) {
+// --- FULLY RESTORED HOME BUTTON LOGIC ---
+function resetToHome() {
     vibrate();
-    navItems.forEach(item => { item.classList.remove('active', 'text-primary'); item.classList.add('text-muted'); });
     
-    // Update mobile nav
-    const mobileItems = Array.from(document.querySelectorAll('.bottom-nav .nav-item'));
-    if(mobileItems[index]) {
-        mobileItems[index].classList.add('active', 'text-primary');
-        mobileItems[index].classList.remove('text-muted');
-        indicator.style.transform = `translateX(${index * 100}%)`;
-    }
+    // Reset Tabs
+    document.querySelectorAll('.nav-item').forEach(item => { item.classList.remove('active', 'text-primary'); item.classList.add('text-muted'); });
+    const mobileHome = document.querySelector('.bottom-nav .nav-item[data-section="home"]');
+    if(mobileHome) mobileHome.classList.add('active', 'text-primary');
+    const indicator = document.querySelector('.nav-indicator');
+    if(indicator) indicator.style.transform = `translateX(0%)`;
     
-    // Update desktop nav
     document.querySelectorAll('.desk-nav-item').forEach(d => d.classList.remove('active'));
-    const deskItem = document.querySelector(`.desk-nav-item[data-section="${sectionId}"]`);
-    if(deskItem) deskItem.classList.add('active');
+    const deskHome = document.querySelector(`.desk-nav-item[data-section="home"]`);
+    if(deskHome) deskHome.classList.add('active');
 
-    sections.forEach(sec => sec.classList.remove('active'));
-    const target = document.getElementById(`${sectionId}-section`);
-    if(target) target.classList.add('active');
+    document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById('home-section').classList.add('active');
+    
+    // Reset Search & Filters
+    searchInput.value = '';
+    autocompleteDropdown.style.display = 'none';
+    selectedGenres.clear();
+    document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.quick-btn[data-genre="All"]').classList.add('active');
+    
+    hero.classList.remove('minimized');
+    featuredContainer.style.display = 'block';
+    resultsArea.innerHTML = ''; 
+    closeMenuBtn.click();
 }
 
-navItems.forEach((item, index) => {
-    if(item.dataset.section) {
-        item.onclick = (e) => { e.preventDefault(); switchTab(item.dataset.section, index); };
-    }
-});
+// Bind Home Button
+document.getElementById('bottom-home-btn')?.addEventListener('click', (e) => { e.preventDefault(); resetToHome(); });
+document.querySelector('.desk-nav-item[data-section="home"]')?.addEventListener('click', (e) => { e.preventDefault(); resetToHome(); });
 
-document.querySelectorAll('.desk-nav-item').forEach(item => {
-    if(item.dataset.section) {
-        item.onclick = (e) => { e.preventDefault(); switchTab(item.dataset.section, 0); }; // Index 0 fallback for simple logic
-    }
+// About Tab Binding
+document.querySelectorAll('[data-section="about"]').forEach(item => {
+    item.onclick = (e) => { 
+        e.preventDefault(); vibrate();
+        document.querySelectorAll('.nav-item').forEach(i => { i.classList.remove('active', 'text-primary'); i.classList.add('text-muted'); });
+        document.querySelectorAll('.desk-nav-item').forEach(d => d.classList.remove('active'));
+        item.classList.add('active', 'text-primary');
+        const indicator = document.querySelector('.nav-indicator');
+        if(indicator) indicator.style.transform = `translateX(200%)`; // About is index 2
+        document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+        document.getElementById('about-section').classList.add('active');
+    };
 });
 
 document.getElementById('mobile-cat-btn').onclick = (e) => { e.preventDefault(); vibrate(); sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); };
 document.getElementById('desk-cat-btn').onclick = (e) => { e.preventDefault(); vibrate(); sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); };
+const hamburgerBtn = document.getElementById('hamburger-btn');
+if(hamburgerBtn) hamburgerBtn.onclick = () => { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); };
 closeMenuBtn.onclick = () => { sideMenu.classList.remove('active'); sideMenuOverlay.classList.remove('active'); };
 sideMenuOverlay.onclick = closeMenuBtn.onclick;
 
-// --- ADMIN LOGIC ---
+// --- RESTORED ADMIN LOGIC ---
 adminAuthBtn.onclick = () => {
     if(adminPassInput.value === 'admin123') { adminLoginScreen.style.display = 'none'; adminDashboard.style.display = 'block'; updateImageInputs(); renderAdminList(); } 
     else showPopup("Error", "Incorrect Password", null, false, "alert-triangle");
@@ -231,14 +245,14 @@ window.handleEdit = function(id) {
     document.getElementById('new-genre').value = book.genre; document.getElementById('step-count-select').value = book.images.length || 2;
     updateImageInputs();
     const inputs = document.querySelectorAll('.step-url-input'); book.images.forEach((img, i) => { if(inputs[i] && !img.includes('placehold.co')) inputs[i].value = img; });
-    const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="save"></i> Update Book'; btn.className = 'submit-btn w-full ripple mt-2 flex-center justify-center gap-2 bg-primary text-white';
+    const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Update Book'; btn.className = 'submit-btn w-full ripple mt-2 flex-center justify-center gap-2 bg-primary text-white';
     document.getElementById('cancel-edit-btn').style.display = "block"; refreshIcons();
 };
 
 document.getElementById('cancel-edit-btn').onclick = () => {
     document.getElementById('edit-book-id').value = ''; document.getElementById('admin-form-title').innerText = "Add New Book";
     document.getElementById('new-title').value = ''; document.getElementById('new-author').value = '';
-    const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="upload-cloud"></i> Add to Cloud'; btn.className = 'submit-btn w-full ripple mt-2 flex-center justify-center gap-2 bg-success text-white';
+    const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="upload-cloud" class="w-4 h-4"></i> Add to Cloud'; btn.className = 'submit-btn w-full ripple mt-2 flex-center justify-center gap-2 bg-success text-white';
     document.getElementById('cancel-edit-btn').style.display = "none"; updateImageInputs(); refreshIcons();
 };
 
@@ -261,8 +275,8 @@ function renderAdminList() {
         <div class="bg-surface p-3 rounded-xl border flex justify-between items-center shadow-premium-sm">
             <div class="overflow-hidden"><strong class="block truncate text-sm">${b.title}</strong><small class="text-muted text-xs">${b.author}</small></div>
             <div class="flex gap-2">
-                <button onclick="handleEdit('${b.id}')" class="icon-btn text-primary bg-primary-light w-8 h-8"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                <button onclick="handleDelete('${b.id}')" class="icon-btn text-warning bg-warning/10 w-8 h-8"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                <button onclick="handleEdit('${b.id}')" class="icon-btn text-primary bg-primary-light w-8 h-8 flex-shrink-0"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                <button onclick="handleDelete('${b.id}')" class="icon-btn text-warning bg-warning/10 w-8 h-8 flex-shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
             </div>
         </div>`).join(''); refreshIcons();
 }
@@ -270,7 +284,7 @@ function renderAdminList() {
 window.handleDelete = async (id) => { showPopup("Confirm Delete", "Are you sure you want to delete this book?", async () => { await LibraryDB.deleteBook(id); renderAdminList(); performSearch(searchInput.value); }, true, "alert-triangle"); };
 document.getElementById('factory-reset-btn').onclick = async () => { showPopup("Defense Mode", "Reset Stats & History? Books will remain.", async () => { await LibraryDB.factoryReset(); window.location.reload(); }, true, "shield"); };
 
-// --- CORE RENDER ---
+// --- FEATURED BOOK ---
 function loadFeaturedBook() {
     const books = LibraryDB.getBooks(); if(books.length===0) return;
     const idx = Math.abs(new Date().toDateString().split('').reduce((a,b)=>a+(b.charCodeAt(0)),0)) % books.length; const b = books[idx];
@@ -310,7 +324,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
 async function openModal(book) {
     vibrate(); bookModal.classList.add('active'); LibraryDB.incrementView(book.id);
-    if (!document.body.classList.contains('companion-mode-active')) { try{let h=JSON.parse(localStorage.getItem('sh'))||[]; h.push(book.title); localStorage.setItem('sh',JSON.stringify(h.slice(-15)));}catch(e){} }
+    if (!document.body.classList.contains('companion-mode-active')) { try{let h=JSON.parse(localStorage.getItem('search_history'))||[]; h.push(book.title); localStorage.setItem('search_history',JSON.stringify(h.slice(-15)));}catch(e){} }
 
     document.getElementById('modal-title').innerText = book.title; document.getElementById('modal-author').innerText = book.author;
     document.getElementById('modal-book-id').innerText = book.id; document.getElementById('modal-genre').innerText = book.genre;
@@ -365,7 +379,8 @@ document.querySelectorAll('.quick-btn').forEach(btn => {
         document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
         if(btn.dataset.genre === 'All') { hero.classList.remove('minimized'); featuredContainer.style.display = 'block'; } 
         else { hero.classList.add('minimized'); featuredContainer.style.display = 'none'; }
-        performSearch(''); closeMenuBtn.click(); switchTab('home', 0);
+        performSearch(''); closeMenuBtn.click(); 
+        document.getElementById('home-section').classList.add('active'); document.getElementById('about-section').classList.remove('active');
     };
 });
 
@@ -382,7 +397,7 @@ searchInput.addEventListener('input', (e) => {
             hits.forEach(s => {
                 const d = document.createElement('div'); d.className = 'autocomplete-item ripple';
                 const ht = s.title.replace(new RegExp(`(${t})`, 'gi'), '<span class="highlight-text">$1</span>');
-                d.innerHTML = `<i data-lucide="search" class="w-4 h-4 text-primary"></i><div class="flex flex-col text-left"><span class="text-sm font-bold">${ht}</span><small class="text-xs text-muted">${s.author}</small></div>`;
+                d.innerHTML = `<i data-lucide="search" class="w-4 h-4 text-primary"></i><div class="flex flex-col text-left w-full"><span class="text-sm font-bold text-main block">${ht}</span><span class="text-xs text-muted block">${s.author}</span></div>`;
                 d.onclick = () => { searchInput.value = s.title; autocompleteDropdown.style.display = 'none'; performSearch(s.title); openModal(s); };
                 autocompleteDropdown.appendChild(d);
             }); refreshIcons();
@@ -429,40 +444,61 @@ function renderResults(books) {
     resultsArea.appendChild(frag); refreshIcons();
 }
 
-window.toggleFavorite = function(e, bookId) {
-    e.stopPropagation(); vibrate(); const index = favorites.findIndex(id => String(id) === String(bookId));
-    if (index === -1) favorites.push(String(bookId)); else favorites.splice(index, 1);
-    localStorage.setItem('libnav_favs', JSON.stringify(favorites)); performSearch(searchInput.value); loadFeaturedBook();
-}
-
 // --- UTILS & TRIGGERS ---
 document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; };
-function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(() => { if(!document.body.classList.contains('companion-mode-active')) { document.querySelector('.quick-btn[data-genre="All"]').click(); document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('active')); screensaver.classList.add('active'); } }, IDLE_LIMIT); }
+function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(() => { if(!document.body.classList.contains('companion-mode-active')) { resetToHome(); document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('active')); screensaver.classList.add('active'); } }, IDLE_LIMIT); }
 window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
 document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
 
+// RESTORED: Precise Time Formatting & Review Counts
 document.getElementById('stats-trigger').onclick = () => {
-    vibrate(); const books = LibraryDB.getBooks(); const ratings = LibraryDB.getRatings();
-    const uptime = Math.floor((new Date()-new Date("2026-01-01"))/(1000*60*60*24));
+    vibrate(); 
+    const books = LibraryDB.getBooks(); const ratings = LibraryDB.getRatings();
+    
+    // Time Formatting (Days, Hours, Minutes)
+    const startDate = new Date("2026-01-01T00:00:00").getTime();
+    const now = new Date().getTime();
+    const diff = now - startDate;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const uptimeStr = `${days}d, ${hours}h, ${minutes}m`;
+
     const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0});
-    const avg = ratings.length ? (ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1) : "N/A";
+    const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None"});
+    const genres = {}; books.forEach(b=>genres[b.genre]=(genres[b.genre]||0)+1);
+    
+    // Rating with Review Count
+    const avg = ratings.length ? `⭐ ${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)} <span class="text-sm font-normal text-muted">(${ratings.length} Reviews)</span>` : "No Ratings";
     
     document.getElementById('stats-content').innerHTML = `
+        <div class="bg-primary-light p-3 rounded-xl text-center mb-4 text-primary font-bold text-sm flex-center justify-center gap-2 border border-primary/20"><i data-lucide="server" class="w-4 h-4"></i> Cloud Uptime: ${uptimeStr}</div>
         <div class="grid-2 gap-3 mb-4">
-            <div class="bg-surface p-4 rounded-xl border text-center shadow-premium-sm"><p class="text-xs text-muted mb-1">Total Books</p><h2 class="text-2xl font-bold text-primary">${books.length}</h2></div>
-            <div class="bg-surface p-4 rounded-xl border text-center shadow-premium-sm"><p class="text-xs text-muted mb-1">Bookmarks</p><h2 class="text-2xl font-bold text-warning">${favorites.length}</h2></div>
+            <div class="bg-surface p-4 rounded-xl border text-center shadow-premium-sm"><p class="text-xs text-muted mb-1 font-bold uppercase">Total Books</p><h2 class="text-2xl font-bold text-primary">${books.length}</h2></div>
+            <div class="bg-surface p-4 rounded-xl border text-center shadow-premium-sm"><p class="text-xs text-muted mb-1 font-bold uppercase">Bookmarks</p><h2 class="text-2xl font-bold text-warning">${favorites.length}</h2></div>
         </div>
-        <div class="bg-primary-light p-3 rounded-xl text-center mb-4 text-primary font-bold text-sm"><i data-lucide="server" class="w-4 h-4 inline"></i> Cloud Uptime: ${uptime} Days</div>
-        <div class="mb-4"><p class="text-xs font-bold text-muted uppercase mb-2"><i data-lucide="trending-up" class="w-3 h-3 inline"></i> Top Pick</p><div class="flex justify-between items-center bg-surface p-3 rounded-lg border"><strong>${mostViewed.title}</strong><span class="text-xs bg-success/10 text-success px-2 py-1 rounded">${mostViewed.views} Views</span></div></div>
+        <div class="bg-surface p-4 rounded-xl border text-center mb-4 shadow-premium-sm"><p class="text-xs text-muted mb-1 font-bold uppercase">Global Rating</p><h2 class="text-xl font-bold text-warning">${avg}</h2></div>
+        <div class="mb-4"><p class="text-xs font-bold text-muted uppercase tracking-wider mb-2 flex-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> Top Pick</p><div class="flex justify-between items-center bg-surface p-3 rounded-lg border"><strong>${mostViewed.title}</strong><span class="text-xs bg-success/10 text-success px-2 py-1 rounded font-bold">${mostViewed.views} Views</span></div></div>
+        <div class="mb-4"><p class="text-xs font-bold text-muted uppercase tracking-wider mb-2 flex-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> Newest</p><div class="bg-surface p-3 rounded-lg border"><strong>${newest.title}</strong></div></div>
+        <div class="mb-2"><p class="text-xs font-bold text-muted uppercase tracking-wider mb-2 flex-center gap-1"><i data-lucide="pie-chart" class="w-3 h-3"></i> Composition</p>${Object.entries(genres).map(([k,v])=>`<div class="flex justify-between p-2 border-b border-color text-sm"><span>${k}</span><span class="text-primary font-bold">${v}</span></div>`).join('')}</div>
     `; refreshIcons(); document.getElementById('stats-modal').classList.add('active');
 };
 
+// RESTORED FEEDBACK LOGIC
 document.getElementById('open-feedback-btn').onclick = () => { vibrate(); document.getElementById('feedback-modal').classList.add('active'); closeMenuBtn.click(); };
-document.getElementById('feedback-form').onsubmit = async (e) => {
-    e.preventDefault(); const rating = document.querySelector('input[name="rating"]:checked')?.value || 5; 
-    document.getElementById('fb-submit-btn').innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Sending'; refreshIcons();
-    try { await LibraryDB.submitRating(parseInt(rating)); showPopup("Success", "Feedback Sent! Thank you.", null, false, "check-circle"); document.getElementById('feedback-form').reset(); setTimeout(() => document.getElementById('feedback-modal').classList.remove('active'), 1000); } 
-    catch { showPopup("Saved", "Rating Saved Locally."); } finally { document.getElementById('fb-submit-btn').innerText = "Send Feedback"; }
+const fForm = document.getElementById('feedback-form');
+if(fForm) fForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('fb-submit-btn');
+    const rating = document.querySelector('input[name="rating"]:checked')?.value || 5; 
+    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin w-4 h-4 inline"></i> Sending...'; refreshIcons(); btn.disabled = true;
+    try { 
+        await LibraryDB.submitRating(parseInt(rating)); 
+        showPopup("Success", "Feedback Sent! Thank you.", null, false, "check-circle"); 
+        fForm.reset(); 
+        setTimeout(() => document.getElementById('feedback-modal').classList.remove('active'), 1000); 
+    } catch { showPopup("Saved", "Rating Saved Locally."); } 
+    finally { btn.innerText = "Send Feedback"; btn.disabled = false; }
 };
 
 window.showSuccessScreen = function() { vibrate(); document.getElementById('book-modal').classList.remove('active'); document.getElementById('success-modal').classList.add('active'); }
