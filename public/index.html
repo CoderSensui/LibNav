@@ -10,19 +10,22 @@
     <meta property="og:description" content="Find your way to the story. Premium real-time navigation.">
     <meta property="og:image" content="https://placehold.co/1200x630/0f172a/db2777?text=LibNav+Preview">
     
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=70">
+    <link rel="stylesheet" href="style.css?v=80">
 </head>
 <body>
 
-    <div id="offline-banner" class="offline-banner"><i data-lucide="wifi-off" class="w-4 h-4"></i> You are offline. Viewing cached library.</div>
+    <div id="offline-banner" class="offline-banner">
+        <i data-lucide="wifi-off" class="w-4 h-4"></i> <span>You are offline. Viewing cached library.</span>
+    </div>
 
     <header class="app-header">
         <div class="header-left">
+            <button id="hamburger-btn" class="icon-btn ripple mobile-only"><i data-lucide="menu"></i></button>
             <div class="desktop-nav">
                 <a href="#" class="desk-nav-item active" data-section="home"><i data-lucide="home"></i> Home</a>
                 <a href="#" class="desk-nav-item" id="desk-cat-btn"><i data-lucide="layout-grid"></i> Genres</a>
@@ -110,7 +113,7 @@
                     <div class="flex-center gap-2 mb-1 text-warning font-bold text-xs uppercase tracking-wider">
                         <i data-lucide="alert-triangle" class="w-4 h-4"></i> Important Tip
                     </div>
-                    <p class="text-xs text-muted">Don't forget to formally check out the book at the front desk before leaving the library!</p>
+                    <p class="text-xs text-warning-muted">Don't forget to formally check out the book at the front desk before leaving the library!</p>
                 </div>
                 
                 <div class="mt-6 border-t pt-4">
@@ -122,9 +125,9 @@
         </section>
     </div>
 
-    <nav class="bottom-nav shadow-premium-up">
+    <nav class="bottom-nav shadow-premium-up mobile-only">
         <div class="nav-container relative">
-            <a href="#" data-section="home" class="nav-item active text-primary">
+            <a href="#" id="bottom-home-btn" data-section="home" class="nav-item active text-primary">
                 <i data-lucide="home"></i><span>Home</span>
             </a>
             <a href="#" id="mobile-cat-btn" class="nav-item text-muted">
@@ -139,7 +142,7 @@
 
     <button id="stats-trigger" class="float-btn ripple shadow-premium"><i data-lucide="bar-chart-2"></i></button>
 
-    <div id="custom-popup" class="modal-overlay">
+    <div id="custom-popup" class="modal-overlay" style="z-index: 9999;">
         <div class="modal-content text-center scale-modal">
             <div id="popup-icon" class="mx-auto w-16 h-16 flex-center justify-center mb-4 text-primary bg-primary-light rounded-full">
                 <i data-lucide="bell" class="w-8 h-8"></i>
@@ -158,9 +161,6 @@
             <button class="close-modal ripple"><i data-lucide="x"></i></button>
             <div class="modal-desktop-layout">
                 <div class="modal-left-col">
-                    <div class="modal-cover-wrapper skeleton shadow-premium">
-                        <img id="modal-book-cover-img" class="modal-book-cover" src="">
-                    </div>
                     <div class="modal-header-row">
                         <img id="modal-author-pic" class="author-headshot skeleton shadow-premium" src="" style="display:none;">
                         <div class="modal-text-group">
@@ -168,11 +168,11 @@
                             <p id="modal-author" class="text-sm text-muted">Author</p>
                         </div>
                     </div>
-                    <span id="modal-genre" class="badge bg-primary-light text-primary">Genre</span>
+                    <span id="modal-genre" class="badge bg-primary-light text-primary mt-2 mb-4">Genre</span>
                     <div class="target-badge shadow-premium-sm">Target: #<span id="modal-book-id" class="text-primary">0</span></div>
                     <div class="qr-section shadow-premium-sm">
                         <div id="qrcode" class="p-1 bg-white rounded-lg"></div>
-                        <p class="text-xs text-muted font-bold mt-2"><i data-lucide="smartphone" class="w-3 h-3 inline"></i> Scan for Mobile</p>
+                        <p class="text-xs text-muted font-bold flex-center gap-1 mt-2"><i data-lucide="smartphone" class="w-3 h-3"></i> Scan for Mobile</p>
                         <button id="share-book-btn" class="w-full mt-3 submit-btn bg-surface text-primary border ripple flex-center justify-center gap-2 text-sm py-2">
                             <i data-lucide="share-2" class="w-4 h-4"></i> Share
                         </button>
@@ -191,7 +191,7 @@
                         </button>
                     </div>
                     <div id="neighbors-area" class="mt-4 text-left">
-                        <p class="text-xs font-bold text-muted uppercase tracking-wider mb-2">Also in this section</p>
+                        <p class="text-xs font-bold text-muted uppercase tracking-wider mb-2">Also in this section:</p>
                         <div id="neighbors-grid" class="neighbors-grid"></div>
                     </div>
                 </div>
@@ -210,7 +210,7 @@
             <div id="admin-login-screen">
                 <p class="text-sm text-muted mb-2">Enter Access Key</p>
                 <div class="relative mb-4">
-                    <i data-lucide="lock" class="absolute left-3 top-3.5 text-muted w-5 h-5"></i>
+                    <i data-lucide="lock" class="absolute left-3 top-3 text-muted w-5 h-5"></i>
                     <input type="password" id="admin-password" class="form-input pl-10" placeholder="Password">
                 </div>
                 <button id="admin-auth-btn" class="submit-btn ripple w-full">Login</button>
@@ -270,7 +270,7 @@
         <div class="modal-content scale-modal">
             <button class="close-modal ripple"><i data-lucide="x"></i></button>
             <div class="flex-center justify-center gap-2 mb-4">
-                <i data-lucide="star" class="text-warning"></i>
+                <i data-lucide="star" class="text-warning w-6 h-6"></i>
                 <h2 class="text-xl font-bold">Rate LibNav</h2>
             </div>
             <form id="feedback-form">
@@ -283,12 +283,12 @@
                 </div>
                 <input type="text" id="fb-name" class="form-input" placeholder="Your Name">
                 <textarea id="fb-message" class="form-input" placeholder="Any suggestions?" required rows="3"></textarea>
-                <button type="submit" class="submit-btn w-full ripple mt-2">Send Feedback</button>
+                <button type="submit" class="submit-btn w-full ripple mt-2" id="fb-submit-btn">Send Feedback</button>
             </form>
         </div>
     </div>
 
-    <div id="screensaver" class="screensaver"><h1 class="font-head text-primary text-5xl drop-shadow-glow">LibNav</h1><p class="mt-4 animate-pulse">Touch screen to start</p></div>
+    <div id="screensaver" class="screensaver"><h1 class="hero-title text-5xl">LibNav</h1><p class="mt-4 text-muted animate-pulse">Touch screen to start</p></div>
 
     <script src="database.js"></script>
     <script src="app.js"></script>
