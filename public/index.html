@@ -9,7 +9,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=600">
 </head>
 <body>
 
@@ -159,37 +159,44 @@
     <div id="book-modal" class="modal-overlay">
         <div class="modal-box book-layout">
             <button class="close-btn"><i data-lucide="x"></i></button>
-            <div class="book-modal-grid">
-                <div class="book-left">
-                    <div class="book-cover-wrap skeleton"><img id="modal-book-cover-img" src=""></div>
-                    <h2 id="modal-title">Title</h2>
-                    <p id="modal-author">Author</p>
-                    <span id="modal-genre" class="book-badge">Genre</span>
-                    <div class="target-badge">Target: #<span id="modal-book-id">0</span></div>
-                    
-                    <div class="qr-box desktop-only-qr">
-                        <div id="qrcode"></div>
-                        <p><i data-lucide="smartphone"></i> Scan for Mobile</p>
+            
+            <div class="book-modal-content">
+                <div class="book-header-row">
+                    <div class="author-circle skeleton">
+                        <img id="modal-author-pic" src="">
                     </div>
-                    <button id="share-book-btn" class="btn-secondary full-width desktop-only-qr" style="margin-top:10px;"><i data-lucide="share-2"></i> Share Link</button>
+                    <div class="book-cover-square skeleton">
+                        <img id="modal-book-cover-img" src="">
+                    </div>
+                    <div class="book-details-mini">
+                        <h2 id="modal-title">Title</h2>
+                        <p id="modal-author">Author</p>
+                        <span id="modal-genre" class="book-badge" style="margin-top: 5px; display: inline-block;">Genre</span>
+                    </div>
                 </div>
                 
-                <div class="book-right">
-                    <div id="carousel-wrapper" class="map-carousel">
-                        <button id="prev-img-btn" class="nav-arrow left"><i data-lucide="chevron-left"></i></button>
-                        <img id="carousel-img" src="">
-                        <button id="next-img-btn" class="nav-arrow right"><i data-lucide="chevron-right"></i></button>
-                        <div id="step-counter" class="step-tag">Step 1</div>
-                    </div>
-                    
-                    <div id="mobile-action-area" class="action-area" style="display: none; margin-top:15px;">
-                        <button class="btn-primary full-width" onclick="showSuccessScreen()"><i data-lucide="check-circle-2"></i> I Found It!</button>
-                    </div>
-                    
-                    <div id="neighbors-area" class="neighbors-wrap">
-                        <p class="section-title"><i data-lucide="library"></i> Also in this section:</p>
-                        <div id="neighbors-grid" class="neighbors-grid"></div>
-                    </div>
+                <div class="target-badge" style="text-align: center;">Target: #<span id="modal-book-id">0</span></div>
+
+                <div id="carousel-wrapper" class="map-carousel">
+                    <button id="prev-img-btn" class="nav-arrow left"><i data-lucide="chevron-left"></i></button>
+                    <img id="carousel-img" src="">
+                    <button id="next-img-btn" class="nav-arrow right"><i data-lucide="chevron-right"></i></button>
+                    <div id="step-counter" class="step-tag">Step 1</div>
+                </div>
+                
+                <div id="mobile-action-area" class="action-area" style="display: none; margin-top:15px;">
+                    <button class="btn-primary full-width large" onclick="showSuccessScreen()"><i data-lucide="check-circle-2"></i> I Found It!</button>
+                </div>
+
+                <div class="qr-box desktop-only-qr">
+                    <div id="qrcode"></div>
+                    <p><i data-lucide="smartphone"></i> Scan for Mobile</p>
+                </div>
+                <button id="share-book-btn" class="btn-secondary full-width desktop-only-qr" style="margin-top:10px;"><i data-lucide="share-2"></i> Share Link</button>
+
+                <div id="neighbors-area" class="neighbors-wrap">
+                    <p class="section-title"><i data-lucide="library"></i> Also in this section:</p>
+                    <div id="neighbors-grid" class="neighbors-grid"></div>
                 </div>
             </div>
         </div>
@@ -264,7 +271,7 @@
             <div class="card-header center"><i data-lucide="star" style="color:var(--warning); width:32px; height:32px;"></i><h2>Rate LibNav</h2></div>
             <p style="text-align:center; color:var(--text-muted); margin-bottom:20px;">Tell us what you think! This will be sent directly to the developers.</p>
             
-            <form id="feedback-form">
+            <form id="feedback-form" class="form-layout">
                 <div class="star-rating">
                     <input type="radio" id="star5" name="rating" value="5" checked><label for="star5">★</label>
                     <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
@@ -274,7 +281,7 @@
                 </div>
                 <input type="text" id="fb-name" class="input-field" placeholder="Your Name" style="padding-left:20px;">
                 <input type="email" id="fb-email" class="input-field" placeholder="Your Email (Optional)" style="padding-left:20px;">
-                <textarea id="fb-message" class="input-field" placeholder="Any suggestions for our defense?" required rows="4" style="padding-left:20px;"></textarea>
+                <textarea id="fb-message" class="input-field" placeholder="How can we improve?" required rows="4" style="padding-left:20px;"></textarea>
                 <button type="submit" class="btn-primary full-width" id="fb-submit-btn"><i data-lucide="send"></i> Send feedback</button>
             </form>
         </div>
