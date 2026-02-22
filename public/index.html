@@ -3,57 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#131314">
     <title>LibNav | Smart Library</title>
     <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=800">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <div id="offline-banner" class="offline-banner">
-        <i data-lucide="wifi-off"></i> <span>You are offline. Viewing cached library.</span>
-    </div>
 
     <header class="app-header">
         <div class="header-left">
             <button id="hamburger-btn" class="icon-btn mobile-only"><i data-lucide="menu"></i></button>
+            <div class="top-logo desktop-logo" style="margin-left: 10px;">LibNav</div>
+        </div>
+        <div class="header-right">
             <nav class="desktop-nav">
                 <a href="#" class="desk-nav-item active" data-section="home"><i data-lucide="home"></i> Home</a>
                 <a href="#" class="desk-nav-item" data-section="tools"><i data-lucide="wrench"></i> Tools</a>
                 <a href="#" class="desk-nav-item" data-section="about"><i data-lucide="info"></i> About</a>
             </nav>
-        </div>
-        <div class="header-right">
-            <div id="secret-admin-btn" class="top-logo">LibNav</div>
+            <button id="secret-admin-btn" class="icon-btn" style="border:none; background:transparent;"><i data-lucide="shield" style="opacity:0.3;"></i></button>
         </div>
     </header>
 
     <div id="side-menu-overlay" class="menu-overlay"></div>
     <div id="side-menu" class="side-menu">
-        <button id="close-menu" class="close-btn-side"><i data-lucide="x"></i></button>
         <div class="menu-header">
             <h2><i data-lucide="library"></i> Categories</h2>
+            <button id="close-menu" class="close-btn-side mobile-only"><i data-lucide="x"></i></button>
         </div>
         <div class="menu-content">
-            <button class="menu-item active" data-genre="All"><i data-lucide="book-open"></i> All Books</button>
+            <button class="menu-item active" data-genre="All"><i data-lucide="book-open"></i> <span>All Books</span></button>
             <div class="divider"></div>
-            <button class="menu-item" data-genre="Favorites"><i data-lucide="bookmark"></i> Saved</button>
-            <button class="menu-item" data-genre="Fiction"><i data-lucide="sparkles"></i> Fiction</button>
-            <button class="menu-item" data-genre="Non-Fiction"><i data-lucide="microscope"></i> Non-Fiction</button>
-            <button class="menu-item" data-genre="Romance"><i data-lucide="flower-2"></i> Romance</button>
-            <button class="menu-item" data-genre="Science"><i data-lucide="flask-conical"></i> Science</button>
-            <button class="menu-item" data-genre="History"><i data-lucide="landmark"></i> History</button>
+            <button class="menu-item" data-genre="Favorites"><i data-lucide="bookmark"></i> <span>Saved</span></button>
+            <button class="menu-item" data-genre="Fiction"><i data-lucide="sparkles"></i> <span>Fiction</span></button>
+            <button class="menu-item" data-genre="Non-Fiction"><i data-lucide="microscope"></i> <span>Non-Fiction</span></button>
+            <button class="menu-item" data-genre="Romance"><i data-lucide="flower-2"></i> <span>Romance</span></button>
+            <button class="menu-item" data-genre="Science"><i data-lucide="flask-conical"></i> <span>Science</span></button>
+            <button class="menu-item" data-genre="History"><i data-lucide="landmark"></i> <span>History</span></button>
         </div>
     </div>
 
     <main class="main-container">
+        
         <section id="home-section" class="content-section active">
             <div id="hero" class="hero">
                 <div id="minion-container"><img id="minion-sprite" src="https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif"></div>
-                <h1 id="hero-title" class="hero-title">LibNav</h1>
+                <h1 id="hero-title" class="hero-title mobile-only-logo">LibNav</h1>
                 <p class="hero-subtitle">Find your way to the story</p>
             </div>
 
@@ -62,7 +60,7 @@
                 <input type="text" id="search-input" placeholder="Search title or author..." autocomplete="off">
                 <div class="search-actions">
                     <button id="mic-btn" class="icon-btn"><i data-lucide="mic"></i></button>
-                    <button id="filter-toggle" class="icon-btn"><i data-lucide="sliders-horizontal"></i></button>
+                    <button id="filter-toggle" class="icon-btn mobile-only"><i data-lucide="sliders-horizontal"></i></button>
                 </div>
                 
                 <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
@@ -85,14 +83,11 @@
 
         <section id="tools-section" class="content-section">
             <div class="card-box">
-                <div class="card-header">
-                    <div class="icon-box"><i data-lucide="wrench"></i></div>
-                    <h2>System Tools</h2>
-                </div>
+                <div class="card-header"><div class="icon-box"><i data-lucide="wrench"></i></div><h2>System Tools</h2></div>
                 <div class="action-list">
                     <button id="section-theme-toggle" class="action-btn"><i data-lucide="moon"></i> Toggle Dark/Light Mode</button>
                     <button id="section-stats-btn" class="action-btn"><i data-lucide="bar-chart-2"></i> View Live Statistics</button>
-                    <button id="section-feedback-btn" class="action-btn"><i data-lucide="message-square"></i> Send feedback to developer</button>
+                    <button id="section-feedback-btn" class="action-btn"><i data-lucide="message-square"></i> Send Feedback</button>
                 </div>
                 <div class="tip-box">
                     <div class="tip-header"><i data-lucide="lightbulb"></i> Quick Tip</div>
@@ -103,30 +98,14 @@
 
         <section id="about-section" class="content-section">
             <div class="card-box">
-                <div class="card-header">
-                    <div class="icon-box"><i data-lucide="compass"></i></div>
-                    <h2>About LibNav</h2>
-                </div>
+                <div class="card-header"><div class="icon-box"><i data-lucide="compass"></i></div><h2>About LibNav</h2></div>
                 <p class="about-desc">LibNav is a smart library navigation system designed to help you find physical books instantly. It bridges the gap between digital searching and physical shelves.</p>
 
-                <div class="card-header secondary">
-                    <div class="icon-box"><i data-lucide="book-open-check"></i></div>
-                    <h2>How to Use</h2>
-                </div>
-                
+                <div class="card-header secondary"><div class="icon-box"><i data-lucide="book-open-check"></i></div><h2>How to Use</h2></div>
                 <div class="steps-container">
-                    <div class="step-item">
-                        <div class="step-num">1</div>
-                        <div class="step-text"><strong>Search</strong><span>Find your desired book via text input or voice recognition.</span></div>
-                    </div>
-                    <div class="step-item">
-                        <div class="step-num">2</div>
-                        <div class="step-text"><strong>Navigate</strong><span>Tap a book cover to view the step-by-step visual map to its exact shelf.</span></div>
-                    </div>
-                    <div class="step-item">
-                        <div class="step-num">3</div>
-                        <div class="step-text"><strong>Companion Mode</strong><span>If you are on a PC, simply scan the QR code to seamlessly take the map with you on your phone.</span></div>
-                    </div>
+                    <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>Search</strong><span>Find your desired book via text input or voice recognition.</span></div></div>
+                    <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>Navigate</strong><span>Tap a book cover to view the step-by-step visual map to its exact shelf.</span></div></div>
+                    <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>Companion Mode</strong><span>If you are on a PC, simply scan the QR code to seamlessly take the map with you on your phone.</span></div></div>
                 </div>
 
                 <div class="tip-box warning">
@@ -138,7 +117,7 @@
     </main>
 
     <nav class="bottom-nav">
-        <a href="#" id="bottom-home-btn" data-section="home" class="nav-tab active"><i data-lucide="home"></i><span>Home</span></a>
+        <a href="#" data-section="home" class="nav-tab active"><i data-lucide="home"></i><span>Home</span></a>
         <a href="#" data-section="tools" class="nav-tab"><i data-lucide="wrench"></i><span>Tools</span></a>
         <a href="#" data-section="about" class="nav-tab"><i data-lucide="info"></i><span>About</span></a>
     </nav>
@@ -175,9 +154,9 @@
                         </div>
                     </div>
                     
-                    <div class="target-badge desktop-only-qr">Target: #<span id="modal-book-id">0</span></div>
+                    <div class="target-badge-container mobile-only-flex">Target: #<span id="modal-book-id">0</span></div>
                     
-                    <div class="qr-box desktop-only-qr">
+                    <div class="qr-box desktop-only-flex">
                         <div id="qrcode"></div>
                         <p><i data-lucide="smartphone"></i> Scan for Mobile</p>
                     </div>
@@ -190,7 +169,6 @@
                         <button id="next-img-btn" class="nav-arrow right"><i data-lucide="chevron-right"></i></button>
                         <div id="step-counter" class="step-tag">Step 1</div>
                     </div>
-                    
                     <div id="mobile-action-area" class="action-area" style="display: none;">
                         <button class="btn-primary full-width large" onclick="showSuccessScreen()"><i data-lucide="check-circle-2"></i> I Found It!</button>
                     </div>
@@ -230,19 +208,13 @@
                     <div>
                         <label class="input-label">Genre</label>
                         <select id="new-genre" class="input-field" style="padding-left:15px;">
-                            <option value="Fiction">Fiction</option>
-                            <option value="Non-Fiction">Non-Fiction</option>
-                            <option value="Romance">Romance</option>
-                            <option value="Science">Science</option>
-                            <option value="History">History</option>
+                            <option value="Fiction">Fiction</option><option value="Non-Fiction">Non-Fiction</option><option value="Romance">Romance</option><option value="Science">Science</option><option value="History">History</option>
                         </select>
                     </div>
                     <div>
                         <label class="input-label">Nav Steps</label>
                         <select id="step-count-select" class="input-field" style="padding-left:15px;">
-                            <option value="2">2 Steps</option>
-                            <option value="3">3 Steps</option>
-                            <option value="4">4 Steps</option>
+                            <option value="2">2 Steps</option><option value="3">3 Steps</option><option value="4">4 Steps</option>
                         </select>
                     </div>
                 </div>
@@ -254,7 +226,6 @@
                 
                 <h3 class="sub-title warning mt"><i data-lucide="database"></i> System Data</h3>
                 <div id="admin-book-list" class="admin-list"></div>
-                
                 <button id="factory-reset-btn" class="btn-outline-warning full-width mt"><i data-lucide="alert-octagon"></i> Factory Reset</button>
             </div>
         </div>
@@ -273,7 +244,6 @@
             <button class="close-btn"><i data-lucide="x"></i></button>
             <div class="card-header center"><i data-lucide="star" style="color:var(--warning); width:32px; height:32px;"></i><h2>Rate LibNav</h2></div>
             <p style="text-align:center; color:var(--text-muted); margin-bottom:20px;">Tell us what you think! This will be sent directly to the developers.</p>
-            
             <form id="feedback-form" class="form-layout">
                 <div class="star-rating">
                     <input type="radio" id="star5" name="rating" value="5" checked><label for="star5">★</label>
@@ -302,10 +272,9 @@
 
     <div id="screensaver" class="screensaver">
         <h1 class="hero-title">LibNav</h1>
-        <p>Touch screen to start</p>
+        <p>Touch screen to resume</p>
     </div>
 
-    <script src="database.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
