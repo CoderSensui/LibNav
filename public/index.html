@@ -9,7 +9,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=600">
+    <link rel="stylesheet" href="style.css?v=800">
 </head>
 <body>
 
@@ -149,7 +149,7 @@
             <div id="popup-icon" class="popup-icon-wrapper"><i data-lucide="bell"></i></div>
             <h3 id="popup-title">Alert</h3>
             <p id="popup-message">Message</p>
-            <div class="popup-actions" style="display:flex; gap:10px; margin-top:20px;">
+            <div class="popup-actions">
                 <button id="popup-cancel" class="btn-secondary" style="display:none;">Cancel</button>
                 <button id="popup-confirm" class="btn-primary">OK</button>
             </div>
@@ -159,44 +159,40 @@
     <div id="book-modal" class="modal-overlay">
         <div class="modal-box book-layout">
             <button class="close-btn"><i data-lucide="x"></i></button>
-            
-            <div class="book-modal-content">
-                <div class="book-header-row">
-                    <div class="author-circle skeleton">
-                        <img id="modal-author-pic" src="">
+            <div class="book-modal-grid">
+                <div class="book-left">
+                    <div class="book-header-group">
+                        <div class="author-avatar skeleton"><img id="modal-author-pic" src=""></div>
+                        <div class="book-cover-wrap skeleton"><img id="modal-book-cover-img" src=""></div>
                     </div>
-                    <div class="book-cover-square skeleton">
-                        <img id="modal-book-cover-img" src="">
-                    </div>
-                    <div class="book-details-mini">
-                        <h2 id="modal-title">Title</h2>
-                        <p id="modal-author">Author</p>
-                        <span id="modal-genre" class="book-badge" style="margin-top: 5px; display: inline-block;">Genre</span>
+                    
+                    <h2 id="modal-title">Title</h2>
+                    <p id="modal-author">Author</p>
+                    <span id="modal-genre" class="book-badge">Genre</span>
+                    
+                    <div class="target-badge desktop-only-qr">Target: #<span id="modal-book-id">0</span></div>
+                    
+                    <button id="mobile-share-btn" class="btn-secondary full-width mobile-only-share">
+                        <i data-lucide="share-2"></i> Share Book
+                    </button>
+                    
+                    <div class="qr-box desktop-only-qr">
+                        <div id="qrcode"></div>
+                        <p><i data-lucide="smartphone"></i> Scan for Mobile</p>
                     </div>
                 </div>
                 
-                <div class="target-badge" style="text-align: center;">Target: #<span id="modal-book-id">0</span></div>
-
-                <div id="carousel-wrapper" class="map-carousel">
-                    <button id="prev-img-btn" class="nav-arrow left"><i data-lucide="chevron-left"></i></button>
-                    <img id="carousel-img" src="">
-                    <button id="next-img-btn" class="nav-arrow right"><i data-lucide="chevron-right"></i></button>
-                    <div id="step-counter" class="step-tag">Step 1</div>
-                </div>
-                
-                <div id="mobile-action-area" class="action-area" style="display: none; margin-top:15px;">
-                    <button class="btn-primary full-width large" onclick="showSuccessScreen()"><i data-lucide="check-circle-2"></i> I Found It!</button>
-                </div>
-
-                <div class="qr-box desktop-only-qr">
-                    <div id="qrcode"></div>
-                    <p><i data-lucide="smartphone"></i> Scan for Mobile</p>
-                </div>
-                <button id="share-book-btn" class="btn-secondary full-width desktop-only-qr" style="margin-top:10px;"><i data-lucide="share-2"></i> Share Link</button>
-
-                <div id="neighbors-area" class="neighbors-wrap">
-                    <p class="section-title"><i data-lucide="library"></i> Also in this section:</p>
-                    <div id="neighbors-grid" class="neighbors-grid"></div>
+                <div class="book-right">
+                    <div id="carousel-wrapper" class="map-carousel">
+                        <button id="prev-img-btn" class="nav-arrow left"><i data-lucide="chevron-left"></i></button>
+                        <img id="carousel-img" src="">
+                        <button id="next-img-btn" class="nav-arrow right"><i data-lucide="chevron-right"></i></button>
+                        <div id="step-counter" class="step-tag">Step 1</div>
+                    </div>
+                    
+                    <div id="mobile-action-area" class="action-area" style="display: none;">
+                        <button class="btn-primary full-width large" onclick="showSuccessScreen()"><i data-lucide="check-circle-2"></i> I Found It!</button>
+                    </div>
                 </div>
             </div>
         </div>
