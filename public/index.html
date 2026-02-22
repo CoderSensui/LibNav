@@ -29,9 +29,9 @@
 
     <div id="side-menu-overlay" class="menu-overlay"></div>
     <div id="side-menu" class="side-menu">
-        <button id="close-menu" class="close-btn"><i data-lucide="x"></i></button>
-        <div class="menu-header">
+        <div class="menu-header-wrapper">
             <h2><i data-lucide="library"></i> Categories</h2>
+            <button id="close-menu" class="close-btn-side"><i data-lucide="x"></i></button>
         </div>
         <div class="menu-content">
             <button class="menu-item active" data-genre="All"><i data-lucide="book-open"></i> All Books</button>
@@ -88,22 +88,49 @@
                 </div>
                 <div class="action-list">
                     <button id="section-theme-toggle" class="action-btn"><i data-lucide="moon"></i> Toggle Dark/Light Mode</button>
-                    <button id="section-stats-btn" class="action-btn"><i data-lucide="bar-chart-2"></i> View Live Statistics</button>
+                    <button id="section-stats-btn" class="action-btn"><i data-lucide="activity"></i> View Live Statistics</button>
                     <button id="section-feedback-btn" class="action-btn"><i data-lucide="message-square"></i> Send Feedback</button>
+                </div>
+                <div class="tip-box">
+                    <div class="tip-header"><i data-lucide="lightbulb"></i> Quick Tip</div>
+                    <p id="dynamic-tip">Loading tip...</p>
                 </div>
             </div>
         </section>
 
         <section id="about-section" class="content-section">
-            <div class="card-box">
-                <div class="card-header">
-                    <div class="icon-box"><i data-lucide="compass"></i></div>
+            <div class="card-box about-box">
+                <div class="card-header borderless">
+                    <div class="icon-box dark-icon"><i data-lucide="compass"></i></div>
                     <h2>About LibNav</h2>
                 </div>
-                <p class="about-desc">LibNav is a smart library navigation system designed to help you find physical books instantly.</p>
+                <p class="about-desc">LibNav is a smart library navigation system designed to help you find physical books instantly. It bridges the gap between digital searching and physical shelves.</p>
+                
+                <div class="divider dark-divider"></div>
+
+                <div class="card-header borderless">
+                    <div class="icon-box dark-icon"><i data-lucide="book-open-check"></i></div>
+                    <h2>How to Use</h2>
+                </div>
+
                 <div class="steps-container">
-                    <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>Search</strong><span>Find your desired book via text or voice.</span></div></div>
-                    <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>Navigate</strong><span>Follow the step-by-step visual map to the shelf.</span></div></div>
+                    <div class="step-item">
+                        <div class="step-num">1</div>
+                        <div class="step-text"><strong>Search</strong><span>Find your desired book via text input or voice recognition.</span></div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">2</div>
+                        <div class="step-text"><strong>Navigate</strong><span>Tap a book cover to view the step-by-step visual map to its exact shelf.</span></div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">3</div>
+                        <div class="step-text"><strong>Companion Mode</strong><span>If you are on a PC, simply scan the QR code to seamlessly take the map with you on your phone.</span></div>
+                    </div>
+                </div>
+
+                <div class="tip-box warning solid-warning">
+                    <div class="tip-header"><i data-lucide="alert-triangle"></i> IMPORTANT REMINDER</div>
+                    <p>Don't forget to formally check out the book at the front desk before leaving the library!</p>
                 </div>
             </div>
         </section>
@@ -114,6 +141,18 @@
         <a href="#" data-section="tools" class="nav-tab"><i data-lucide="wrench"></i><span>Tools</span></a>
         <a href="#" data-section="about" class="nav-tab"><i data-lucide="info"></i><span>About</span></a>
     </nav>
+
+    <div id="custom-popup" class="modal-overlay" style="z-index: 9999;">
+        <div class="popup-box">
+            <div id="popup-icon" class="popup-icon-wrapper"><i data-lucide="bell"></i></div>
+            <h3 id="popup-title">Alert</h3>
+            <p id="popup-message">Message goes here</p>
+            <div class="popup-actions">
+                <button id="popup-cancel" class="btn-secondary" style="display:none;">Cancel</button>
+                <button id="popup-confirm" class="btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
 
     <div id="book-modal" class="modal-overlay">
         <div class="modal-box book-layout">
@@ -163,10 +202,19 @@
         </div>
     </div>
 
+    <div id="stats-modal" class="modal-overlay">
+        <div class="modal-box stats-layout">
+            <button class="close-btn"><i data-lucide="x"></i></button>
+            <div class="card-header center borderless"><div class="icon-box"><i data-lucide="activity"></i></div><h2>Live Statistics</h2></div>
+            <div id="stats-content">
+                </div>
+        </div>
+    </div>
+
     <div id="feedback-modal" class="modal-overlay">
         <div class="modal-box">
             <button class="close-btn"><i data-lucide="x"></i></button>
-            <div class="card-header center"><i data-lucide="star" style="color:var(--warning); width:32px; height:32px;"></i><h2>Feedback</h2></div>
+            <div class="card-header center borderless"><i data-lucide="star" style="color:var(--warning); width:32px; height:32px;"></i><h2>Feedback</h2></div>
             
             <form id="feedback-form" class="form-layout">
                 <div class="star-rating">
@@ -187,7 +235,7 @@
     <div id="admin-modal" class="modal-overlay">
         <div class="modal-box admin-layout">
             <button class="close-btn"><i data-lucide="x"></i></button>
-            <div class="card-header" style="border:none;"><div class="icon-box"><i data-lucide="shield"></i></div><h2>Admin Panel</h2></div>
+            <div class="card-header borderless"><div class="icon-box"><i data-lucide="shield"></i></div><h2>Admin Panel</h2></div>
             
             <div id="admin-login-screen">
                 <p class="input-label">Enter Access Key</p>
@@ -232,7 +280,7 @@
                     <button id="cancel-edit-btn" class="btn-secondary full-width" style="display:none;">Cancel</button>
                 </div>
                 
-                <h3 class="sub-title warning mt"><i data-lucide="database"></i> System Data</h3>
+                <h3 class="sub-title warning mt" style="margin-top:30px;"><i data-lucide="database"></i> System Data</h3>
                 <div id="admin-book-list" class="admin-list"></div>
             </div>
         </div>
