@@ -2,7 +2,7 @@
     --primary: #db2777;
     --primary-light: rgba(219, 39, 119, 0.15);
     
-    /* 🌙 Gemini-Style Dark Mode Palette */
+    /* Gemini-Style Dark Mode Palette */
     --bg-main: #131314; 
     --surface: #1e1e20;
     --surface-lighter: #28282a;
@@ -15,7 +15,7 @@
     --font-head: 'Gloria Hallelujah', cursive;
     --font-main: 'Outfit', sans-serif;
     --shadow: 0 8px 24px rgba(0,0,0,0.4);
-    --radius: 24px; /* Rounder corners for a "card" look */
+    --radius: 24px; 
 }
 
 body.light-mode {
@@ -55,7 +55,10 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted);}
 .search-actions { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: flex; gap: 8px;}
 
-/* Filter Dropdown */
+/* Dropdowns */
+.autocomplete-dropdown { position: absolute; top: 110%; width: 100%; background: var(--surface); border: 1px solid var(--border-color); border-radius: 16px; display: none; flex-direction: column; overflow: hidden; box-shadow: var(--shadow);}
+.auto-item { padding: 15px 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border-color); cursor: pointer;}
+.auto-text { display: flex; flex-direction: column; }
 .filter-dropdown { position: absolute; top: 110%; right: 0; width: 220px; background: var(--surface); border: 1px solid var(--border-color); border-radius: 16px; display: none; flex-direction: column; padding: 15px; box-shadow: var(--shadow); z-index: 60;}
 .filter-option { display: flex; align-items: center; gap: 12px; padding: 12px; cursor: pointer; border-radius: 8px; transition: 0.2s;}
 .filter-option:hover { background: var(--bg-main); }
@@ -68,12 +71,13 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .empty-state { text-align: center; color: var(--text-muted); padding: 40px 0; }
 .empty-state svg { width: 50px; height: 50px; margin-bottom: 15px; color: var(--border-color); }
 
-/* Buttons & Inputs */
+/* Buttons */
 .btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.2s;}
 .btn-primary:active { transform: scale(0.98); }
 .btn-secondary { width: 100%; background: var(--surface-lighter); border: 1px solid var(--border-color); color: var(--text-main); padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;}
 .btn-success { width: 100%; background: var(--success); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;}
-.admin-btn-group { display: flex; gap: 15px; margin-top: 20px; }
+.btn-outline-warning { width: 100%; background: transparent; border: 2px solid var(--warning); color: var(--warning); padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;}
+
 .input-field { width: 100%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); padding: 20px; border-radius: 16px; font-size: 1.1rem; outline: none; margin-bottom: 15px; transition: 0.3s;}
 .input-field:focus { border-color: var(--primary); }
 .input-with-icon { position: relative; }
@@ -83,13 +87,22 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;}
 
 /* Grid & Cards */
+.featured-wrap { margin-bottom: 30px; }
+.feat-tag { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: bold; color: var(--warning); text-transform: uppercase; margin-bottom: 15px;}
+.featured-card { background: var(--surface); border: 1px solid var(--border-color); padding: 20px; border-radius: var(--radius); display: flex; gap: 20px; align-items: center; cursor: pointer;}
+.feat-img-wrap { width: 90px; height: 135px; border-radius: 8px; background: var(--border-color); position: relative; flex-shrink: 0;}
+.feat-img-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px;}
+.feat-info { display: flex; flex-direction: column; gap: 8px; }
+.book-badge { background: var(--primary-light); color: var(--primary); padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; align-self: flex-start;}
+
 .shelf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px;}
 .book-card { display: flex; flex-direction: column; gap: 10px; cursor: pointer; animation: fadeInUp 0.4s both;}
 .cover-box { width: 100%; aspect-ratio: 2/3; background: var(--border-color); border-radius: 12px; position: relative; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.2);}
 .cover-box img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s;}
 .book-card:hover .cover-box img { transform: scale(1.05); }
 .fav-btn { position: absolute; top: 10px; right: 10px; width: 35px; height: 35px; border-radius: 50%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); border: none; color: white; display: flex; justify-content: center; align-items: center; transition: 0.2s;}
-.fav-btn.active svg { fill: var(--primary); stroke: var(--primary); }
+.fav-btn.active { background: var(--primary); border: 1px solid var(--primary); }
+.fav-btn.active svg { fill: white; stroke: white; }
 .book-info strong { font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;}
 .book-info small { color: var(--text-muted); }
 
@@ -106,14 +119,12 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .menu-item.active { background: var(--primary-light); color: var(--primary); font-weight: bold;}
 .divider { height: 1px; background: var(--border-color); margin: 10px 0; }
 
-/* 🌟 MODALS - SQUARE FIT REFACTOR */
+/* 🌟 MODALS */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 20px;}
-
-/* Proportional Card Look */
 .modal-box { 
     background: var(--surface); 
     width: 100%; 
-    max-width: 400px; /* Reduced to stop wide stretching */
+    max-width: 400px; 
     border-radius: var(--radius); 
     border: 1px solid var(--border-color); 
     padding: 35px 25px; 
@@ -122,17 +133,15 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
     overflow-y: auto;
     box-shadow: var(--shadow);
 }
-.popup-box { 
-    background: var(--surface); 
-    width: 100%; 
-    max-width: 320px; 
-    border-radius: var(--radius); 
-    text-align: center; 
-    padding: 35px 25px; 
-    position: relative; 
-    border: 1px solid var(--border-color); 
-    box-shadow: var(--shadow);
-}
+
+/* Close & Share Button in Modals */
+.close-btn { position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-muted); display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 50; transition: 0.2s;}
+.close-btn:hover { background: var(--surface-lighter); color: var(--primary); border-color: var(--primary); }
+
+.share-btn-top { position: absolute; top: 15px; left: 15px; width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-muted); display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 50; transition: 0.2s;}
+.share-btn-top:hover { background: var(--surface-lighter); color: var(--primary); border-color: var(--primary); }
+
+.popup-box { background: var(--surface); width: 100%; max-width: 320px; border-radius: var(--radius); text-align: center; padding: 35px 25px; position: relative; border: 1px solid var(--border-color); box-shadow: var(--shadow);}
 .popup-icon-wrapper { width: 70px; height: 70px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px;}
 .popup-actions { display: flex; gap: 10px; margin-top: 25px; }
 
@@ -145,7 +154,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .author-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .book-text-info h2 { font-size: 1.5rem; margin-bottom: 5px; }
 .book-text-info p { color: var(--text-muted); margin-bottom: 10px; }
-.book-badge { background: var(--primary-light); color: var(--primary); padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
 
 .map-carousel { width: 100%; aspect-ratio: 1/1; background: var(--bg-main); border-radius: 16px; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 20px; }
 .map-carousel img { width: 100%; height: 100%; object-fit: cover; }
@@ -165,12 +173,10 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .related-card { width: 100%; aspect-ratio: 2/3; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); cursor: pointer; }
 .related-card img { width: 100%; height: 100%; object-fit: cover; }
 
-/* Tools & About Customizations (Fixed Light Mode) */
+/* Tools & About Customizations */
 .card-box { background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 30px; display: flex; flex-direction: column; gap: 20px;}
 .card-header { display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px;}
-.borderless { border: none !important; padding-bottom: 0 !important; }
 .icon-box { width: 50px; height: 50px; background: var(--primary-light); color: var(--primary); border-radius: 16px; display: flex; justify-content: center; align-items: center;}
-.dark-icon { background: rgba(219, 39, 119, 0.1); }
 .action-list { display: flex; flex-direction: column; gap: 15px;}
 .action-btn { display: flex; align-items: center; gap: 15px; padding: 20px; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 16px; font-size: 1.1rem; cursor: pointer; transition: 0.2s;}
 .action-btn:hover { border-color: var(--primary); }
@@ -184,7 +190,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .step-text { display: flex; flex-direction: column; gap: 5px; margin-top: 4px;}
 .step-text strong { font-size: 1.2rem; color: var(--text-main); }
 .step-text span { color: var(--text-muted); line-height: 1.5;}
-.dark-divider { border-color: var(--border-color); }
 
 /* Stats Customization */
 .stats-banner { background: var(--primary-light); color: var(--primary); padding: 15px; border-radius: 16px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 20px; font-size: 0.95rem;}
@@ -218,9 +223,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 
 /* Desktop Queries */
 .desktop-only, .desktop-only-qr { display: none; }
-.close-btn { position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-muted); display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 50; transition: 0.2s;}
-.close-btn:hover { background: var(--surface-lighter); color: var(--text-main); }
-
 @media (min-width: 850px) {
     .mobile-only, .mobile-only-share, .bottom-nav { display: none !important; }
     .desktop-nav, .desktop-only { display: flex; }
@@ -234,7 +236,7 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
     .book-modal-grid { flex-direction: row; gap: 40px;}
     .book-left { width: 320px; flex-shrink: 0;}
     .book-right { flex: 1; }
-    .modal-box.book-layout { max-width: 850px; padding: 40px; } /* Proportional card for PC */
+    .modal-box.book-layout { max-width: 850px; padding: 40px; }
 }
 
 .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 80px; background: rgba(30, 30, 32, 0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; z-index: 100;}
@@ -243,14 +245,3 @@ body.light-mode .bottom-nav { background: rgba(255, 255, 255, 0.95); }
 .nav-tab.active { color: var(--primary); font-weight: bold;}
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-@media (max-width: 850px) {
-    /* Make the mobile share button smaller and tighter */
-    #mobile-share-btn.mobile-only-share {
-        padding: 12px;
-        font-size: 0.9rem;
-        width: auto;
-        min-width: 200px;
-        margin: 15px auto 0; /* Center it */
-        height: 45px;
-    }
