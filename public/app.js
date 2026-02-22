@@ -140,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(localStorage.getItem('theme') || 'dark');
         await LibraryDB.init();
         loadFeaturedBook(); 
+        performSearch(''); // <--- This forces the grid to load immediately
         renderIcons();
     }
 
