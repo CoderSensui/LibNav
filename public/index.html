@@ -15,7 +15,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=95">
+    <link rel="stylesheet" href="style.css?v=100">
 </head>
 <body>
 
@@ -77,14 +77,14 @@
                 </div>
                 
                 <div id="filter-menu" class="filter-dropdown shadow-premium">
-                    <label class="filter-option font-bold text-primary"><input type="checkbox" value="All"><span class="checkmark"></span><span>All Genres</span></label>
+                    <label class="filter-option font-bold text-primary"><input type="checkbox" value="All"><span class="checkmark"></span><span class="ml-2">All Genres</span></label>
                     <div class="divider"></div>
-                    <label class="filter-option"><input type="checkbox" value="Favorites"><span class="checkmark border-primary"></span><div class="flex-center gap-2 text-primary"><i data-lucide="bookmark" class="icon-small"></i><span>Bookmarks</span></div></label>
-                    <label class="filter-option"><input type="checkbox" value="Fiction"><span class="checkmark"></span><span>Fiction</span></label>
-                    <label class="filter-option"><input type="checkbox" value="Non-Fiction"><span class="checkmark"></span><span>Non-Fiction</span></label>
-                    <label class="filter-option"><input type="checkbox" value="Romance"><span class="checkmark"></span><span>Romance</span></label>
-                    <label class="filter-option"><input type="checkbox" value="Science"><span class="checkmark"></span><span>Science</span></label>
-                    <label class="filter-option"><input type="checkbox" value="History"><span class="checkmark"></span><span>History</span></label>
+                    <label class="filter-option"><input type="checkbox" value="Favorites"><span class="checkmark border-primary"></span><div class="flex-center gap-2 text-primary ml-2"><i data-lucide="bookmark" class="icon-small"></i><span>Bookmarks</span></div></label>
+                    <label class="filter-option"><input type="checkbox" value="Fiction"><span class="checkmark"></span><span class="ml-2">Fiction</span></label>
+                    <label class="filter-option"><input type="checkbox" value="Non-Fiction"><span class="checkmark"></span><span class="ml-2">Non-Fiction</span></label>
+                    <label class="filter-option"><input type="checkbox" value="Romance"><span class="checkmark"></span><span class="ml-2">Romance</span></label>
+                    <label class="filter-option"><input type="checkbox" value="Science"><span class="checkmark"></span><span class="ml-2">Science</span></label>
+                    <label class="filter-option"><input type="checkbox" value="History"><span class="checkmark"></span><span class="ml-2">History</span></label>
                 </div>
             </div>
 
@@ -100,14 +100,14 @@
                 </div>
                 
                 <div class="space-y-4 mb-10">
-                    <button id="section-theme-toggle" class="submit-btn bg-surface text-main border ripple flex-center justify-center gap-3 py-4">
+                    <button id="section-theme-toggle" class="submit-btn bg-surface text-main border ripple flex-center gap-3 py-4 text-left px-5">
                         <i data-lucide="moon"></i> Toggle Dark/Light Mode
                     </button>
-                    <button id="section-stats-btn" class="submit-btn bg-surface text-main border ripple flex-center justify-center gap-3 py-4">
+                    <button id="section-stats-btn" class="submit-btn bg-surface text-main border ripple flex-center gap-3 py-4 text-left px-5">
                         <i data-lucide="bar-chart-2"></i> View Live Statistics
                     </button>
-                    <button id="section-feedback-btn" class="submit-btn bg-surface text-main border ripple flex-center justify-center gap-3 py-4">
-                        <i data-lucide="message-square"></i> Send Feedback to Cloud
+                    <button id="section-feedback-btn" class="submit-btn bg-surface text-main border ripple flex-center gap-3 py-4 text-left px-5">
+                        <i data-lucide="message-square"></i> Send feedback to developer
                     </button>
                 </div>
 
@@ -171,7 +171,7 @@
 
     <nav class="bottom-nav shadow-premium-up mobile-only">
         <div class="nav-container relative w-full flex justify-between">
-            <a href="#" id="bottom-home-btn" data-section="home" class="nav-item active text-primary">
+            <a href="#" data-section="home" class="nav-item active text-primary">
                 <i data-lucide="home"></i><span>Home</span>
             </a>
             <a href="#" data-section="tools" class="nav-item text-muted">
@@ -218,12 +218,16 @@
                         <div id="qrcode" class="p-3 bg-white rounded-xl mb-3"></div>
                         <p class="text-sm text-muted font-bold flex-center justify-center gap-2"><i data-lucide="smartphone"></i> Scan for Mobile</p>
                     </div>
+                    
+                    <button id="share-book-btn" class="w-full mt-4 submit-btn bg-surface text-primary border ripple flex-center justify-center gap-3 text-sm py-3 shadow-premium-sm">
+                        <i data-lucide="share-2" class="w-4 h-4"></i> Share Link
+                    </button>
                 </div>
                 
                 <div class="modal-right-col w-full">
                     <div id="carousel-wrapper" class="carousel-wrapper skeleton border border-color">
                         <button id="prev-img-btn" class="carousel-btn prev ripple"><i data-lucide="chevron-left"></i></button>
-                        <img id="carousel-img" src="" class="shelf-photo" style="opacity:0; transition:0.3s;">
+                        <img id="carousel-img" src="" class="shelf-photo" style="display:block;">
                         <button id="next-img-btn" class="carousel-btn next ripple"><i data-lucide="chevron-right"></i></button>
                         <div id="step-counter" class="step-counter backdrop-blur shadow-premium-sm">Step 1</div>
                     </div>
@@ -235,7 +239,7 @@
                     </div>
                     
                     <div id="neighbors-area" class="mt-8 text-left w-full border-t border-color pt-6">
-                        <p class="text-sm font-bold text-muted uppercase tracking-wider mb-4 flex-center gap-2"><i data-lucide="library" class="icon-small"></i> Also in this section</p>
+                        <p class="text-sm font-bold text-muted uppercase tracking-wider mb-4 flex-center gap-2"><i data-lucide="library" class="icon-small"></i> Also in this section:</p>
                         <div id="neighbors-grid" class="neighbors-grid"></div>
                     </div>
                 </div>
@@ -293,7 +297,6 @@
                 <button id="cancel-edit-btn" class="submit-btn w-full ripple mt-3 bg-surface text-muted border shadow-premium-sm py-4" style="display:none;">Cancel Edit</button>
                 
                 <h3 class="font-bold mt-10 mb-4 border-b border-color pb-3 text-warning flex-center gap-3 text-xl"><i data-lucide="database"></i> System Data</h3>
-                
                 <div id="admin-book-list" class="flex flex-col gap-3 max-h-64 overflow-y-auto pr-2 mb-6"></div>
                 
                 <button id="factory-reset-btn" class="submit-btn w-full mt-4 border border-warning text-warning bg-transparent ripple flex-center justify-center gap-3 py-4"><i data-lucide="alert-octagon"></i> Factory Reset</button>
@@ -319,7 +322,7 @@
                 <i data-lucide="star" class="text-warning w-8 h-8"></i>
                 <h2 class="text-3xl font-bold text-main">Rate LibNav</h2>
             </div>
-            <p class="text-muted text-base mb-6 leading-relaxed">Your feedback is sent directly to our secure Firebase Cloud Database.</p>
+            <p class="text-muted text-base mb-6 leading-relaxed">Tell us what you think! This will be sent directly to the developers.</p>
             <form id="feedback-form">
                 <div class="star-rating mb-8 mt-4">
                     <input type="radio" id="star5" name="rating" value="5"><label for="star5">★</label>
@@ -329,9 +332,24 @@
                     <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
                 </div>
                 <input type="text" id="fb-name" class="form-input py-4" placeholder="Your Name">
+                <input type="email" id="fb-email" class="form-input py-4" placeholder="Your Email">
                 <textarea id="fb-message" class="form-input py-4" placeholder="Any suggestions for our defense?" required rows="4"></textarea>
-                <button type="submit" class="submit-btn w-full ripple mt-4 shadow-premium py-4 text-lg" id="fb-submit-btn">Send Feedback</button>
+                <button type="submit" class="submit-btn w-full ripple mt-4 shadow-premium py-4 text-lg flex-center justify-center gap-3" id="fb-submit-btn">
+                    <i data-lucide="send"></i> Send feedback to developer
+                </button>
             </form>
+        </div>
+    </div>
+
+    <div id="success-modal" class="modal-overlay">
+        <div class="modal-content text-center scale-modal relative" style="padding: 50px 30px;">
+            <button class="absolute-close ripple"><i data-lucide="x"></i></button>
+            <div class="mx-auto w-24 h-24 bg-success/10 text-success rounded-full flex-center justify-center mb-6 shadow-premium">
+                <i data-lucide="check-circle-2" class="w-12 h-12"></i>
+            </div>
+            <h2 class="text-main font-bold text-3xl mb-4">Mission Accomplished!</h2>
+            <p class="text-muted text-base mb-8 leading-relaxed">You found the book! Don't forget to formally check it out at the front desk before you leave.</p>
+            <button class="submit-btn ripple w-full shadow-premium py-4 text-lg" onclick="closeSuccessScreen()">Got it, thanks!</button>
         </div>
     </div>
 
