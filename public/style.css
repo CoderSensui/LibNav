@@ -52,7 +52,7 @@ body {
 @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 @keyframes pulse { 0% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 0.7; } }
 
-.highlight-text { background: rgba(255, 196, 214, 0.3); color: var(--primary-pink); font-weight: bold; padding: 0 2px; border-radius: 2px; }
+.highlight-text { background: rgba(219, 39, 119, 0.3); color: var(--primary-pink); font-weight: bold; padding: 0 2px; border-radius: 2px; }
 
 /* =========================================================
    OFFLINE BANNER & TOP CONTROLS
@@ -63,11 +63,12 @@ body {
 .top-controls { position: fixed; top: 0; width: 100%; padding: 20px; z-index: 100; display: flex; justify-content: space-between; align-items: center; pointer-events: none;}
 .left-controls { display: flex; gap: 15px; align-items: center; pointer-events: auto; }
 
+/* TOP RIGHT ADMIN LOGO */
 .header-logo { font-family: var(--font-head); font-size: 1.8rem; color: var(--primary-pink); cursor: pointer; text-shadow: 0 0 10px rgba(255, 196, 214, 0.5); user-select: none; pointer-events: auto;}
 .header-logo:hover { text-shadow: 0 0 20px var(--primary-pink); }
 .header-logo:active { transform: scale(0.95); opacity: 0.8; }
 
-.nav-btn { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 15px; color: var(--text-muted); padding: 10px 15px; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: all 0.3s var(--ease-bounce); }
+.nav-btn { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 15px; color: var(--text-muted); padding: 10px 15px; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: all 0.3s var(--ease-bounce); pointer-events: auto;}
 .nav-btn svg { width: 24px; height: 24px; }
 .nav-btn:hover, .nav-btn:active { color: var(--primary-pink); border-color: var(--primary-pink); box-shadow: 0 0 15px rgba(255, 196, 214, 0.4); transform: scale(1.05); }
 
@@ -75,7 +76,7 @@ body {
 .home-hidden { opacity: 0 !important; pointer-events: none !important; transform: translateX(-20px) !important; }
 
 /* =========================================================
-   SIDE MENU
+   SIDE MENU (REVERTED BACK TO NORMAL CATEGORIES)
    ========================================================= */
 .side-menu { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: var(--bg-card); z-index: 200; transition: left 0.4s var(--ease-bounce); padding: 20px; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; box-shadow: 5px 0 30px rgba(0,0,0,0.5); }
 .side-menu.active { left: 0; }
@@ -92,22 +93,21 @@ body {
 .quick-btn.wide.active { background: var(--primary-pink); color: var(--bg-main); font-weight: bold; transform: translateX(5px); box-shadow: 0 0 15px var(--primary-pink); }
 
 /* =========================================================
-   HERO, SEARCH & PILLS
+   HERO & MINION (MIDDLE LOGO)
    ========================================================= */
 .container { max-width: 500px; margin: 80px auto 0; padding: 20px; }
 .hero { text-align: center; margin-bottom: 35px; transition: all 0.5s var(--ease-bounce); position: relative; }
 .hero.minimized { height: 0; opacity: 0; overflow: hidden; margin: 0; transform: scale(0.8);}
-.glow-text { font-family: var(--font-head); font-size: 3.5rem; color: var(--primary-pink); text-shadow: 0 0 15px rgba(255, 196, 214, 0.4); margin-bottom: 5px; transition: text-shadow 0.3s ease; position: relative; display: inline-block; cursor: pointer;}
+.glow-text { font-family: var(--font-head); font-size: 3.5rem; color: var(--primary-pink); text-shadow: 0 0 15px rgba(255, 196, 214, 0.4); margin-bottom: 5px; transition: text-shadow 0.3s ease; position: relative; display: inline-block; cursor: pointer; user-select: none;}
 .glow-text:hover { text-shadow: 0 0 25px rgba(255, 196, 214, 0.8), 0 0 10px var(--primary-pink); }
+.text-pink { color: var(--primary-pink); }
 
-/* Horizontal Category Pills */
-.category-pills { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; scrollbar-width: none; }
-.category-pills::-webkit-scrollbar { display: none; }
-.pill-btn { background: var(--bg-chip); border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; white-space: nowrap; cursor: pointer; transition: 0.3s; font-family: var(--font-body); font-size: 0.9rem;}
-.pill-btn.active { background: var(--primary-pink); color: var(--bg-main); font-weight: bold; border-color: var(--primary-pink); box-shadow: 0 4px 10px rgba(255, 196, 214, 0.3);}
+#minion-container { position: absolute; left: 50%; top: -10px; transform: translateX(-50%); width: 250px; height: 60px; overflow: hidden; pointer-events: none;}
 
-/* Search Bar */
-.search-wrapper { position: relative; margin-bottom: 20px; z-index: 50; }
+/* =========================================================
+   SEARCH BAR & AUTOCOMPLETE
+   ========================================================= */
+.search-wrapper { position: relative; margin-bottom: 30px; z-index: 50; }
 #search-input { width: 100%; padding: 16px 95px 16px 50px; border-radius: 30px; border: 2px solid var(--border-color); background: var(--bg-card); color: var(--text-main); font-size: 1.05rem; outline: none; box-shadow: var(--shadow); transition: all 0.3s ease; font-family: var(--font-body);}
 #search-input:focus { border-color: var(--primary-pink); box-shadow: 0 0 0 4px rgba(255, 196, 214, 0.15), 0 0 20px rgba(255, 196, 214, 0.1); }
 .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;}
@@ -116,7 +116,6 @@ body {
 .icon-btn:hover { background: var(--border-color); transform: scale(1.1); box-shadow: 0 0 10px rgba(255, 196, 214, 0.4); }
 .icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
-/* Autocomplete & Filter Menus */
 .autocomplete-dropdown { position: absolute; top: 110%; left: 0; right: 0; background: var(--bg-card); border-radius: 15px; border: 1px solid var(--border-color); box-shadow: 0 15px 30px rgba(0,0,0,0.5); z-index: 2000; display: none; overflow: hidden; animation: simpleFade 0.2s ease-out; }
 .autocomplete-item { padding: 12px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid var(--border-color); transition: background 0.2s; text-align: left; }
 .autocomplete-item:last-child { border-bottom: none; }
@@ -143,6 +142,8 @@ body {
 .featured-card:hover { transform: translateY(-3px); border-color: var(--primary-pink); box-shadow: 0 10px 20px -5px rgba(255, 196, 214, 0.2); }
 .featured-cover { width: 80px; height: 120px; border-radius: 5px 8px 8px 5px; background-color: #5D4037; background-size: cover; background-position: center; box-shadow: 3px 3px 10px rgba(0,0,0,0.4); flex-shrink: 0; position: relative; border-left: 3px solid rgba(255,255,255,0.1); overflow: hidden; }
 
+.chip { background: rgba(255, 196, 214, 0.1); color: var(--primary-pink); padding: 5px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; border: 1px solid rgba(255, 196, 214, 0.2); }
+
 .shelf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; padding-bottom: 100px; will-change: transform;}
 .shelf-book-card { display: flex; flex-direction: column; cursor: pointer; transition: transform 0.2s ease-out; opacity: 0; animation: fadeInUp 0.4s ease-out forwards; position: relative; transform: translateZ(0); }
 .shelf-book-card:hover { transform: translateY(-5px); }
@@ -159,7 +160,7 @@ body {
 .shelf-author { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* =========================================================
-   MODALS (BOOK, ADMIN, SUCCESS, STATS, POPUP)
+   MODALS (BOOK, ADMIN, SUCCESS, STATS, CUSTOM POPUP)
    ========================================================= */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s;}
 .modal-overlay.active { display: flex; opacity: 1;}
@@ -167,7 +168,7 @@ body {
 .modal-overlay.active .modal-content { transform: scale(1); }
 .close-modal { position: absolute; top: 20px; right: 20px; background: var(--bg-chip); width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: none; color: var(--text-main); z-index: 50; }
 
-/* Modal Elements */
+/* Modal Cover UI */
 .modal-cover-wrapper { width: 140px; aspect-ratio: 2/3; margin: 0 auto 20px auto; border-radius: 10px; box-shadow: 0 15px 35px -5px rgba(255,196,214,0.3); overflow: hidden; background: var(--bg-chip); position: relative;}
 .modal-book-cover { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: 0.3s; }
 .modal-header-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
@@ -238,7 +239,7 @@ body.is-mobile-device .destination-badge { background: transparent !important; b
 body.is-mobile-device .found-btn { width: 100% !important; padding: 18px !important; border-radius: 20px !important; font-size: 1.2rem !important; margin-top: 10px !important; background: var(--primary-pink); color: var(--bg-main); border: none; cursor: pointer; font-weight: bold; box-shadow: 0 10px 25px rgba(219, 39, 119, 0.4); }
 
 body.companion-mode-active { overflow: hidden !important; }
-body.companion-mode-active .top-controls, body.companion-mode-active .search-wrapper, body.companion-mode-active .hero, body.companion-mode-active .floating-actions, body.companion-mode-active .featured-section, body.companion-mode-active #results-area, body.companion-mode-active #screensaver, body.companion-mode-active .category-pills { display: none !important; }
+body.companion-mode-active .top-controls, body.companion-mode-active .search-wrapper, body.companion-mode-active .hero, body.companion-mode-active .floating-actions, body.companion-mode-active .featured-section, body.companion-mode-active #results-area, body.companion-mode-active #screensaver { display: none !important; }
 body.companion-mode-active #book-modal.modal-overlay { display: flex !important; background: var(--bg-main) !important; opacity: 1 !important; pointer-events: all !important; position: fixed !important; inset: 0 !important; z-index: 9999 !important; }
 body.companion-mode-active #book-modal .modal-content { width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; border-radius: 0 !important; border: none !important; justify-content: flex-start !important; box-shadow: none !important; transform: scale(1) !important; overflow-y:auto; padding-top: 40px;}
 body.companion-mode-active #success-modal.modal-overlay.active { display: flex !important; background: var(--bg-main) !important; opacity: 1 !important; pointer-events: all !important; position: fixed !important; inset: 0 !important; z-index: 10000 !important; }
