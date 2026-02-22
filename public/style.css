@@ -2,7 +2,6 @@
     --primary: #db2777;
     --primary-light: rgba(219, 39, 119, 0.15);
     
-    /* Gemini-Style Dark Mode Palette */
     --bg-main: #131314; 
     --surface: #1e1e20;
     --surface-lighter: #28282a;
@@ -32,7 +31,6 @@ body.light-mode {
 body { background: var(--bg-main); color: var(--text-main); transition: background-color 0.3s, color 0.3s; -webkit-tap-highlight-color: transparent;}
 svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; flex-shrink: 0;}
 
-/* Header & Typography */
 .app-header { position: fixed; top: 0; width: 100%; height: 70px; background: rgba(19, 19, 20, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 100; transition: background-color 0.3s;}
 body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .header-left, .header-right { display: flex; align-items: center; gap: 15px;}
@@ -45,7 +43,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .hero-subtitle { color: var(--text-muted); margin-top: 10px; font-size: 1.1rem;}
 #minion-container { position: absolute; left: 50%; top: -10px; transform: translateX(-50%); width: 250px; height: 60px; overflow: hidden; pointer-events: none; display:none;}
 
-/* Search & Inputs */
 .main-container { max-width: 500px; margin: 90px auto 100px; padding: 0 20px; }
 .content-section { display: none; animation: fadeIn 0.3s ease; }
 .content-section.active { display: block; }
@@ -55,7 +52,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted);}
 .search-actions { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: flex; gap: 8px;}
 
-/* Dropdowns */
 .autocomplete-dropdown { position: absolute; top: 110%; width: 100%; background: var(--surface); border: 1px solid var(--border-color); border-radius: 16px; display: none; flex-direction: column; overflow: hidden; box-shadow: var(--shadow);}
 .auto-item { padding: 15px 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border-color); cursor: pointer;}
 .auto-text { display: flex; flex-direction: column; }
@@ -71,7 +67,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .empty-state { text-align: center; color: var(--text-muted); padding: 40px 0; }
 .empty-state svg { width: 50px; height: 50px; margin-bottom: 15px; color: var(--border-color); }
 
-/* Buttons */
 .btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.2s;}
 .btn-primary:active { transform: scale(0.98); }
 .btn-secondary { width: 100%; background: var(--surface-lighter); border: 1px solid var(--border-color); color: var(--text-main); padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;}
@@ -86,7 +81,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .mt { margin-top: 20px; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;}
 
-/* Grid & Cards */
 .featured-wrap { margin-bottom: 30px; }
 .feat-tag { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: bold; color: var(--warning); text-transform: uppercase; margin-bottom: 15px;}
 .featured-card { background: var(--surface); border: 1px solid var(--border-color); padding: 20px; border-radius: var(--radius); display: flex; gap: 20px; align-items: center; cursor: pointer;}
@@ -106,7 +100,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .book-info strong { font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;}
 .book-info small { color: var(--text-muted); }
 
-/* Sidebar */
 .side-menu { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: var(--surface); z-index: 200; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; border-right: 1px solid var(--border-color);}
 .side-menu.active { left: 0; box-shadow: var(--shadow); }
 .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 150; display: none; }
@@ -119,7 +112,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .menu-item.active { background: var(--primary-light); color: var(--primary); font-weight: bold;}
 .divider { height: 1px; background: var(--border-color); margin: 10px 0; }
 
-/* 🌟 MODALS */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 20px;}
 .modal-box { 
     background: var(--surface); 
@@ -134,7 +126,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
     box-shadow: var(--shadow);
 }
 
-/* Close & Share Button in Modals */
 .close-btn { position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-muted); display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 50; transition: 0.2s;}
 .close-btn:hover { background: var(--surface-lighter); color: var(--primary); border-color: var(--primary); }
 
@@ -145,12 +136,12 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .popup-icon-wrapper { width: 70px; height: 70px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px;}
 .popup-actions { display: flex; gap: 10px; margin-top: 25px; }
 
-/* THE FANCY BOOK MODAL */
+/* THE RESTORED FANCY BOOK MODAL */
 .fancy-book-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; text-align: center; }
-.cover-avatar-group { position: relative; margin-bottom: 20px; }
+.cover-avatar-group { position: relative; margin-bottom: 20px; margin-top: 15px;}
 .book-cover-wrap { width: 140px; height: 210px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
 .book-cover-wrap img { width: 100%; height: 100%; object-fit: cover; }
-.author-avatar { position: absolute; bottom: -20px; right: -20px; width: 70px; height: 70px; border-radius: 50%; border: 4px solid var(--surface); overflow: hidden; background: var(--bg-main); }
+.author-avatar { position: absolute; bottom: -20px; right: -20px; width: 70px; height: 70px; border-radius: 50%; border: 4px solid var(--surface); overflow: hidden; background: var(--bg-main); z-index: 5;}
 .author-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .book-text-info h2 { font-size: 1.5rem; margin-bottom: 5px; }
 .book-text-info p { color: var(--text-muted); margin-bottom: 10px; }
@@ -166,14 +157,12 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .qr-box { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
 #qrcode { padding: 10px; background: white; border-radius: 8px;}
 
-/* Virtual Shelf */
 .virtual-shelf-footer { margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px; }
 .virtual-shelf-footer h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;}
 .related-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .related-card { width: 100%; aspect-ratio: 2/3; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); cursor: pointer; }
 .related-card img { width: 100%; height: 100%; object-fit: cover; }
 
-/* Tools & About Customizations */
 .card-box { background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 30px; display: flex; flex-direction: column; gap: 20px;}
 .card-header { display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px;}
 .icon-box { width: 50px; height: 50px; background: var(--primary-light); color: var(--primary); border-radius: 16px; display: flex; justify-content: center; align-items: center;}
@@ -183,7 +172,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .tip-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); padding: 20px; border-radius: 16px; margin-top: 10px;}
 .tip-header { display: flex; align-items: center; gap: 10px; color: var(--warning); font-weight: bold; margin-bottom: 10px; text-transform: uppercase; font-size: 0.9rem;}
 
-/* About Steps Fix */
 .steps-container { display: flex; flex-direction: column; gap: 25px; margin-top: 10px;}
 .step-item { display: flex; gap: 20px; align-items: flex-start;}
 .step-num { width: 35px; height: 35px; background: var(--primary); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;}
@@ -191,7 +179,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .step-text strong { font-size: 1.2rem; color: var(--text-main); }
 .step-text span { color: var(--text-muted); line-height: 1.5;}
 
-/* Stats Customization */
 .stats-banner { background: var(--primary-light); color: var(--primary); padding: 15px; border-radius: 16px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 20px; font-size: 0.95rem;}
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;}
 .stat-box { background: var(--bg-main); border: 1px solid var(--border-color); padding: 20px; border-radius: 16px; display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center; justify-content: center;}
@@ -204,13 +191,11 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .view-tag { color: var(--success); font-weight: bold;}
 .stat-list-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border-color); font-size: 1rem;}
 
-/* Star Ratings */
 .star-rating { display: flex; flex-direction: row-reverse; justify-content: center; gap: 10px; margin-bottom: 30px;}
 .star-rating input { display: none !important; margin: 0; appearance: none; }
 .star-rating label { font-size: 3rem; color: var(--border-color); cursor: pointer; transition: color 0.2s;}
 .star-rating input:checked ~ label, .star-rating label:hover, .star-rating label:hover ~ label { color: var(--warning); }
 
-/* Admin List styling */
 .sub-title { font-size: 1.2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;}
 .admin-list { display: flex; flex-direction: column; gap: 15px; max-height: 250px; overflow-y: auto;}
 .admin-list-item { background: var(--bg-main); border: 1px solid var(--border-color); padding: 15px; border-radius: 16px; display: flex; flex-direction: column; gap: 10px;}
@@ -221,7 +206,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .btn-edit { flex: 1; background: var(--primary-light); color: var(--primary); border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;}
 .btn-delete { flex: 1; background: rgba(245,158,11,0.1); color: var(--warning); border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;}
 
-/* Desktop Queries */
 .desktop-only, .desktop-only-qr { display: none; }
 @media (min-width: 850px) {
     .mobile-only, .mobile-only-share, .bottom-nav { display: none !important; }
