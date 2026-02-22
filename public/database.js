@@ -23,14 +23,15 @@ const LibraryDB = {
                 this.books = []; 
             }
 
-            // 2. Load Ratings
+            // 2. Load Ratings (Handles both object format and array format)
             if (data.ratings) {
-                this.ratings = Object.values(data.ratings).filter(r => r !== null && r !== undefined);
+                // If ratings are stored as "-Key": 5, Object.values gets [5, 5, 4]
+                this.ratings = Object.values(data.ratings).filter(r => r !== null && r !== undefined && typeof r === 'number');
             } else {
                 this.ratings = [];
             }
 
-            console.log(`✅ Success: ${this.books.length} books loaded.`);
+            console.log(`✅ Success: ${this.books.length} books loaded. Ratings: ${this.ratings.length}`);
             return true;
         } catch (error) {
             console.error("❌ Firebase Error:", error);
@@ -40,6 +41,7 @@ const LibraryDB = {
 
     saveToCloud: async function() {
         try {
+            // We only save the books array here
             const response = await fetch(`${this.dbUrl}books.json`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -69,7 +71,12 @@ const LibraryDB = {
         const book = this.books.find(b => String(b.id) === String(id));
         if (book) {
             book.views = (book.views || 0) + 1;
-            await this.saveToCloud(); 
+            // Fire and forget update to speed up UI
+            fetch(`${this.dbUrl}books.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.books)
+            });
         }
     },
 
@@ -77,21 +84,36 @@ const LibraryDB = {
     submitRating: async function(stars) {
         try {
             this.ratings.push(stars);
+            // Push a new rating to the list (auto-ID)
             await fetch(`${this.dbUrl}ratings.json`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(stars)
             });
-        } catch (err) { console.error("Rating save failed", err); }
+            return true;
+        } catch (err) { 
+            console.error("Rating save failed", err); 
+            return false;
+        }
     },
 
-    // SOFT FACTORY RESET
+    // SOFT FACTORY RESET (Clears Views & Ratings)
     factoryReset: async function() {
+        // 1. Reset local book views
         this.books.forEach(b => b.views = 0);
+        
+        // 2. Save reset books to cloud
         await this.saveToCloud();
+
+        // 3. Delete ratings node entirely
         await fetch(`${this.dbUrl}ratings.json`, { method: 'DELETE' });
+        
+        // 4. Clear local ratings
         this.ratings = [];
-        localStorage.clear();
+        
+        // 5. Clear local storage favorites (Optional, but good for a full reset)
+        // localStorage.removeItem('libnav_favs'); 
+        
         return true;
     }
 };
