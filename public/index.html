@@ -15,7 +15,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=85">
+    <link rel="stylesheet" href="style.css?v=90">
 </head>
 <body>
 
@@ -23,25 +23,27 @@
         <i data-lucide="wifi-off" class="w-4 h-4"></i> <span>You are offline. Viewing cached library.</span>
     </div>
 
-    <header class="app-header">
+    <header class="app-header shadow-premium-sm">
         <div class="header-left">
-            <button id="hamburger-btn" class="icon-btn ripple"><i data-lucide="menu"></i></button>
+            <button id="hamburger-btn" class="icon-btn ripple mobile-only"><i data-lucide="menu"></i></button>
             <div class="desktop-nav">
                 <a href="#" class="desk-nav-item active" data-section="home"><i data-lucide="home"></i> Home</a>
                 <a href="#" class="desk-nav-item" data-section="about"><i data-lucide="info"></i> About</a>
             </div>
         </div>
         <div class="header-right">
-            <button id="desk-theme-toggle" class="icon-btn ripple desktop-only"><i data-lucide="moon"></i></button>
-            <button id="desk-stats-btn" class="icon-btn ripple desktop-only"><i data-lucide="bar-chart-2"></i></button>
+            <button id="desk-feedback-btn" class="icon-btn ripple desktop-only" title="Feedback"><i data-lucide="message-square"></i></button>
+            <button id="desk-stats-btn" class="icon-btn ripple desktop-only" title="Statistics"><i data-lucide="bar-chart-2"></i></button>
+            <button id="desk-theme-toggle" class="icon-btn ripple desktop-only" title="Toggle Theme"><i data-lucide="moon"></i></button>
+            
             <div id="secret-admin-btn" class="top-right-logo">LibNav</div>
         </div>
     </header>
 
     <div id="side-menu-overlay" class="menu-overlay"></div>
-    <div id="side-menu" class="side-menu">
-        <div class="menu-header">
-            <h2 class="text-primary font-bold flex-center gap-2"><i data-lucide="library"></i> Categories</h2>
+    <div id="side-menu" class="side-menu shadow-premium">
+        <div class="menu-header flex justify-between items-center w-full border-b border-color pb-4 mb-4">
+            <h2 class="text-primary font-bold flex-center gap-2 text-xl"><i data-lucide="library"></i> Categories</h2>
             <button id="close-menu" class="icon-btn ripple"><i data-lucide="x"></i></button>
         </div>
         <div class="menu-content sidebar-buttons">
@@ -64,7 +66,7 @@
                     <img id="minion-sprite" src="https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif" style="display:none; position:absolute; width:60px; z-index:99;">
                 </div>
                 <h1 class="hero-title" id="hero-title">LibNav</h1>
-                <p class="hero-subtitle">Find your way to the story</p>
+                <p class="hero-subtitle mt-1">Find your way to the story</p>
             </div>
 
             <div class="search-wrapper">
@@ -72,8 +74,8 @@
                 <input type="text" id="search-input" placeholder="Search title or author..." autocomplete="off">
                 <div id="autocomplete-dropdown" class="autocomplete-dropdown shadow-premium"></div>
                 <div class="search-actions">
-                    <button id="mic-btn" class="icon-btn ripple"><i data-lucide="mic"></i></button>
-                    <button id="filter-toggle" class="icon-btn ripple"><i data-lucide="sliders-horizontal"></i></button>
+                    <button id="mic-btn" class="icon-btn ripple flex-shrink-0"><i data-lucide="mic"></i></button>
+                    <button id="filter-toggle" class="icon-btn ripple flex-shrink-0"><i data-lucide="sliders-horizontal"></i></button>
                 </div>
                 
                 <div id="filter-menu" class="filter-dropdown">
@@ -94,38 +96,47 @@
 
         <section id="about-section" class="content-section">
             <div class="about-card shadow-premium">
-                <div class="flex-center gap-2 mb-4">
+                <div class="flex-center gap-3 mb-4">
                     <div class="icon-box"><i data-lucide="compass" class="text-primary"></i></div>
                     <h2 class="text-xl font-bold">About LibNav</h2>
                 </div>
-                <p class="text-muted text-sm leading-relaxed mb-6">
+                <p class="text-muted text-sm leading-relaxed mb-8">
                     LibNav is a smart library navigation system designed to help you find physical books instantly. It bridges the gap between digital searching and physical shelves.
                 </p>
 
-                <div class="flex-center gap-2 mb-4">
+                <div class="flex-center gap-3 mb-5">
                     <div class="icon-box"><i data-lucide="book-open-check" class="text-primary"></i></div>
                     <h2 class="text-xl font-bold">How to Use</h2>
                 </div>
-                <div class="space-y-4 mb-8">
+                <div class="space-y-6 mb-8">
                     <div class="step-row">
                         <div class="step-num">1</div>
-                        <div><span class="font-bold block">Search</span><span class="text-xs text-muted">Find your desired book via text or voice.</span></div>
+                        <div class="flex flex-col gap-1">
+                            <span class="font-bold text-main">Search</span>
+                            <span class="text-sm text-muted leading-relaxed">Find your desired book via text or voice.</span>
+                        </div>
                     </div>
                     <div class="step-row">
                         <div class="step-num">2</div>
-                        <div><span class="font-bold block">Navigate</span><span class="text-xs text-muted">Tap a book to view the step-by-step visual map to its shelf.</span></div>
+                        <div class="flex flex-col gap-1">
+                            <span class="font-bold text-main">Navigate</span>
+                            <span class="text-sm text-muted leading-relaxed">Tap a book to view the step-by-step visual map to its shelf.</span>
+                        </div>
                     </div>
                     <div class="step-row">
                         <div class="step-num">3</div>
-                        <div><span class="font-bold block">Companion Mode</span><span class="text-xs text-muted">On a PC? Scan the QR code to take the map on your phone.</span></div>
+                        <div class="flex flex-col gap-1">
+                            <span class="font-bold text-main">Companion Mode</span>
+                            <span class="text-sm text-muted leading-relaxed">On a PC? Scan the QR code to take the map on your phone.</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="warning-box mt-6">
-                    <div class="flex-center gap-2 mb-2 text-warning font-bold text-xs uppercase tracking-wider">
-                        <i data-lucide="alert-triangle" class="w-4 h-4"></i> Important Tip
+                <div class="warning-box mt-8">
+                    <div class="flex-center gap-2 mb-2 text-warning font-bold text-sm uppercase tracking-wider">
+                        <i data-lucide="alert-triangle" class="w-5 h-5"></i> Important Tip
                     </div>
-                    <p class="text-sm text-warning-muted">Don't forget to formally check out the book at the front desk before leaving the library!</p>
+                    <p class="text-sm text-warning-muted leading-relaxed">Don't forget to formally check out the book at the front desk before leaving the library!</p>
                 </div>
             </div>
         </section>
@@ -147,13 +158,13 @@
     </nav>
 
     <div id="tools-modal" class="modal-overlay">
-        <div class="modal-content scale-modal" style="margin-top: auto; border-bottom-left-radius: 0; border-bottom-right-radius: 0;">
-            <div class="flex justify-between items-center mb-6">
+        <div class="modal-content scale-modal shadow-premium-up" style="margin-top: auto; border-bottom-left-radius: 0; border-bottom-right-radius: 0; width: 100%; max-width: 100%;">
+            <div class="flex justify-between items-center w-full mb-6 border-b border-color pb-4">
                 <h2 class="text-xl font-bold flex-center gap-2"><i data-lucide="wrench" class="text-primary"></i> Tools</h2>
-                <button class="close-modal-inline icon-btn ripple"><i data-lucide="x"></i></button>
+                <button class="close-modal-inline icon-btn ripple flex-shrink-0"><i data-lucide="x"></i></button>
             </div>
-            <div class="space-y-3">
-                <button id="mobile-theme-toggle" class="quick-btn ripple bg-surface border shadow-premium-sm"><i data-lucide="moon"></i> Toggle Theme</button>
+            <div class="flex flex-col gap-3">
+                <button id="mobile-theme-toggle" class="quick-btn ripple bg-surface border shadow-premium-sm"><i data-lucide="moon"></i> Switch Theme</button>
                 <button id="open-stats-btn" class="quick-btn ripple bg-surface border shadow-premium-sm"><i data-lucide="bar-chart-2"></i> Live Statistics</button>
                 <button id="open-feedback-btn" class="quick-btn ripple bg-surface border shadow-premium-sm"><i data-lucide="message-square"></i> Send Feedback</button>
             </div>
@@ -165,8 +176,8 @@
             <div id="popup-icon" class="mx-auto w-16 h-16 flex-center justify-center mb-4 text-primary bg-primary-light rounded-full">
                 <i data-lucide="bell" class="w-8 h-8"></i>
             </div>
-            <h3 id="popup-title" class="text-xl font-bold mb-2">Alert</h3>
-            <p id="popup-message" class="text-muted text-sm mb-6">Message</p>
+            <h3 id="popup-title" class="text-xl font-bold mb-2 text-main">Alert</h3>
+            <p id="popup-message" class="text-muted text-sm mb-6 leading-relaxed">Message</p>
             <div class="flex gap-3 justify-center">
                 <button id="popup-cancel" class="submit-btn bg-surface text-muted border ripple" style="display:none;">Cancel</button>
                 <button id="popup-confirm" class="submit-btn ripple w-full">OK</button>
@@ -185,7 +196,7 @@
                     <div class="modal-header-row">
                         <img id="modal-author-pic" class="author-headshot skeleton shadow-premium" src="" style="display:none;">
                         <div class="modal-text-group">
-                            <h2 id="modal-title" class="font-bold text-xl leading-tight">Title</h2>
+                            <h2 id="modal-title" class="font-bold text-2xl leading-tight text-main">Title</h2>
                             <p id="modal-author" class="text-sm text-muted mt-1">Author</p>
                         </div>
                     </div>
@@ -194,26 +205,26 @@
                     
                     <div class="qr-section shadow-premium-sm desktop-only-qr">
                         <div id="qrcode" class="p-2 bg-white rounded-xl"></div>
-                        <p class="text-xs text-muted font-bold flex-center gap-1 mt-2"><i data-lucide="smartphone" class="w-3 h-3"></i> Scan for Mobile</p>
+                        <p class="text-xs text-muted font-bold flex-center justify-center gap-1 mt-3"><i data-lucide="smartphone" class="w-4 h-4"></i> Scan for Mobile</p>
                     </div>
                     
-                    <button id="share-book-btn" class="w-full mt-3 submit-btn bg-surface text-primary border ripple flex-center justify-center gap-2 text-sm py-3">
+                    <button id="share-book-btn" class="w-full mt-4 submit-btn bg-surface text-primary border ripple flex-center justify-center gap-2 text-sm py-3 shadow-premium-sm">
                         <i data-lucide="share-2" class="w-4 h-4"></i> Share Link
                     </button>
                 </div>
                 <div class="modal-right-col">
-                    <div id="carousel-wrapper" class="carousel-wrapper skeleton border">
+                    <div id="carousel-wrapper" class="carousel-wrapper skeleton shadow-premium-sm">
                         <button id="prev-img-btn" class="carousel-btn ripple"><i data-lucide="chevron-left"></i></button>
                         <img id="carousel-img" src="" class="shelf-photo" style="opacity:0; transition:0.3s;">
                         <button id="next-img-btn" class="carousel-btn ripple"><i data-lucide="chevron-right"></i></button>
-                        <div id="step-counter" class="step-counter backdrop-blur">Step 1</div>
+                        <div id="step-counter" class="step-counter backdrop-blur shadow-premium-sm">Step 1</div>
                     </div>
                     <div id="mobile-action-area" style="display: none;">
-                        <button class="submit-btn w-full ripple flex-center justify-center gap-2 shadow-premium mt-4" onclick="showSuccessScreen()">
+                        <button class="submit-btn w-full ripple flex-center justify-center gap-2 shadow-premium mt-4 text-lg py-4" onclick="showSuccessScreen()">
                             <i data-lucide="check-circle-2"></i> I Found It!
                         </button>
                     </div>
-                    <div id="neighbors-area" class="mt-6 text-left">
+                    <div id="neighbors-area" class="mt-6 text-left w-full">
                         <p class="text-xs font-bold text-muted uppercase tracking-wider mb-3">Also in this section:</p>
                         <div id="neighbors-grid" class="neighbors-grid"></div>
                     </div>
@@ -225,30 +236,30 @@
     <div id="admin-modal" class="modal-overlay">
         <div class="modal-content scale-modal text-left">
             <button class="close-modal ripple"><i data-lucide="x"></i></button>
-            <div class="flex-center gap-2 mb-6">
+            <div class="flex-center gap-3 mb-6 border-b border-color pb-4">
                 <div class="icon-box"><i data-lucide="shield" class="text-primary"></i></div>
-                <h2 class="text-xl font-bold">Admin Panel</h2>
+                <h2 class="text-xl font-bold text-main">Admin Panel</h2>
             </div>
             
             <div id="admin-login-screen">
-                <p class="text-sm text-muted mb-2">Enter Access Key</p>
-                <div class="relative mb-4">
+                <p class="text-sm text-muted mb-2 font-medium">Enter Access Key</p>
+                <div class="relative mb-5">
                     <i data-lucide="lock" class="absolute left-3 top-3.5 text-muted w-5 h-5"></i>
                     <input type="password" id="admin-password" class="form-input pl-10" placeholder="Password">
                 </div>
-                <button id="admin-auth-btn" class="submit-btn ripple w-full">Login</button>
+                <button id="admin-auth-btn" class="submit-btn ripple w-full shadow-premium-sm">Login</button>
             </div>
             
             <div id="admin-dashboard" style="display:none;">
-                <h3 id="admin-form-title" class="font-bold mb-3 border-b border-color pb-2">Add New Book</h3>
+                <h3 id="admin-form-title" class="font-bold mb-4 text-main text-lg">Add New Book</h3>
                 <input type="hidden" id="edit-book-id" value="">
                 
                 <input type="text" id="new-title" class="form-input" placeholder="Book Title">
                 <input type="text" id="new-author" class="form-input" placeholder="Author Name">
                 
-                <div class="grid-2 gap-3 mb-3">
+                <div class="grid-2 gap-4 mb-4">
                     <div>
-                        <label class="text-xs text-muted font-bold block mb-1">Genre</label>
+                        <label class="text-xs text-muted font-bold block mb-2 uppercase tracking-wider">Genre</label>
                         <select id="new-genre" class="form-input">
                             <option value="Fiction">Fiction</option>
                             <option value="Non-Fiction">Non-Fiction</option>
@@ -258,7 +269,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-xs text-muted font-bold block mb-1">Nav Steps</label>
+                        <label class="text-xs text-muted font-bold block mb-2 uppercase tracking-wider">Nav Steps</label>
                         <select id="step-count-select" class="form-input">
                             <option value="2">2 Steps</option>
                             <option value="3">3 Steps</option>
@@ -268,11 +279,11 @@
                 </div>
                 
                 <div id="image-inputs-container"></div>
-                <button id="add-book-btn" class="submit-btn w-full ripple shadow-premium mt-2 flex-center justify-center gap-2 bg-success text-white"><i data-lucide="upload-cloud"></i> Add to Cloud</button>
-                <button id="cancel-edit-btn" class="submit-btn w-full ripple mt-2 bg-surface text-muted border" style="display:none;">Cancel Edit</button>
+                <button id="add-book-btn" class="submit-btn w-full ripple shadow-premium mt-4 flex-center justify-center gap-2 bg-success text-white"><i data-lucide="upload-cloud"></i> Add to Cloud</button>
+                <button id="cancel-edit-btn" class="submit-btn w-full ripple mt-3 bg-surface text-muted border shadow-premium-sm" style="display:none;">Cancel Edit</button>
                 
-                <h3 class="font-bold mt-6 mb-3 border-b border-color pb-2 text-warning flex-center gap-2"><i data-lucide="database"></i> System Data</h3>
-                <div id="admin-book-list" class="space-y-2 max-h-48 overflow-y-auto pr-2"></div>
+                <h3 class="font-bold mt-8 mb-4 border-b border-color pb-3 text-warning flex-center gap-2 text-lg"><i data-lucide="database"></i> System Data</h3>
+                <div id="admin-book-list" class="flex flex-col gap-3 max-h-64 overflow-y-auto pr-2"></div>
                 
                 <button id="factory-reset-btn" class="submit-btn w-full mt-6 border border-warning text-warning bg-transparent ripple flex-center justify-center gap-2"><i data-lucide="alert-octagon"></i> Factory Reset</button>
             </div>
@@ -282,9 +293,9 @@
     <div id="stats-modal" class="modal-overlay">
         <div class="modal-content scale-modal text-left">
             <button class="close-modal ripple"><i data-lucide="x"></i></button>
-            <div class="flex-center gap-2 mb-6">
+            <div class="flex-center gap-3 mb-6 border-b border-color pb-4">
                 <div class="icon-box"><i data-lucide="activity" class="text-primary"></i></div>
-                <h2 class="text-xl font-bold">Live Statistics</h2>
+                <h2 class="text-xl font-bold text-main">Live Statistics</h2>
             </div>
             <div id="stats-content"></div>
         </div>
@@ -293,10 +304,11 @@
     <div id="feedback-modal" class="modal-overlay">
         <div class="modal-content scale-modal">
             <button class="close-modal ripple"><i data-lucide="x"></i></button>
-            <div class="flex-center justify-center gap-2 mb-4">
+            <div class="flex-center justify-center gap-2 mb-2">
                 <i data-lucide="star" class="text-warning w-6 h-6"></i>
-                <h2 class="text-xl font-bold">Rate LibNav</h2>
+                <h2 class="text-2xl font-bold text-main">Rate LibNav</h2>
             </div>
+            <p class="text-muted text-sm mb-4">Your feedback is sent directly to the Firebase Cloud.</p>
             <form id="feedback-form">
                 <div class="star-rating mb-6 mt-2">
                     <input type="radio" id="star5" name="rating" value="5"><label for="star5">★</label>
@@ -306,13 +318,24 @@
                     <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
                 </div>
                 <input type="text" id="fb-name" class="form-input" placeholder="Your Name">
-                <textarea id="fb-message" class="form-input" placeholder="Any suggestions?" required rows="3"></textarea>
-                <button type="submit" class="submit-btn w-full ripple mt-2" id="fb-submit-btn">Send Feedback</button>
+                <textarea id="fb-message" class="form-input" placeholder="Any suggestions for our defense?" required rows="3"></textarea>
+                <button type="submit" class="submit-btn w-full ripple mt-2 shadow-premium" id="fb-submit-btn">Send Feedback</button>
             </form>
         </div>
     </div>
 
-    <div id="screensaver" class="screensaver"><h1 class="hero-title text-5xl">LibNav</h1><p class="mt-4 text-muted animate-pulse font-bold">Touch screen to start</p></div>
+    <div id="success-modal" class="modal-overlay">
+        <div class="modal-content text-center scale-modal" style="padding: 40px 20px;">
+            <div class="mx-auto w-20 h-20 bg-success/10 text-success rounded-full flex-center justify-center mb-5 shadow-premium">
+                <i data-lucide="check-circle-2" class="w-10 h-10"></i>
+            </div>
+            <h2 class="text-main font-bold text-2xl mb-3">Mission Accomplished!</h2>
+            <p class="text-muted text-sm mb-8 leading-relaxed">You found the book! Don't forget to formally check it out at the front desk before you leave.</p>
+            <button class="submit-btn ripple w-full shadow-premium" onclick="closeSuccessScreen()">Got it, thanks!</button>
+        </div>
+    </div>
+
+    <div id="screensaver" class="screensaver"><h1 class="hero-title text-5xl">LibNav</h1><p class="mt-4 text-muted animate-pulse font-bold tracking-widest uppercase text-sm">Touch screen to start</p></div>
 
     <script src="database.js"></script>
     <script src="app.js"></script>
