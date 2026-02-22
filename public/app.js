@@ -1,13 +1,11 @@
 /* app.js - Fully Debugged Engine & Safe Init */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- SAFE INITIALIZE ICONS ---
+    
+    // SAFE ICONS
     function refreshIcons() {
-        try {
-            if(typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        } catch(err) { console.error("Icon render error", err); }
+        try { if(typeof lucide !== 'undefined') lucide.createIcons(); } 
+        catch(err) { console.error("Icon error", err); }
     }
 
     const searchInput = document.getElementById('search-input');
@@ -17,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const hero = document.getElementById('hero');
     const sideMenu = document.getElementById('side-menu');
     const sideMenuOverlay = document.getElementById('side-menu-overlay');
-    const closeMenuBtn = document.getElementById('close-menu');
     const micBtn = document.getElementById('mic-btn');
     const screensaver = document.getElementById('screensaver');
     const offlineBanner = document.getElementById('offline-banner');
@@ -44,6 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentImages = [];
     let currentImageIndex = 0;
 
+    // --- DYNAMIC TIPS ARRAY ---
+    const tips = [
+        "Use the microphone icon to search for books hands-free.",
+        "Bookmark a book to instantly find it later.",
+        "Tap the main LibNav logo on the home screen to summon a minion!",
+        "Scan the QR code on a PC to transfer the map to your phone.",
+        "Switch to Dark Mode for comfortable viewing in low light."
+    ];
+
     // --- SMART THEME ENGINE ---
     function getInitialTheme() {
         const saved = localStorage.getItem('theme');
@@ -54,18 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return (hour >= 6 && hour < 18) ? 'light' : 'dark';
     }
     function applyTheme(mode) {
-        const dBtn = document.getElementById('desk-theme-toggle');
-        const mBtn = document.getElementById('mobile-theme-toggle');
-        if(mode === 'light') {
-            document.body.classList.add('light-mode');
-            if(dBtn) dBtn.innerHTML = '<i data-lucide="moon"></i>';
-            if(mBtn) mBtn.innerHTML = '<i data-lucide="moon" class="w-4 h-4"></i> Switch to Dark Mode';
-        } else {
-            document.body.classList.remove('light-mode');
-            if(dBtn) dBtn.innerHTML = '<i data-lucide="sun"></i>';
-            if(mBtn) mBtn.innerHTML = '<i data-lucide="sun" class="w-4 h-4"></i> Switch to Light Mode';
-        }
-        refreshIcons();
+        if(mode === 'light') { document.body.classList.add('light-mode'); } 
+        else { document.body.classList.remove('light-mode'); }
     }
     function toggleThemeAction() {
         vibrate();
@@ -74,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(isLight ? 'light' : 'dark');
     }
     document.getElementById('desk-theme-toggle')?.addEventListener('click', toggleThemeAction);
-    document.getElementById('mobile-theme-toggle')?.addEventListener('click', () => { toggleThemeAction(); document.getElementById('tools-modal').classList.remove('active'); });
+    document.getElementById('section-theme-toggle')?.addEventListener('click', toggleThemeAction);
 
     // --- CUSTOM POPUP (NO ALERTS) ---
     const popupOverlay = document.getElementById('custom-popup');
@@ -83,10 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('popup-message').innerText = msg;
         
         const iconEl = document.getElementById('popup-icon');
-        iconEl.innerHTML = `<i data-lucide="${type}" class="w-8 h-8"></i>`;
-        if(type === 'check-circle') { iconEl.className = 'mx-auto w-16 h-16 flex-center justify-center mb-4 text-success bg-success/10 rounded-full shadow-premium-sm'; }
-        else if(type === 'alert-triangle') { iconEl.className = 'mx-auto w-16 h-16 flex-center justify-center mb-4 text-warning bg-warning/10 rounded-full shadow-premium-sm'; }
-        else { iconEl.className = 'mx-auto w-16 h-16 flex-center justify-center mb-4 text-primary bg-primary-light rounded-full shadow-premium-sm'; }
+        iconEl.innerHTML = `<i data-lucide="${type}" class="w-10 h-10"></i>`;
+        if(type === 'check-circle') { iconEl.className = 'mx-auto w-20 h-20 flex-center justify-center mb-6 text-success bg-success/10 rounded-full shadow-premium-sm'; }
+        else if(type === 'alert-triangle') { iconEl.className = 'mx-auto w-20 h-20 flex-center justify-center mb-6 text-warning bg-warning/10 rounded-full shadow-premium-sm'; }
+        else { iconEl.className = 'mx-auto w-20 h-20 flex-center justify-center mb-6 text-primary bg-primary-light rounded-full shadow-premium-sm'; }
         
         refreshIcons();
         popupOverlay.classList.add('active');
@@ -98,13 +94,14 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelBtn.onclick = () => popupOverlay.classList.remove('active');
     }
 
-    // --- MINION EASTER EGG (Middle Logo) ---
+    // --- MINION EASTER EGG ---
     const heroTitle = document.getElementById('hero-title');
     const minionSprite = document.getElementById('minion-sprite');
     heroTitle.innerHTML = heroTitle.textContent.split('').map(l => `<span class="hero-letter" style="display:inline-block; transition: transform 0.2s;">${l}</span>`).join('');
 
     heroTitle.addEventListener('click', () => {
         if(minionSprite.style.display === 'block') return;
+        vibrate();
         minionSprite.style.display = 'block'; minionSprite.style.left = '-60px';
         let pos = -60;
         const interval = setInterval(() => {
@@ -122,11 +119,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- NETWORK BANNER ---
     window.addEventListener('offline', () => { offlineBanner.classList.add('active'); });
     window.addEventListener('online', () => { 
-        offlineBanner.innerHTML = '<i data-lucide="wifi" class="w-4 h-4"></i> <span>Back online!</span>'; refreshIcons();
+        offlineBanner.innerHTML = '<i data-lucide="wifi" class="icon-small"></i> <span>Back online!</span>'; refreshIcons();
         offlineBanner.style.background = "var(--success)";
-        setTimeout(() => { offlineBanner.classList.remove('active'); setTimeout(()=> {offlineBanner.innerHTML='<i data-lucide="wifi-off" class="w-4 h-4"></i> <span>You are offline.</span>'; offlineBanner.style.background="var(--warning)"; refreshIcons();}, 300); }, 3000); 
+        setTimeout(() => { offlineBanner.classList.remove('active'); setTimeout(()=> {offlineBanner.innerHTML='<i data-lucide="wifi-off" class="icon-small"></i> <span>You are offline.</span>'; offlineBanner.style.background="var(--warning)"; refreshIcons();}, 300); }, 3000); 
     });
-    const vibrate = () => { if (navigator.vibrate) navigator.vibrate(10); };
+    const vibrate = () => { if (navigator.vibrate) navigator.vibrate(15); };
 
     // --- ANTI-LAG OBSERVER ---
     const imageObserver = new IntersectionObserver((entries, observer) => {
@@ -160,13 +157,13 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(getInitialTheme());
         try {
             const connected = await LibraryDB.init(); 
-            if (!connected) resultsArea.innerHTML = '<div class="text-center p-4 text-muted w-full col-span-full">Connection Error. Please refresh.</div>';
+            if (!connected) resultsArea.innerHTML = '<div class="text-center p-8 text-muted w-full col-span-full">Database Connection Failed. Please refresh.</div>';
         } catch(e) {
-            resultsArea.innerHTML = '<div class="text-center p-4 text-muted w-full col-span-full">Firebase Connection Failed.</div>';
+            resultsArea.innerHTML = '<div class="text-center p-8 text-muted w-full col-span-full">Firebase Connection Error.</div>';
         }
         
         if (window.innerWidth <= 849) document.body.classList.add('is-mobile-device');
-        const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = newSearchParams(window.location.search);
         if (urlParams.get('book')) {
             const book = LibraryDB.getBooks().find(b => String(b.id) === String(urlParams.get('book')));
             if (book) {
@@ -199,34 +196,42 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('.quick-btn[data-genre="All"]')?.classList.add('active');
         
         hero.classList.remove('minimized'); featuredContainer.style.display = 'block'; resultsArea.innerHTML = ''; 
-        closeMenuBtn.click(); document.getElementById('tools-modal').classList.remove('active');
+        closeSidebar();
     }
 
     document.getElementById('bottom-home-btn')?.addEventListener('click', (e) => { e.preventDefault(); resetToHome(); });
     document.querySelector('.desk-nav-item[data-section="home"]')?.addEventListener('click', (e) => { e.preventDefault(); resetToHome(); });
 
-    document.querySelectorAll('[data-section="about"]').forEach(item => {
+    // Handle Sections dynamically (About, Tools)
+    document.querySelectorAll('[data-section]').forEach(item => {
+        if(item.dataset.section === 'home') return;
         item.onclick = (e) => { 
             e.preventDefault(); vibrate();
-            document.querySelectorAll('.nav-item').forEach(i => { i.classList.remove('active', 'text-primary'); i.classList.add('text-muted'); });
-            document.querySelectorAll('.desk-nav-item').forEach(d => d.classList.remove('active'));
             
-            item.classList.add('active', 'text-primary'); item.classList.remove('text-muted');
-            const indicator = document.querySelector('.nav-indicator');
-            if(indicator) indicator.style.transform = `translateX(200%)`; 
+            // Switch Bottom Nav
+            document.querySelectorAll('.nav-item').forEach(i => { i.classList.remove('active', 'text-primary'); i.classList.add('text-muted'); });
+            const mobileItem = document.querySelector(`.bottom-nav .nav-item[data-section="${item.dataset.section}"]`);
+            if(mobileItem) {
+                mobileItem.classList.add('active', 'text-primary'); mobileItem.classList.remove('text-muted');
+                const index = Array.from(mobileItem.parentElement.children).filter(c=>c.classList.contains('nav-item')).indexOf(mobileItem);
+                const indicator = document.querySelector('.nav-indicator');
+                if(indicator) indicator.style.transform = `translateX(${index * 100}%)`; 
+            }
+            
+            // Switch Desktop Nav
+            document.querySelectorAll('.desk-nav-item').forEach(d => d.classList.remove('active'));
+            const deskItem = document.querySelector(`.desk-nav-item[data-section="${item.dataset.section}"]`);
+            if(deskItem) deskItem.classList.add('active');
+            
+            // Dynamic Tips for Tools Section
+            if(item.dataset.section === 'tools') {
+                document.getElementById('dynamic-tip').innerText = tips[Math.floor(Math.random() * tips.length)];
+            }
+            
+            // Show Section
             document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
-            document.getElementById('about-section').classList.add('active');
-            document.getElementById('tools-modal').classList.remove('active');
+            document.getElementById(`${item.dataset.section}-section`).classList.add('active');
         };
-    });
-
-    document.getElementById('mobile-tools-btn')?.addEventListener('click', (e) => { 
-        e.preventDefault(); vibrate();
-        document.querySelectorAll('.nav-item').forEach(i => { i.classList.remove('active', 'text-primary'); i.classList.add('text-muted'); });
-        e.currentTarget.classList.add('active', 'text-primary'); e.currentTarget.classList.remove('text-muted');
-        const indicator = document.querySelector('.nav-indicator');
-        if(indicator) indicator.style.transform = `translateX(100%)`;
-        document.getElementById('tools-modal').classList.add('active'); 
     });
 
     const filterToggle = document.getElementById('filter-toggle'); 
@@ -238,7 +243,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const hamburgerBtn = document.getElementById('hamburger-btn');
     if(hamburgerBtn) hamburgerBtn.onclick = openSidebar;
     
-    closeMenuBtn.onclick = closeSidebar; sideMenuOverlay.onclick = closeSidebar;
+    sideMenuOverlay.onclick = closeSidebar;
+    document.querySelectorAll('.absolute-close').forEach(btn => btn.onclick = (e) => {
+        closeSidebar();
+        e.target.closest('.modal-overlay')?.classList.remove('active');
+    });
 
     // --- RESTORED ADMIN LOGIC ---
     adminAuthBtn.onclick = () => {
@@ -261,14 +270,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('new-genre').value = book.genre; document.getElementById('step-count-select').value = book.images.length || 2;
         updateImageInputs();
         const inputs = document.querySelectorAll('.step-url-input'); book.images.forEach((img, i) => { if(inputs[i] && !img.includes('placehold.co')) inputs[i].value = img; });
-        const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Update Book'; btn.className = 'submit-btn w-full ripple mt-2 flex-center justify-center gap-2 bg-primary text-white shadow-premium';
+        const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Update Book'; btn.className = 'submit-btn w-full ripple mt-4 flex-center justify-center gap-3 bg-primary text-white shadow-premium py-4';
         document.getElementById('cancel-edit-btn').style.display = "block"; refreshIcons();
+        document.querySelector('#admin-modal .modal-content').scrollTo({top:0,behavior:'smooth'});
     };
 
     document.getElementById('cancel-edit-btn').onclick = () => {
         document.getElementById('edit-book-id').value = ''; document.getElementById('admin-form-title').innerText = "Add New Book";
         document.getElementById('new-title').value = ''; document.getElementById('new-author').value = '';
-        const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="upload-cloud" class="w-4 h-4"></i> Add to Cloud'; btn.className = 'submit-btn w-full ripple mt-4 flex-center justify-center gap-2 bg-success text-white shadow-premium';
+        const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="upload-cloud" class="w-5 h-5"></i> Add to Cloud'; btn.className = 'submit-btn w-full ripple mt-4 flex-center justify-center gap-3 bg-success text-white shadow-premium py-4';
         document.getElementById('cancel-edit-btn').style.display = "none"; updateImageInputs(); refreshIcons();
     };
 
@@ -281,23 +291,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const books = LibraryDB.getBooks(); const index = books.findIndex(b => String(b.id) === String(editingId));
             if(index > -1) { books[index].title = title; books[index].author = author; books[index].genre = genre; books[index].images = imageUrls; await LibraryDB.saveToCloud(); showPopup("Success", "Book Updated!", null, false, "check-circle"); }
         } else {
-            await LibraryDB.addBook({ id: Date.now(), title, author, genre, images: imageUrls, views: 0 }); showPopup("Success", "Book Added!", null, false, "check-circle");
+            await LibraryDB.addBook({ id: Date.now(), title, author, genre, images: imageUrls, views: 0 }); showPopup("Success", "Book Added Globally!", null, false, "check-circle");
         }
         document.getElementById('cancel-edit-btn').click(); renderAdminList(); performSearch(searchInput.value); document.getElementById('add-book-btn').disabled = false;
     };
 
     function renderAdminList() {
-        document.getElementById('admin-book-list').innerHTML = LibraryDB.getBooks().map(b => `
-            <div class="bg-surface p-3 rounded-xl border border-color flex justify-between items-center shadow-premium-sm">
-                <div class="overflow-hidden"><strong class="block truncate text-sm text-main">${b.title}</strong><small class="text-muted text-xs block truncate">${b.author}</small></div>
-                <div class="flex gap-2 flex-shrink-0">
-                    <button onclick="handleEdit('${b.id}')" class="icon-btn text-primary bg-primary-light w-8 h-8"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                    <button onclick="handleDelete('${b.id}')" class="icon-btn text-warning bg-warning/10 w-8 h-8"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        const books = LibraryDB.getBooks();
+        const listContainer = document.getElementById('admin-book-list');
+        if(!books || books.length === 0) { listContainer.innerHTML = '<p class="text-muted text-sm py-4">No books in database.</p>'; return; }
+        
+        listContainer.innerHTML = books.map(b => `
+            <div class="bg-surface p-4 rounded-xl border border-color flex justify-between items-center shadow-premium-sm">
+                <div class="overflow-hidden"><strong class="block truncate text-sm text-main mb-1">${b.title}</strong><small class="text-muted text-xs block truncate">${b.author}</small></div>
+                <div class="flex gap-3 flex-shrink-0 ml-2">
+                    <button onclick="handleEdit('${b.id}')" class="icon-btn text-primary bg-primary-light w-10 h-10"><i data-lucide="edit-2" class="w-5 h-5"></i></button>
+                    <button onclick="handleDelete('${b.id}')" class="icon-btn text-warning bg-warning/10 w-10 h-10"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                 </div>
             </div>`).join(''); refreshIcons();
     }
 
-    window.handleDelete = async (id) => { showPopup("Confirm Delete", "Are you sure you want to delete this book?", async () => { await LibraryDB.deleteBook(id); renderAdminList(); performSearch(searchInput.value); }, true, "alert-triangle"); };
+    window.handleDelete = async (id) => { showPopup("Confirm Delete", "Are you sure you want to completely delete this book?", async () => { await LibraryDB.deleteBook(id); renderAdminList(); performSearch(searchInput.value); }, true, "alert-triangle"); };
     document.getElementById('factory-reset-btn').onclick = async () => { showPopup("Defense Mode", "Reset Stats & History? Books will remain.", async () => { await LibraryDB.factoryReset(); window.location.reload(); }, true, "shield"); };
 
     // --- FEATURED BOOK ---
@@ -306,11 +320,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const idx = Math.abs(new Date().toDateString().split('').reduce((a,b)=>a+(b.charCodeAt(0)),0)) % books.length; const b = books[idx];
         const isFav = favorites.some(id => String(id) === String(b.id));
         featuredContainer.innerHTML = `
-            <div class="mb-6"><span class="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Daily Global Pick</span>
+            <div class="mb-8"><span class="text-xs font-bold text-muted uppercase tracking-wider mb-3 block">Daily Global Pick</span>
                 <div class="featured-card shadow-premium" onclick="openModalById('${b.id}')">
                     <div class="featured-cover skeleton"><img id="fc-img" src="" class="shelf-cover-img">
                     <button class="fav-btn-grid ${isFav?'active':''}" onclick="toggleFavorite(event,'${b.id}')"><i data-lucide="bookmark" class="w-4 h-4"></i></button></div>
-                    <div class="text-left w-full"><h2 class="font-bold text-xl leading-tight mb-1 text-main">${b.title}</h2><p class="text-sm text-muted mb-3">by ${b.author}</p><span class="badge bg-primary-light text-primary">${b.genre}</span></div>
+                    <div class="text-left w-full"><h2 class="font-bold text-xl leading-tight mb-2 text-main">${b.title}</h2><p class="text-sm text-muted mb-4">by ${b.author}</p><span class="badge bg-primary-light text-primary">${b.genre}</span></div>
                 </div>
             </div>`;
         fetchCoverWithFallback(b.title, b.author, 'fc-img', true); refreshIcons();
@@ -364,7 +378,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if(sb) sb.onclick = async () => { vibrate(); if(navigator.share) await navigator.share({title:'LibNav', text:`Check out ${book.title}`, url:dl}); else { navigator.clipboard.writeText(dl); showPopup("Success", "Link copied!", null, false, "check-circle"); } };
 
         currentImages = book.images || []; currentImageIndex = 0; updateCarousel();
-        const neighbors = LibraryDB.getBooks().filter(b => b.genre === book.genre && String(b.id) !== String(book.id)).sort(()=>0.5-Math.random()).slice(0, 4);
+        
+        // RESTORED 4-COVER GRID LOGIC
+        const all = LibraryDB.getBooks();
+        let neighbors = all.filter(b => b.genre === book.genre && String(b.id) !== String(book.id)).sort(()=>0.5-Math.random()).slice(0, 4);
         neighborsGrid.innerHTML = '';
         if (neighbors.length > 0) {
             document.getElementById('neighbors-area').style.display = 'block';
@@ -396,8 +413,11 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.add('active');
             if(btn.dataset.genre === 'All') { hero.classList.remove('minimized'); featuredContainer.style.display = 'block'; } 
             else { hero.classList.add('minimized'); featuredContainer.style.display = 'none'; }
-            performSearch(''); closeMenuBtn.click(); 
-            document.getElementById('home-section').classList.add('active'); document.getElementById('about-section').classList.remove('active');
+            performSearch(''); closeSidebar(); 
+            
+            // Switch to home view
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById('home-section').classList.add('active');
             const mobileHome = document.querySelector('.bottom-nav .nav-item[data-section="home"]');
             if(mobileHome) { document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active', 'text-primary')); mobileHome.classList.add('active', 'text-primary'); document.querySelector('.nav-indicator').style.transform = `translateX(0%)`; }
         };
@@ -433,8 +453,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 hits.forEach(s => {
                     const d = document.createElement('div'); d.className = 'autocomplete-item ripple';
                     const ht = s.title.replace(new RegExp(`(${t})`, 'gi'), '<span class="highlight-text">$1</span>');
-                    // FIX: Beautiful gap for autocomplete
-                    d.innerHTML = `<i data-lucide="search" class="w-4 h-4 text-primary flex-shrink-0"></i><div class="flex flex-col text-left w-full ml-3"><span class="text-sm font-bold text-main block">${ht}</span><span class="text-xs text-muted block mt-1">${s.author}</span></div>`;
+                    // BEAUTIFUL AUTOCOMPLETE GAP
+                    d.innerHTML = `<i data-lucide="search" class="w-5 h-5 text-primary flex-shrink-0"></i><div class="flex flex-col text-left w-full ml-4"><span class="text-base font-bold text-main block">${ht}</span><span class="text-sm text-muted block mt-1">${s.author}</span></div>`;
                     d.onclick = () => { searchInput.value = s.title; autocompleteDropdown.style.display = 'none'; performSearch(s.title); openModal(s); };
                     autocompleteDropdown.appendChild(d);
                 }); refreshIcons();
@@ -458,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderResults(books) {
         resultsArea.innerHTML = '';
-        if (books.length === 0) { resultsArea.innerHTML = '<div class="col-span-full text-center p-8 text-muted"><i data-lucide="book-x" class="w-12 h-12 mx-auto mb-2 opacity-50"></i><p>No books found.</p></div>'; refreshIcons(); return; }
+        if (books.length === 0) { resultsArea.innerHTML = '<div class="col-span-full text-center p-8 text-muted"><i data-lucide="book-x" class="w-16 h-16 mx-auto mb-4 opacity-50"></i><p>No books found.</p></div>'; refreshIcons(); return; }
         const frag = document.createDocumentFragment(); const term = searchInput.value.trim(); const regex = new RegExp(`(${term})`, 'gi');
         books.forEach((book, i) => {
             const card = document.createElement('div'); card.className = 'shelf-book-card';
@@ -491,11 +511,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; if(!e.target.closest('.search-wrapper') && !e.target.closest('#filter-toggle')) filterMenu.style.display='none'; };
     function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(() => { if(!document.body.classList.contains('companion-mode-active')) { resetToHome(); document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('active')); screensaver.classList.add('active'); } }, IDLE_LIMIT); }
     window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
-    document.querySelectorAll('.close-modal, .close-modal-inline').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
-
+    
     // --- TOOLS: STATS & FEEDBACK ---
     const openStats = () => {
-        vibrate(); document.getElementById('tools-modal').classList.remove('active');
+        vibrate(); 
         const books = LibraryDB.getBooks(); const ratings = LibraryDB.getRatings();
         
         const startDate = new Date("2026-01-01T00:00:00").getTime(); const now = new Date().getTime(); const diff = now - startDate;
@@ -508,22 +527,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const avg = ratings.length ? `⭐ ${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)} <span class="text-xs font-normal text-muted">(${ratings.length} Reviews)</span>` : "No Ratings";
         
         document.getElementById('stats-content').innerHTML = `
-            <div class="bg-primary-light p-3 rounded-xl text-center mb-4 text-primary font-bold text-sm flex-center justify-center gap-2 border border-primary/20"><i data-lucide="server" class="w-4 h-4"></i> Cloud Uptime: ${uptimeStr}</div>
-            <div class="grid-2 gap-3 mb-4">
-                <div class="bg-surface p-4 rounded-xl border border-color text-center shadow-premium-sm"><p class="text-xs text-muted mb-1 font-bold uppercase">Total Books</p><h2 class="text-2xl font-bold text-primary">${books.length}</h2></div>
-                <div class="bg-surface p-4 rounded-xl border border-color text-center shadow-premium-sm"><p class="text-xs text-muted mb-1 font-bold uppercase">Bookmarks</p><h2 class="text-2xl font-bold text-warning">${favorites.length}</h2></div>
+            <div class="bg-primary-light p-4 rounded-xl text-center mb-6 text-primary font-bold text-sm flex-center justify-center gap-3 border border-primary/20"><i data-lucide="server" class="w-5 h-5"></i> Cloud Uptime: ${uptimeStr}</div>
+            <div class="grid-2 gap-4 mb-6">
+                <div class="bg-surface p-5 rounded-xl border border-color text-center shadow-premium-sm"><p class="text-xs text-muted mb-2 font-bold uppercase">Total Books</p><h2 class="text-3xl font-bold text-primary">${books.length}</h2></div>
+                <div class="bg-surface p-5 rounded-xl border border-color text-center shadow-premium-sm"><p class="text-xs text-muted mb-2 font-bold uppercase">Bookmarks</p><h2 class="text-3xl font-bold text-warning">${favorites.length}</h2></div>
             </div>
-            <div class="bg-surface p-4 rounded-xl border border-color text-center mb-4 shadow-premium-sm"><p class="text-xs text-muted mb-1 font-bold uppercase">Global Rating</p><h2 class="text-xl font-bold text-warning flex-center justify-center gap-1">${avg}</h2></div>
-            <div class="mb-4"><p class="text-xs font-bold text-muted uppercase tracking-wider mb-2 flex-center gap-1"><i data-lucide="trending-up" class="w-3 h-3 text-primary"></i> Top Pick</p><div class="flex justify-between items-center bg-surface p-3 rounded-lg border border-color"><strong class="text-main">${mostViewed.title}</strong><span class="text-xs bg-success/10 text-success px-2 py-1 rounded font-bold">${mostViewed.views} Views</span></div></div>
-            <div class="mb-4"><p class="text-xs font-bold text-muted uppercase tracking-wider mb-2 flex-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-primary"></i> Newest</p><div class="bg-surface p-3 rounded-lg border border-color"><strong class="text-main">${newest.title}</strong></div></div>
-            <div class="mb-2"><p class="text-xs font-bold text-muted uppercase tracking-wider mb-2 flex-center gap-1"><i data-lucide="pie-chart" class="w-3 h-3 text-primary"></i> Composition</p>${Object.entries(genres).map(([k,v])=>`<div class="flex justify-between p-2 border-b border-color text-sm text-main"><span>${k}</span><span class="text-primary font-bold">${v}</span></div>`).join('')}</div>
+            <div class="bg-surface p-5 rounded-xl border border-color text-center mb-6 shadow-premium-sm"><p class="text-xs text-muted mb-2 font-bold uppercase">Global Rating</p><h2 class="text-2xl font-bold text-warning flex-center justify-center gap-2">${avg}</h2></div>
+            <div class="mb-6"><p class="text-sm font-bold text-muted uppercase tracking-wider mb-3 flex-center gap-2"><i data-lucide="trending-up" class="w-4 h-4 text-primary"></i> Top Pick</p><div class="flex justify-between items-center bg-surface p-4 rounded-xl border border-color shadow-premium-sm"><strong class="text-main text-lg">${mostViewed.title}</strong><span class="text-sm bg-success/10 text-success px-3 py-1 rounded font-bold">${mostViewed.views} Views</span></div></div>
+            <div class="mb-6"><p class="text-sm font-bold text-muted uppercase tracking-wider mb-3 flex-center gap-2"><i data-lucide="clock" class="w-4 h-4 text-primary"></i> Newest Arrival</p><div class="bg-surface p-4 rounded-xl border border-color shadow-premium-sm"><strong class="text-main text-lg">${newest.title}</strong></div></div>
+            <div class="mb-4"><p class="text-sm font-bold text-muted uppercase tracking-wider mb-3 flex-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4 text-primary"></i> Composition</p>${Object.entries(genres).map(([k,v])=>`<div class="flex justify-between p-3 border-b border-color text-base text-main"><span>${k}</span><span class="text-primary font-bold">${v}</span></div>`).join('')}</div>
         `; refreshIcons(); document.getElementById('stats-modal').classList.add('active');
     };
-    document.getElementById('open-stats-btn')?.addEventListener('click', openStats);
+    document.getElementById('section-stats-btn')?.addEventListener('click', openStats);
     document.getElementById('desk-stats-btn')?.addEventListener('click', openStats);
 
-    const openFeedback = () => { vibrate(); document.getElementById('tools-modal').classList.remove('active'); document.getElementById('feedback-modal').classList.add('active'); closeSidebar(); };
-    document.getElementById('open-feedback-btn')?.addEventListener('click', openFeedback);
+    const openFeedback = () => { vibrate(); document.getElementById('feedback-modal').classList.add('active'); };
+    document.getElementById('section-feedback-btn')?.addEventListener('click', openFeedback);
     document.getElementById('desk-feedback-btn')?.addEventListener('click', openFeedback);
 
     const fForm = document.getElementById('feedback-form');
@@ -536,9 +555,14 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin w-5 h-5 inline"></i> Sending...'; refreshIcons(); btn.disabled = true;
         try { 
             await LibraryDB.submitRating(parseInt(rating)); 
-            // RESTORED: REAL FIREBASE POST FOR FEEDBACK
+            
+            // --- FIREBASE DIRECT FEEDBACK POST ---
             const payload = { name: name, message: msg, rating: parseInt(rating), date: new Date().toISOString() };
-            await fetch(`${LibraryDB.dbUrl}feedback.json`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            await fetch(`${LibraryDB.dbUrl}feedback.json`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(payload) 
+            });
             
             showPopup("Success", "Feedback Sent! Thank you.", null, false, "check-circle"); 
             fForm.reset(); setTimeout(() => document.getElementById('feedback-modal').classList.remove('active'), 1000); 
@@ -558,6 +582,6 @@ document.addEventListener('DOMContentLoaded', () => {
         recognition.onresult = (e) => { searchInput.value = e.results[0][0].transcript; searchInput.dispatchEvent(new Event('input')); };
     } else micBtn.style.display = 'none';
 
-    // Start Engine
+    // Start Engine safely
     init();
 });
