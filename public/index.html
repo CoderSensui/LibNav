@@ -7,7 +7,7 @@
     <title>LibNav | Smart Library</title>
     <meta name="description" content="Find a way to the story! A smart navigation system.">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=35">
+    <link rel="stylesheet" href="style.css?v=40">
 </head>
 <body>
 
@@ -55,7 +55,9 @@
 
         <div class="search-wrapper">
             <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="search-input" placeholder="Search title or author...">
+            <input type="text" id="search-input" placeholder="Search title or author..." autocomplete="off">
+            
+            <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
             
             <div class="search-actions">
                 <button id="mic-btn" class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></button>
@@ -92,29 +94,44 @@
             <button class="close-modal">&times;</button>
             <div class="modal-desktop-layout">
                 <div class="modal-left-col">
+                    
+                    <div class="modal-cover-wrapper skeleton">
+                        <img id="modal-book-cover-img" class="modal-book-cover" src="" alt="Cover">
+                    </div>
+
                     <div class="modal-header-row">
-                        <img id="modal-author-pic" class="author-headshot" src="" alt="Author" style="display:none;">
+                        <img id="modal-author-pic" class="author-headshot skeleton" src="" alt="Author" style="display:none;">
                         <div class="modal-text-group">
                             <h2 id="modal-title" class="text-pink">Title</h2>
                             <p id="modal-author" style="color:var(--text-muted);">Author</p>
                         </div>
                     </div>
-                    <span id="modal-genre" class="chip">Genre</span>
-                    <div class="destination-badge">Target: #<span id="modal-book-id" class="text-pink">0</span></div>
-                    <div class="qr-section"><div id="qrcode"></div><p class="qr-text">Scan for Mobile</p></div>
+                    
+                    <span id="modal-genre" class="chip" style="margin-bottom:15px;">Genre</span>
+                    <div class="destination-badge" style="margin-top:0;">Target: #<span id="modal-book-id" class="text-pink">0</span></div>
+                    
+                    <div class="qr-section">
+                        <div id="qrcode"></div>
+                        <p class="qr-text" style="margin-bottom:10px;">Scan for Mobile</p>
+                        <button id="share-book-btn" class="submit-btn" style="padding: 8px 15px; font-size:0.8rem; background:var(--bg-chip); color:var(--primary-pink); border:1px solid var(--border-color); display:flex; align-items:center; justify-content:center; gap:5px; margin-top:5px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                            Share Link
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="modal-right-col">
-                    <div id="carousel-wrapper" class="carousel-wrapper">
+                    <div id="carousel-wrapper" class="carousel-wrapper skeleton">
                         <button id="prev-img-btn" class="carousel-btn prev">&lt;</button>
-                        <img id="carousel-img" src="" alt="Navigation Step" class="shelf-photo">
+                        <img id="carousel-img" src="" alt="Navigation Step" class="shelf-photo" style="opacity:0; transition:0.3s;">
                         <button id="next-img-btn" class="carousel-btn next">&gt;</button>
                         <div id="step-counter" class="step-counter">Step 1</div>
                     </div>
                     <div id="mobile-action-area" style="display: none;"><button class="found-btn" onclick="showSuccessScreen()">I Found It!</button></div>
+                    
                     <div id="neighbors-area" class="neighbors-area">
                         <p style="font-size:0.9rem; color:var(--text-muted);">Also in this section:</p>
-                        <div id="neighbors-list" class="neighbors-list"></div>
+                        <div id="neighbors-grid" class="neighbors-grid"></div>
                     </div>
                 </div>
             </div>
@@ -132,7 +149,9 @@
             </div>
             
             <div id="admin-dashboard" style="display:none; text-align:left;">
-                <h3 style="margin:20px 0 10px 0;">Add New Book</h3>
+                <h3 style="margin:20px 0 10px 0;" id="admin-form-title">Add New Book</h3>
+                <input type="hidden" id="edit-book-id" value="">
+                
                 <input type="text" id="new-title" class="form-input" placeholder="Book Title">
                 <input type="text" id="new-author" class="form-input" placeholder="Author Name">
                 
@@ -161,9 +180,10 @@
                 <p style="font-size:0.75rem; color:var(--text-muted); margin-top:-5px; margin-bottom:10px;">Leave blank to use auto-placeholders.</p>
 
                 <button id="add-book-btn" class="submit-btn" style="background:#4ade80; color:#0b1121; margin-top:10px;">+ Add to Cloud</button>
+                <button id="cancel-edit-btn" class="submit-btn" style="background:#ef4444; color:white; margin-top:10px; display:none;">Cancel Edit</button>
                 
                 <h3 style="margin:30px 0 10px 0; color:#ef4444;">System Data</h3>
-                <div id="admin-book-list" style="display:grid; grid-template-columns:1fr; gap:10px; max-height:200px; overflow-y:auto; padding-right:5px;"></div>
+                <div id="admin-book-list" style="display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto; padding-right:5px;"></div>
                 
                 <div style="margin-top:20px; border-top:1px solid var(--border-color); padding-top:20px;">
                     <button id="factory-reset-btn" class="submit-btn" style="background:transparent; border:2px solid #ef4444; color:#ef4444;">⚠️ Soft Factory Reset</button>
