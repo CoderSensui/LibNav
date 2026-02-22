@@ -280,3 +280,63 @@ body.companion-mode-active .top-controls, body.companion-mode-active .search-wra
 body.companion-mode-active #book-modal.modal-overlay { display: flex !important; background: var(--bg-main) !important; opacity: 1 !important; pointer-events: all !important; position: fixed !important; inset: 0 !important; z-index: 9999 !important; }
 body.companion-mode-active #book-modal .modal-content { width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; border-radius: 0 !important; border: none !important; justify-content: center !important; box-shadow: none !important; transform: scale(1) !important; }
 body.companion-mode-active #success-modal.modal-overlay.active { display: flex !important; background: var(--bg-main) !important; opacity: 1 !important; pointer-events: all !important; position: fixed !important; inset: 0 !important; z-index: 10000 !important; }
+
+/* =========================================================
+   3. RESPONSIVE DESKTOP LAYOUT (NEW ADDITION)
+   ========================================================= */
+@media (min-width: 850px) {
+    .container {
+        max-width: 1100px; /* Expand Width */
+        margin-top: 100px;
+    }
+    .shelf-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Larger Cards */
+        gap: 25px;
+    }
+    
+    /* Responsive Modal Layout */
+    .modal-content {
+        max-width: 900px;
+        width: 90%;
+        padding: 40px;
+        text-align: left;
+    }
+    
+    .modal-desktop-layout {
+        display: grid;
+        grid-template-columns: 300px 1fr; /* Sidebar | Content */
+        gap: 40px;
+        align-items: start;
+    }
+
+    /* Left Column (Info) */
+    .modal-left-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .author-headshot { width: 140px; height: 140px; margin-bottom: 15px; }
+    .modal-header-row { flex-direction: column; margin-bottom: 20px; }
+    .modal-text-group { text-align: center; margin-top: 10px; }
+    .modal-title { font-size: 2rem; }
+
+    /* Right Column (Map) */
+    .modal-right-col {
+        width: 100%;
+    }
+    #carousel-wrapper {
+        height: 450px; /* Taller Map */
+        margin-top: 0;
+    }
+    .neighbors-list {
+        justify-content: flex-start;
+    }
+    
+    /* Move Floating Buttons */
+    .floating-actions {
+        left: auto;
+        right: 40px;
+        bottom: 40px;
+    }
+}
