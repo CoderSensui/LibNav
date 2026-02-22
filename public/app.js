@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     function renderIcons() { if(typeof lucide !== 'undefined') lucide.createIcons(); }
 
-    // --- Embedded Global Database Logic ---
     const LibraryDB = {
         dbUrl: "https://libnav-dc2c8-default-rtdb.firebaseio.com/", 
         books: [],
@@ -35,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const book = this.books.find(b => String(b.id) === String(id));
             if (book) {
                 book.views = (book.views || 0) + 1;
-                this.saveBooks(); // non-blocking update
+                this.saveBooks(); 
             }
         }
     };
@@ -57,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentImages = [];
     let currentImageIndex = 0;
     let currentGenre = "";
+    let uptimeInterval = null; // Used to track the live ticking timer
 
     const quickTips = [
         "Use the microphone icon to search for books hands-free.",
@@ -65,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
         "Scan the QR code on a PC to transfer the map to your phone."
     ];
 
-    // Custom Popup Logic replacing alert()
     function showPopup(title, msg, type = 'info', onConfirm = null, showCancel = false) {
         document.getElementById('popup-title').innerText = title;
         document.getElementById('popup-message').innerText = msg;
@@ -99,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderIcons();
     }
 
-    // Theme Setup
     function applyTheme(mode) {
         if(mode === 'light') document.body.classList.add('light-mode');
         else document.body.classList.remove('light-mode');
@@ -112,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(isLight ? 'light' : 'dark');
     });
 
-    // Navigation Logic
     function switchSection(sectionId) {
         document.querySelectorAll('.nav-tab, .desk-nav-item').forEach(i => i.classList.remove('active'));
         document.querySelector(`.nav-tab[data-section="${sectionId}"]`)?.classList.add('active');
@@ -121,7 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
         document.getElementById(`${sectionId}-section`).classList.add('active');
 
-        // Dynamic tip injection for Tools section
         if (sectionId === 'tools') {
             const tipEl = document.getElementById('dynamic-tip');
             if(tipEl) tipEl.innerText = quickTips[Math.floor(Math.random() * quickTips.length)];
@@ -132,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
         item.addEventListener('click', (e) => { e.preventDefault(); switchSection(item.dataset.section); });
     });
 
-    // Minion Easter Egg
     document.getElementById('hero-title').addEventListener('click', () => {
         const minion = document.getElementById('minion-sprite');
         if(minion.style.display === 'block') return;
@@ -144,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 16);
     });
 
-    // Filter Menu Toggle
     const filterToggle = document.getElementById('filter-toggle'); 
     const filterMenu = document.getElementById('filter-menu');
     filterToggle.onclick = (e) => { e.stopPropagation(); filterMenu.style.display = filterMenu.style.display === 'flex' ? 'none' : 'flex'; };
@@ -152,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!e.target.closest('.search-wrapper') && !e.target.closest('#filter-toggle')) filterMenu.style.display='none'; 
     };
 
-    // Initialize App
     async function init() {
         applyTheme(localStorage.getItem('theme') || 'dark');
         await LibraryDB.init();
@@ -160,7 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderIcons();
     }
 
-    // Sidebar 
     document.getElementById('hamburger-btn').onclick = () => { sideMenu.classList.add('active'); sideMenuOverlay.style.display = 'block'; };
     const closeSidebar = () => { sideMenu.classList.remove('active'); sideMenuOverlay.style.display = 'none'; };
     document.getElementById('close-menu').onclick = closeSidebar; 
@@ -177,11 +169,11 @@ document.addEventListener('DOMContentLoaded', () => {
             switchSection('home');
             
             if(genre === 'All') { 
-                hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; 
+                hero.style.display = 'block'; 
                 featuredContainer.style.display = 'block'; 
             } else { 
                 selectedGenres.add(genre);
-                hero.style.height = '0'; hero.style.opacity = '0'; hero.style.margin = '0'; 
+                hero.style.display = 'none';  
                 featuredContainer.style.display = 'none'; 
             }
             
@@ -192,10 +184,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.close-btn').forEach(btn => btn.onclick = (e) => {
         const overlay = e.target.closest('.modal-overlay');
-        if(overlay) overlay.style.display = 'none';
+        if(overlay) {
+            overlay.style.display = 'none';
+            // Stop ticking timer when Stats modal closes
+            if(overlay.id === 'stats-modal' && uptimeInterval) clearInterval(uptimeInterval);
+        }
     });
 
-    // Share API Logic
     document.getElementById('mobile-share-btn').onclick = async () => {
         const id = document.getElementById('modal-book-id').innerText;
         const url = `${window.location.origin}${window.location.pathname}?book=${id}`;
@@ -211,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Modal & Map Slider
     const prevBtn = document.getElementById('prev-img-btn');
     const nextBtn = document.getElementById('next-img-btn');
 
@@ -230,13 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchCover(book.title, book.author, 'modal-book-cover-img');
         fetchAuthorPic(book.author);
 
-        // QR Setup
         const qrContainer = document.getElementById('qrcode');
         qrContainer.innerHTML = ''; 
         const linkUrl = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
-        try { new QRCode(qrContainer, { text: linkUrl, width: 120, height: 120, colorDark : "#121212", colorLight : "#ffffff" }); } catch(err) {}
+        try { new QRCode(qrContainer, { text: linkUrl, width: 120, height: 120, colorDark : "#131314", colorLight : "#ffffff" }); } catch(err) {}
 
-        // Virtual Shelf
         const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 4);
         const relatedContainer = document.getElementById('related-shelf');
         relatedContainer.innerHTML = '';
@@ -271,7 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Filter checkbox binds
     document.querySelectorAll('.filter-option input').forEach(box => {
         box.onchange = (e) => {
             const val = e.target.value;
@@ -288,7 +279,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // Search Logic
     searchInput.addEventListener('input', (e) => {
         const t = e.target.value.toLowerCase().trim();
         if (t.length > 0) { hero.style.display = 'none'; featuredContainer.style.display = 'none'; } 
@@ -340,7 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderIcons();
     }
 
-    // Bookmarks
     window.toggleFavorite = function(e, bookId) {
         e.stopPropagation(); 
         const btn = e.target.closest('.fav-btn');
@@ -351,7 +340,6 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('libnav_favs', JSON.stringify(favorites));
     };
 
-    // Cover Fetching
     function fetchCover(title, author, elementId) {
         if(coverCache[title]) { document.getElementById(elementId).src = coverCache[title]; return; }
         fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&limit=1`).then(r=>r.json()).then(d => {
@@ -404,18 +392,18 @@ document.addEventListener('DOMContentLoaded', () => {
     
     window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => String(x.id) === String(id)); if(b) openModal(b); };
 
-    // --- Stats Modal Logic Restored ---
+    // --- Stats Modal (Live Ticking Uptime Restored) ---
     document.getElementById('section-stats-btn')?.addEventListener('click', () => {
         const books = LibraryDB.getBooks();
         const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0});
         const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None"});
         const genres = {}; books.forEach(b=>genres[b.genre]=(genres[b.genre]||0)+1);
         
-        // Mock global rating for visual parity
         const avg = `⭐ 4.8 <span style="font-size:0.8rem;color:var(--text-muted);">(Community)</span>`;
         
+        // Setup ticking UI
         document.getElementById('stats-content').innerHTML = `
-            <div class="stats-banner"><i data-lucide="server"></i> Cloud System Online</div>
+            <div class="stats-banner"><i data-lucide="server"></i> <span id="uptime-display">Calculating uptime...</span></div>
             <div class="stats-grid">
                 <div class="stat-box"><small>TOTAL BOOKS</small><h2>${books.length}</h2></div>
                 <div class="stat-box"><small>BOOKMARKS</small><h2 style="color:var(--warning);">${favorites.length}</h2></div>
@@ -425,11 +413,35 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="stat-row"><p><i data-lucide="clock"></i> Newest Arrival</p><div><strong>${newest.title}</strong></div></div>
             <div class="stat-list"><p><i data-lucide="pie-chart"></i> Composition</p>${Object.entries(genres).map(([k,v])=>`<div class="stat-list-item"><span>${k}</span><strong style="color:var(--primary);">${v}</strong></div>`).join('')}</div>
         `; 
+        
         renderIcons(); 
         document.getElementById('stats-modal').style.display = 'flex';
+
+        // Ticking logic
+        const updateUptime = () => {
+            const startDate = new Date("2026-01-01T00:00:00").getTime();
+            const now = new Date().getTime();
+            const diff = now - startDate;
+            
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            const uptimeEl = document.getElementById('uptime-display');
+            if (uptimeEl) {
+                uptimeEl.innerText = `Cloud Uptime: ${d}d, ${h}h, ${m}m, ${s}s`;
+            }
+        };
+        
+        // Clear old interval just in case
+        if (uptimeInterval) clearInterval(uptimeInterval);
+        
+        updateUptime(); // Run immediately so it doesn't wait 1s
+        uptimeInterval = setInterval(updateUptime, 1000); // Tick every second
     });
 
-    // --- Feedback Logic (Fixed with custom popup) ---
+    // Feedback Logic 
     document.getElementById('section-feedback-btn')?.addEventListener('click', () => { document.getElementById('feedback-modal').style.display = 'flex'; });
     const fForm = document.getElementById('feedback-form');
     if(fForm) fForm.onsubmit = async (e) => {
@@ -450,7 +462,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showPopup("Feedback Sent", "Thank you! The email was sent to the developer.", "success");
             fForm.reset(); document.getElementById('feedback-modal').style.display = 'none';
         } catch { 
-            // Fallback if Vercel fails
             showPopup("Message Saved", "We couldn't reach the email server right now, but your feedback was saved globally.", "info");
             fForm.reset(); document.getElementById('feedback-modal').style.display = 'none';
         } finally { 
@@ -458,7 +469,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Speech Recognition 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; 
         const recognition = new SpeechRecognition(); 
@@ -471,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
         micBtn.style.display = 'none';
     }
 
-    // --- Full Admin CRUD Restored ---
+    // Admin Access Panel
     document.getElementById('secret-admin-btn').addEventListener('click', () => document.getElementById('admin-modal').style.display = 'flex');
     document.getElementById('admin-auth-btn').onclick = () => {
         if (document.getElementById('admin-password').value === 'admin123') { 
