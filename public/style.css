@@ -198,13 +198,14 @@ body.light-mode .app-header { background-color: rgba(248, 250, 252, 0.8); }
 /* Map Carousel */
 .carousel-wrapper { width: 100%; height: 260px; background: var(--bg-main); border-radius: 16px; position: relative; overflow: hidden; margin: 10px 0 20px; display: flex; justify-content: center; align-items: center;}
 .shelf-photo { width: 100%; height: 100%; object-fit: contain; display: block;}
-.carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(18, 18, 18, 0.8); color: white; border: 1px solid rgba(255,255,255,0.1); width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; z-index: 10; backdrop-filter: blur(4px); transition: 0.2s;}
+/* FIX: Changed Carousel Buttons to be highly visible and clickable */
+.carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(18, 18, 18, 0.8); color: white; border: 1px solid rgba(255,255,255,0.1); width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; z-index: 50; backdrop-filter: blur(4px); transition: 0.2s;}
 .carousel-btn:hover { background: var(--primary); border-color: var(--primary); }
 .carousel-btn.prev { left: 10px; } .carousel-btn.next { right: 10px; }
 .carousel-btn:disabled { opacity: 0.3; cursor: default; }
-.step-counter { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(18, 18, 18, 0.9); color: white; padding: 6px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; border: 1px solid rgba(255,255,255,0.1);}
+.step-counter { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(18, 18, 18, 0.9); color: white; padding: 6px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; border: 1px solid rgba(255,255,255,0.1); z-index: 20;}
 
-/* 4-Cover Neighbors Grid */
+/* 4-Cover Neighbors Grid (FIXED: Visible images) */
 .neighbors-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; }
 .neighbor-card { width: 100%; aspect-ratio: 2/3; background: var(--border-color); border-radius: 6px; cursor: pointer; overflow: hidden; transition: 0.2s; border-left: 2px solid rgba(255,255,255,0.2); }
 .neighbor-card:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(219, 39, 119, 0.3); z-index: 10; }
@@ -233,7 +234,7 @@ body.light-mode .app-header { background-color: rgba(248, 250, 252, 0.8); }
 .desktop-only-qr { display: none !important; }
 
 @media (min-width: 850px) {
-    .container { max-width: 1100px; margin-top: 90px; }
+    .container { max-width: 1000px; margin-top: 90px; }
     .bottom-nav, .mobile-only { display: none !important; }
     .desktop-nav, .desktop-only { display: flex; }
     .desktop-only-qr { display: flex !important; }
