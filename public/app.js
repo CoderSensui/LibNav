@@ -1,4 +1,4 @@
-/* app.js - Fully Restored & Optimized Logic */
+/* app.js - Fully Debugged & Restored Engine */
 
 const searchInput = document.getElementById('search-input');
 const autocompleteDropdown = document.getElementById('autocomplete-dropdown');
@@ -35,40 +35,41 @@ let currentImages = [];
 let currentImageIndex = 0;
 
 // --- INITIALIZE ICONS ---
-function refreshIcons() {
-    if(typeof lucide !== 'undefined') lucide.createIcons();
-}
+function refreshIcons() { if(typeof lucide !== 'undefined') lucide.createIcons(); }
 
 // --- SMART THEME ENGINE ---
-const themeBtn = document.getElementById('theme-toggle');
 function getInitialTheme() {
     const saved = localStorage.getItem('theme');
     if (saved) return saved;
     const isMobile = window.innerWidth <= 768;
-    if (isMobile && window.matchMedia) {
-        return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    }
+    if (isMobile && window.matchMedia) return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
     const hour = new Date().getHours();
     return (hour >= 6 && hour < 18) ? 'light' : 'dark';
 }
 function applyTheme(mode) {
+    const dBtn = document.getElementById('desk-theme-toggle');
+    const mBtn = document.getElementById('mobile-theme-toggle');
     if(mode === 'light') {
         document.body.classList.add('light-mode');
-        themeBtn.innerHTML = '<i data-lucide="moon"></i>';
+        if(dBtn) dBtn.innerHTML = '<i data-lucide="moon"></i>';
+        if(mBtn) mBtn.innerHTML = '<i data-lucide="moon" class="w-4 h-4"></i> Switch to Dark Mode';
     } else {
         document.body.classList.remove('light-mode');
-        themeBtn.innerHTML = '<i data-lucide="sun"></i>';
+        if(dBtn) dBtn.innerHTML = '<i data-lucide="sun"></i>';
+        if(mBtn) mBtn.innerHTML = '<i data-lucide="sun" class="w-4 h-4"></i> Switch to Light Mode';
     }
     refreshIcons();
 }
-themeBtn.onclick = () => {
+function toggleThemeAction() {
     vibrate();
     const isLight = document.body.classList.toggle('light-mode');
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
     applyTheme(isLight ? 'light' : 'dark');
-};
+}
+document.getElementById('desk-theme-toggle')?.addEventListener('click', toggleThemeAction);
+document.getElementById('mobile-theme-toggle')?.addEventListener('click', () => { toggleThemeAction(); document.getElementById('tools-modal').classList.remove('active'); });
 
-// --- CUSTOM POPUP ---
+// --- CUSTOM POPUP (NO ALERTS) ---
 const popupOverlay = document.getElementById('custom-popup');
 function showPopup(title, msg, onConfirm, showCancel = false, type = 'bell') {
     document.getElementById('popup-title').innerText = title;
@@ -86,23 +87,21 @@ function showPopup(title, msg, onConfirm, showCancel = false, type = 'bell') {
     const cancelBtn = document.getElementById('popup-cancel');
     cancelBtn.style.display = showCancel ? 'block' : 'none';
     
-    document.getElementById('popup-confirm').onclick = () => {
-        popupOverlay.classList.remove('active');
-        if(onConfirm) onConfirm();
-    };
+    document.getElementById('popup-confirm').onclick = () => { popupOverlay.classList.remove('active'); if(onConfirm) onConfirm(); };
     cancelBtn.onclick = () => popupOverlay.classList.remove('active');
 }
 
-// --- MINION EASTER EGG (Middle Logo) ---
+// --- MINION EASTER EGG ---
 const heroTitle = document.getElementById('hero-title');
 const minionSprite = document.getElementById('minion-sprite');
 heroTitle.innerHTML = heroTitle.textContent.split('').map(l => `<span class="hero-letter" style="display:inline-block; transition: transform 0.2s;">${l}</span>`).join('');
 
 heroTitle.addEventListener('click', () => {
+    if(minionSprite.style.display === 'block') return;
     minionSprite.style.display = 'block'; minionSprite.style.left = '-60px';
     let pos = -60;
     const interval = setInterval(() => {
-        pos += 5; minionSprite.style.left = pos + 'px';
+        pos += 6; minionSprite.style.left = pos + 'px';
         document.querySelectorAll('.hero-letter').forEach((span, i) => {
             if(Math.abs(pos - ((i*30)+20)) < 20) { span.style.transform = "translateY(-20px)"; setTimeout(() => span.style.transform = "translateY(0)", 200); }
         });
@@ -110,10 +109,70 @@ heroTitle.addEventListener('click', () => {
     }, 16);
 });
 
-// --- ADMIN PANEL TRIGGER ---
+// --- ADMIN PANEL ---
 secretAdminBtn.addEventListener('click', () => { adminModal.classList.add('active'); closeSidebar(); });
 
-// --- NETWORK BANNER ---
+adminAuthBtn.onclick = () => {
+    if(adminPassInput.value === 'admin123') { adminLoginScreen.style.display = 'none'; adminDashboard.style.display = 'block'; updateImageInputs(); renderAdminList(); } 
+    else showPopup("Error", "Incorrect Password", null, false, "alert-triangle");
+};
+function updateImageInputs() {
+    imageInputsContainer.innerHTML = ''; const count = parseInt(document.getElementById('step-count-select').value);
+    for (let i=1; i<=count; i++) {
+        const input = document.createElement('input'); input.className = 'form-input step-url-input border-l-4 border-primary'; input.placeholder = (i===count) ? `Final Image URL` : `Step ${i} URL`;
+        imageInputsContainer.appendChild(input);
+    }
+}
+document.getElementById('step-count-select').onchange = updateImageInputs;
+
+window.handleEdit = function(id) {
+    const book = LibraryDB.getBooks().find(b => String(b.id) === String(id)); if(!book) return;
+    document.getElementById('edit-book-id').value = book.id; document.getElementById('admin-form-title').innerText = "Edit Book";
+    document.getElementById('new-title').value = book.title; document.getElementById('new-author').value = book.author;
+    document.getElementById('new-genre').value = book.genre; document.getElementById('step-count-select').value = book.images.length || 2;
+    updateImageInputs();
+    const inputs = document.querySelectorAll('.step-url-input'); book.images.forEach((img, i) => { if(inputs[i] && !img.includes('placehold.co')) inputs[i].value = img; });
+    const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Update Book';
+    document.getElementById('cancel-edit-btn').style.display = "block"; refreshIcons();
+    document.querySelector('#admin-modal .modal-content').scrollTo({top:0,behavior:'smooth'});
+};
+
+document.getElementById('cancel-edit-btn').onclick = () => {
+    document.getElementById('edit-book-id').value = ''; document.getElementById('admin-form-title').innerText = "Add New Book";
+    document.getElementById('new-title').value = ''; document.getElementById('new-author').value = '';
+    const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="upload-cloud" class="w-4 h-4"></i> Add to Cloud';
+    document.getElementById('cancel-edit-btn').style.display = "none"; updateImageInputs(); refreshIcons();
+};
+
+document.getElementById('add-book-btn').onclick = async () => {
+    const title = document.getElementById('new-title').value.trim(); const author = document.getElementById('new-author').value.trim(); const genre = document.getElementById('new-genre').value; const editingId = document.getElementById('edit-book-id').value;
+    if(!title || !author) return showPopup("Missing Info", "Fill in title and author.", null, false, "alert-triangle");
+    const imageUrls = Array.from(document.querySelectorAll('.step-url-input')).map((input, i) => input.value.trim() || `https://placehold.co/600x400/0f172a/db2777?text=Step+${i+1}`);
+    document.getElementById('add-book-btn').disabled = true;
+    if(editingId) {
+        const books = LibraryDB.getBooks(); const index = books.findIndex(b => String(b.id) === String(editingId));
+        if(index > -1) { books[index].title = title; books[index].author = author; books[index].genre = genre; books[index].images = imageUrls; await LibraryDB.saveToCloud(); showPopup("Success", "Book Updated!", null, false, "check-circle"); }
+    } else {
+        await LibraryDB.addBook({ id: Date.now(), title, author, genre, images: imageUrls, views: 0 }); showPopup("Success", "Book Added!", null, false, "check-circle");
+    }
+    document.getElementById('cancel-edit-btn').click(); renderAdminList(); performSearch(searchInput.value); document.getElementById('add-book-btn').disabled = false;
+};
+
+function renderAdminList() {
+    document.getElementById('admin-book-list').innerHTML = LibraryDB.getBooks().map(b => `
+        <div class="bg-main p-3 rounded-xl border border-color flex justify-between items-center mb-2">
+            <div class="overflow-hidden"><strong class="block truncate text-sm">${b.title}</strong><small class="text-muted text-xs">${b.author}</small></div>
+            <div class="flex gap-2">
+                <button onclick="handleEdit('${b.id}')" class="icon-btn text-primary bg-primary-light w-8 h-8 flex-shrink-0"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                <button onclick="handleDelete('${b.id}')" class="icon-btn text-warning bg-warning/10 w-8 h-8 flex-shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            </div>
+        </div>`).join(''); refreshIcons();
+}
+
+window.handleDelete = async (id) => { showPopup("Confirm Delete", "Are you sure you want to delete this book?", async () => { await LibraryDB.deleteBook(id); renderAdminList(); performSearch(searchInput.value); }, true, "alert-triangle"); };
+document.getElementById('factory-reset-btn').onclick = async () => { showPopup("Defense Mode", "Reset Stats & History? Books will remain.", async () => { await LibraryDB.factoryReset(); window.location.reload(); }, true, "shield"); };
+
+// --- NETWORK & OBSERVERS ---
 window.addEventListener('offline', () => { offlineBanner.classList.add('active'); });
 window.addEventListener('online', () => { 
     offlineBanner.innerHTML = '<i data-lucide="wifi" class="w-4 h-4"></i> <span>Back online!</span>'; refreshIcons();
@@ -122,7 +181,6 @@ window.addEventListener('online', () => {
 });
 const vibrate = () => { if (navigator.vibrate) navigator.vibrate(10); };
 
-// --- ANTI-LAG OBSERVER ---
 const imageObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -155,7 +213,7 @@ async function init() {
     const connected = await LibraryDB.init(); 
     if (!connected) resultsArea.innerHTML = '<div class="text-center p-4 text-muted">Connection Error</div>';
     
-    if (window.innerWidth <= 768) document.body.classList.add('is-mobile-device');
+    if (window.innerWidth <= 850) document.body.classList.add('is-mobile-device');
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('book')) {
         const book = LibraryDB.getBooks().find(b => String(b.id) === String(urlParams.get('book')));
@@ -168,14 +226,12 @@ async function init() {
     refreshIcons();
 }
 
-// --- FULLY RESTORED HOME BUTTON LOGIC ---
+// --- NAVIGATION (HOME & TOOLS RESET) ---
 function resetToHome() {
     vibrate();
-    
-    // Reset Tabs
-    document.querySelectorAll('.nav-item').forEach(item => { item.classList.remove('active', 'text-primary'); item.classList.add('text-muted'); });
+    document.querySelectorAll('.nav-item').forEach(item => { item.classList.remove('active'); });
     const mobileHome = document.querySelector('.bottom-nav .nav-item[data-section="home"]');
-    if(mobileHome) mobileHome.classList.add('active', 'text-primary');
+    if(mobileHome) mobileHome.classList.add('active');
     const indicator = document.querySelector('.nav-indicator');
     if(indicator) indicator.style.transform = `translateX(0%)`;
     
@@ -186,103 +242,49 @@ function resetToHome() {
     document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
     document.getElementById('home-section').classList.add('active');
     
-    // Reset Search & Filters
-    searchInput.value = '';
-    autocompleteDropdown.style.display = 'none';
-    selectedGenres.clear();
+    searchInput.value = ''; autocompleteDropdown.style.display = 'none'; selectedGenres.clear();
     document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
     document.querySelector('.quick-btn[data-genre="All"]').classList.add('active');
     
-    hero.classList.remove('minimized');
-    featuredContainer.style.display = 'block';
-    resultsArea.innerHTML = ''; 
-    closeMenuBtn.click();
+    hero.classList.remove('minimized'); featuredContainer.style.display = 'block'; resultsArea.innerHTML = ''; 
+    closeMenuBtn.click(); document.getElementById('tools-modal').classList.remove('active');
 }
 
-// Bind Home Button
 document.getElementById('bottom-home-btn')?.addEventListener('click', (e) => { e.preventDefault(); resetToHome(); });
 document.querySelector('.desk-nav-item[data-section="home"]')?.addEventListener('click', (e) => { e.preventDefault(); resetToHome(); });
 
-// About Tab Binding
 document.querySelectorAll('[data-section="about"]').forEach(item => {
     item.onclick = (e) => { 
         e.preventDefault(); vibrate();
-        document.querySelectorAll('.nav-item').forEach(i => { i.classList.remove('active', 'text-primary'); i.classList.add('text-muted'); });
+        document.querySelectorAll('.nav-item').forEach(i => { i.classList.remove('active'); });
         document.querySelectorAll('.desk-nav-item').forEach(d => d.classList.remove('active'));
-        item.classList.add('active', 'text-primary');
+        item.classList.add('active');
         const indicator = document.querySelector('.nav-indicator');
-        if(indicator) indicator.style.transform = `translateX(200%)`; // About is index 2
+        if(indicator) indicator.style.transform = `translateX(200%)`; 
         document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
         document.getElementById('about-section').classList.add('active');
+        document.getElementById('tools-modal').classList.remove('active');
     };
 });
 
-document.getElementById('mobile-cat-btn').onclick = (e) => { e.preventDefault(); vibrate(); sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); };
-document.getElementById('desk-cat-btn').onclick = (e) => { e.preventDefault(); vibrate(); sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); };
-const hamburgerBtn = document.getElementById('hamburger-btn');
-if(hamburgerBtn) hamburgerBtn.onclick = () => { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); };
-closeMenuBtn.onclick = () => { sideMenu.classList.remove('active'); sideMenuOverlay.classList.remove('active'); };
-sideMenuOverlay.onclick = closeMenuBtn.onclick;
+document.getElementById('mobile-tools-btn')?.addEventListener('click', (e) => { 
+    e.preventDefault(); vibrate();
+    document.querySelectorAll('.nav-item').forEach(i => { i.classList.remove('active'); });
+    e.currentTarget.classList.add('active');
+    const indicator = document.querySelector('.nav-indicator');
+    if(indicator) indicator.style.transform = `translateX(100%)`;
+    document.getElementById('tools-modal').classList.add('active'); 
+});
 
-// --- RESTORED ADMIN LOGIC ---
-adminAuthBtn.onclick = () => {
-    if(adminPassInput.value === 'admin123') { adminLoginScreen.style.display = 'none'; adminDashboard.style.display = 'block'; updateImageInputs(); renderAdminList(); } 
-    else showPopup("Error", "Incorrect Password", null, false, "alert-triangle");
-};
-function updateImageInputs() {
-    imageInputsContainer.innerHTML = ''; const count = parseInt(document.getElementById('step-count-select').value);
-    for (let i=1; i<=count; i++) {
-        const input = document.createElement('input'); input.className = 'form-input step-url-input border-l-4 border-primary'; input.placeholder = (i===count) ? `Final Image URL` : `Step ${i} URL`;
-        imageInputsContainer.appendChild(input);
-    }
-}
-document.getElementById('step-count-select').onchange = updateImageInputs;
+const filterToggle = document.getElementById('filter-toggle'); 
+const filterMenu = document.getElementById('filter-menu');
+filterToggle.onclick = (e) => { e.stopPropagation(); filterMenu.style.display = (filterMenu.style.display==='flex'?'none':'flex'); };
 
-window.handleEdit = function(id) {
-    const book = LibraryDB.getBooks().find(b => String(b.id) === String(id)); if(!book) return;
-    document.getElementById('edit-book-id').value = book.id; document.getElementById('admin-form-title').innerText = "Edit Book";
-    document.getElementById('new-title').value = book.title; document.getElementById('new-author').value = book.author;
-    document.getElementById('new-genre').value = book.genre; document.getElementById('step-count-select').value = book.images.length || 2;
-    updateImageInputs();
-    const inputs = document.querySelectorAll('.step-url-input'); book.images.forEach((img, i) => { if(inputs[i] && !img.includes('placehold.co')) inputs[i].value = img; });
-    const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Update Book'; btn.className = 'submit-btn w-full ripple mt-2 flex-center justify-center gap-2 bg-primary text-white';
-    document.getElementById('cancel-edit-btn').style.display = "block"; refreshIcons();
-};
-
-document.getElementById('cancel-edit-btn').onclick = () => {
-    document.getElementById('edit-book-id').value = ''; document.getElementById('admin-form-title').innerText = "Add New Book";
-    document.getElementById('new-title').value = ''; document.getElementById('new-author').value = '';
-    const btn = document.getElementById('add-book-btn'); btn.innerHTML = '<i data-lucide="upload-cloud" class="w-4 h-4"></i> Add to Cloud'; btn.className = 'submit-btn w-full ripple mt-2 flex-center justify-center gap-2 bg-success text-white';
-    document.getElementById('cancel-edit-btn').style.display = "none"; updateImageInputs(); refreshIcons();
-};
-
-document.getElementById('add-book-btn').onclick = async () => {
-    const title = document.getElementById('new-title').value.trim(); const author = document.getElementById('new-author').value.trim(); const genre = document.getElementById('new-genre').value; const editingId = document.getElementById('edit-book-id').value;
-    if(!title || !author) return showPopup("Missing Info", "Fill in title and author.", null, false, "alert-triangle");
-    const imageUrls = Array.from(document.querySelectorAll('.step-url-input')).map((input, i) => input.value.trim() || `https://placehold.co/600x400/0f172a/db2777?text=Step+${i+1}`);
-    document.getElementById('add-book-btn').disabled = true;
-    if(editingId) {
-        const books = LibraryDB.getBooks(); const index = books.findIndex(b => String(b.id) === String(editingId));
-        if(index > -1) { books[index].title = title; books[index].author = author; books[index].genre = genre; books[index].images = imageUrls; await LibraryDB.saveToCloud(); showPopup("Success", "Book Updated!", null, false, "check-circle"); }
-    } else {
-        await LibraryDB.addBook({ id: Date.now(), title, author, genre, images: imageUrls, views: 0 }); showPopup("Success", "Book Added!", null, false, "check-circle");
-    }
-    document.getElementById('cancel-edit-btn').click(); renderAdminList(); performSearch(searchInput.value); document.getElementById('add-book-btn').disabled = false;
-};
-
-function renderAdminList() {
-    document.getElementById('admin-book-list').innerHTML = LibraryDB.getBooks().map(b => `
-        <div class="bg-surface p-3 rounded-xl border flex justify-between items-center shadow-premium-sm">
-            <div class="overflow-hidden"><strong class="block truncate text-sm">${b.title}</strong><small class="text-muted text-xs">${b.author}</small></div>
-            <div class="flex gap-2">
-                <button onclick="handleEdit('${b.id}')" class="icon-btn text-primary bg-primary-light w-8 h-8 flex-shrink-0"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                <button onclick="handleDelete('${b.id}')" class="icon-btn text-warning bg-warning/10 w-8 h-8 flex-shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-            </div>
-        </div>`).join(''); refreshIcons();
-}
-
-window.handleDelete = async (id) => { showPopup("Confirm Delete", "Are you sure you want to delete this book?", async () => { await LibraryDB.deleteBook(id); renderAdminList(); performSearch(searchInput.value); }, true, "alert-triangle"); };
-document.getElementById('factory-reset-btn').onclick = async () => { showPopup("Defense Mode", "Reset Stats & History? Books will remain.", async () => { await LibraryDB.factoryReset(); window.location.reload(); }, true, "shield"); };
+function openSidebar() { sideMenu.classList.add('active'); sideMenuOverlay.classList.add('active'); filterMenu.style.display='none'; }
+function closeSidebar() { sideMenu.classList.remove('active'); sideMenuOverlay.classList.remove('active'); }
+document.getElementById('hamburger-btn').onclick = openSidebar;
+document.getElementById('desk-cat-btn').onclick = (e) => { e.preventDefault(); openSidebar(); };
+closeMenuBtn.onclick = closeSidebar; sideMenuOverlay.onclick = closeSidebar;
 
 // --- FEATURED BOOK ---
 function loadFeaturedBook() {
@@ -293,8 +295,8 @@ function loadFeaturedBook() {
         <div class="mb-6"><span class="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">Daily Global Pick</span>
             <div class="featured-card shadow-premium" onclick="openModalById('${b.id}')">
                 <div class="featured-cover skeleton"><img id="fc-img" src="" class="shelf-cover-img">
-                <button class="fav-btn-grid ${isFav?'active':''}" onclick="toggleFavorite(event,'${b.id}')"><i data-lucide="heart" class="w-4 h-4"></i></button></div>
-                <div class="text-left"><h2 class="font-bold text-lg leading-tight mb-1">${b.title}</h2><p class="text-sm text-muted mb-2">by ${b.author}</p><span class="badge bg-primary-light text-primary">${b.genre}</span></div>
+                <button class="fav-btn-grid ${isFav?'active':''}" onclick="toggleFavorite(event,'${b.id}')"><i data-lucide="bookmark" class="w-4 h-4"></i></button></div>
+                <div class="text-left"><h2 class="font-bold text-lg leading-tight mb-1 text-main">${b.title}</h2><p class="text-sm text-muted mb-2">by ${b.author}</p><span class="badge bg-primary-light text-primary">${b.genre}</span></div>
             </div>
         </div>`;
     fetchCoverWithFallback(b.title, b.author, 'fc-img', true); refreshIcons();
@@ -342,7 +344,7 @@ async function openModal(book) {
     }
 
     qrContainer.innerHTML = ''; const dl = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
-    try { new QRCode(qrContainer, { text: dl, width: 120, height: 120, colorDark : "#0f172a", colorLight : "#ffffff" }); } catch(err) {}
+    try { new QRCode(qrContainer, { text: dl, width: 120, height: 120, colorDark : "#121212", colorLight : "#ffffff" }); } catch(err) {}
 
     const sb = document.getElementById('share-book-btn');
     if(sb) sb.onclick = async () => { vibrate(); if(navigator.share) await navigator.share({title:'LibNav', text:`Check out ${book.title}`, url:dl}); else { navigator.clipboard.writeText(dl); showPopup("Success", "Link copied!", null, false, "check-circle"); } };
@@ -368,19 +370,39 @@ function updateCarousel() {
         carouselImg.src = currentImages[currentImageIndex]; stepCounter.innerText = `Step ${currentImageIndex+1} of ${currentImages.length}`;
         prevBtn.disabled = currentImageIndex === 0; nextBtn.disabled = currentImageIndex === currentImages.length-1; carouselImg.style.display = 'block';
         if(aa) aa.style.display = (currentImageIndex===currentImages.length-1 && document.body.classList.contains('is-mobile-device')) ? 'block' : 'none';
-    } else { carouselImg.style.display = 'none'; wrap.classList.remove('skeleton'); stepCounter.innerText = "No map"; }
+    } else { carouselImg.style.display = 'none'; wrap.classList.remove('skeleton'); stepCounter.innerText = "No map available"; }
 }
 
-// --- SEARCH & CATEGORY LOGIC ---
+// --- SEARCH & CATEGORY ---
 document.querySelectorAll('.quick-btn').forEach(btn => {
     if(btn.id === 'open-feedback-btn') return;
     btn.onclick = () => {
         searchInput.value = ''; selectedGenres.clear(); selectedGenres.add(btn.dataset.genre);
-        document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+        document.querySelectorAll('.quick-btn, .filter-option input').forEach(b => { if(b.classList) b.classList.remove('active'); else b.checked = false; }); 
+        btn.classList.add('active');
         if(btn.dataset.genre === 'All') { hero.classList.remove('minimized'); featuredContainer.style.display = 'block'; } 
         else { hero.classList.add('minimized'); featuredContainer.style.display = 'none'; }
         performSearch(''); closeMenuBtn.click(); 
         document.getElementById('home-section').classList.add('active'); document.getElementById('about-section').classList.remove('active');
+        const mobileHome = document.querySelector('.bottom-nav .nav-item[data-section="home"]');
+        if(mobileHome) { document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active')); mobileHome.classList.add('active'); document.querySelector('.nav-indicator').style.transform = `translateX(0%)`; }
+    };
+});
+
+document.querySelectorAll('.filter-option input').forEach(box => {
+    box.onchange = (e) => {
+        const val = e.target.value;
+        if(val === 'All') {
+            selectedGenres.clear(); if(e.target.checked) selectedGenres.add('All');
+            document.querySelectorAll('.filter-option input').forEach(c => { if(c.value !== 'All') c.checked = false; });
+            document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active')); if(e.target.checked) document.querySelector('.quick-btn[data-genre="All"]').classList.add('active');
+        } else {
+            if(e.target.checked) { selectedGenres.delete('All'); document.querySelector('.filter-option input[value="All"]').checked = false; document.querySelector('.quick-btn[data-genre="All"]').classList.remove('active'); selectedGenres.add(val); document.querySelectorAll('.quick-btn').forEach(b => { if(b.dataset.genre===val) b.classList.add('active'); }); } 
+            else { selectedGenres.delete(val); document.querySelectorAll('.quick-btn').forEach(b => { if(b.dataset.genre===val) b.classList.remove('active'); }); }
+        }
+        if (selectedGenres.size > 0) { hero.classList.add('minimized'); featuredContainer.style.display = 'none'; } 
+        else if (searchInput.value === '') { hero.classList.remove('minimized'); featuredContainer.style.display = 'block'; }
+        performSearch(searchInput.value);
     };
 });
 
@@ -433,7 +455,7 @@ function renderResults(books) {
             <div class="shelf-cover-wrapper skeleton shadow-premium-sm">
                 <img id="${coverId}" class="shelf-cover-img" data-title="${book.title}" data-author="${book.author}" src="">
                 <button class="fav-btn-grid ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${book.id}')">
-                    <i data-lucide="heart" class="w-4 h-4"></i>
+                    <i data-lucide="bookmark" class="w-4 h-4"></i>
                 </button>
             </div>
             <div class="shelf-info"><p class="shelf-title">${titleHtml}</p><p class="shelf-author">${book.author}</p></div>
@@ -444,32 +466,32 @@ function renderResults(books) {
     resultsArea.appendChild(frag); refreshIcons();
 }
 
-// --- UTILS & TRIGGERS ---
-document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; };
+window.toggleFavorite = function(e, bookId) {
+    e.stopPropagation(); vibrate(); const index = favorites.findIndex(id => String(id) === String(bookId));
+    if (index === -1) favorites.push(String(bookId)); else favorites.splice(index, 1);
+    localStorage.setItem('libnav_favs', JSON.stringify(favorites)); performSearch(searchInput.value); loadFeaturedBook();
+}
+
+// --- UTILS ---
+document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; if(!e.target.closest('.search-wrapper') && !e.target.closest('#filter-toggle')) filterMenu.style.display='none'; };
 function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.classList.remove('active'); idleTimeout = setTimeout(() => { if(!document.body.classList.contains('companion-mode-active')) { resetToHome(); document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('active')); screensaver.classList.add('active'); } }, IDLE_LIMIT); }
 window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
 document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
+document.querySelectorAll('.close-modal-inline').forEach(btn => btn.onclick = (e) => e.target.closest('.modal-overlay').classList.remove('active'));
 
-// RESTORED: Precise Time Formatting & Review Counts
-document.getElementById('stats-trigger').onclick = () => {
-    vibrate(); 
+// --- TOOLS: STATS & FEEDBACK ---
+const openStats = () => {
+    vibrate(); document.getElementById('tools-modal').classList.remove('active');
     const books = LibraryDB.getBooks(); const ratings = LibraryDB.getRatings();
     
-    // Time Formatting (Days, Hours, Minutes)
-    const startDate = new Date("2026-01-01T00:00:00").getTime();
-    const now = new Date().getTime();
-    const diff = now - startDate;
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const startDate = new Date("2026-01-01T00:00:00").getTime(); const now = new Date().getTime(); const diff = now - startDate;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24)); const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const uptimeStr = `${days}d, ${hours}h, ${minutes}m`;
 
     const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0});
     const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None"});
     const genres = {}; books.forEach(b=>genres[b.genre]=(genres[b.genre]||0)+1);
-    
-    // Rating with Review Count
-    const avg = ratings.length ? `⭐ ${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)} <span class="text-sm font-normal text-muted">(${ratings.length} Reviews)</span>` : "No Ratings";
+    const avg = ratings.length ? `⭐ ${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)} <span class="text-xs font-normal text-muted">(${ratings.length} Reviews)</span>` : "No Ratings";
     
     document.getElementById('stats-content').innerHTML = `
         <div class="bg-primary-light p-3 rounded-xl text-center mb-4 text-primary font-bold text-sm flex-center justify-center gap-2 border border-primary/20"><i data-lucide="server" class="w-4 h-4"></i> Cloud Uptime: ${uptimeStr}</div>
@@ -477,28 +499,22 @@ document.getElementById('stats-trigger').onclick = () => {
             <div class="bg-surface p-4 rounded-xl border text-center shadow-premium-sm"><p class="text-xs text-muted mb-1 font-bold uppercase">Total Books</p><h2 class="text-2xl font-bold text-primary">${books.length}</h2></div>
             <div class="bg-surface p-4 rounded-xl border text-center shadow-premium-sm"><p class="text-xs text-muted mb-1 font-bold uppercase">Bookmarks</p><h2 class="text-2xl font-bold text-warning">${favorites.length}</h2></div>
         </div>
-        <div class="bg-surface p-4 rounded-xl border text-center mb-4 shadow-premium-sm"><p class="text-xs text-muted mb-1 font-bold uppercase">Global Rating</p><h2 class="text-xl font-bold text-warning">${avg}</h2></div>
+        <div class="bg-surface p-4 rounded-xl border text-center mb-4 shadow-premium-sm"><p class="text-xs text-muted mb-1 font-bold uppercase">Global Rating</p><h2 class="text-xl font-bold text-warning flex-center justify-center gap-1">${avg}</h2></div>
         <div class="mb-4"><p class="text-xs font-bold text-muted uppercase tracking-wider mb-2 flex-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> Top Pick</p><div class="flex justify-between items-center bg-surface p-3 rounded-lg border"><strong>${mostViewed.title}</strong><span class="text-xs bg-success/10 text-success px-2 py-1 rounded font-bold">${mostViewed.views} Views</span></div></div>
         <div class="mb-4"><p class="text-xs font-bold text-muted uppercase tracking-wider mb-2 flex-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> Newest</p><div class="bg-surface p-3 rounded-lg border"><strong>${newest.title}</strong></div></div>
         <div class="mb-2"><p class="text-xs font-bold text-muted uppercase tracking-wider mb-2 flex-center gap-1"><i data-lucide="pie-chart" class="w-3 h-3"></i> Composition</p>${Object.entries(genres).map(([k,v])=>`<div class="flex justify-between p-2 border-b border-color text-sm"><span>${k}</span><span class="text-primary font-bold">${v}</span></div>`).join('')}</div>
     `; refreshIcons(); document.getElementById('stats-modal').classList.add('active');
 };
+document.getElementById('open-stats-btn')?.addEventListener('click', openStats);
+document.getElementById('desk-stats-btn')?.addEventListener('click', openStats);
 
-// RESTORED FEEDBACK LOGIC
-document.getElementById('open-feedback-btn').onclick = () => { vibrate(); document.getElementById('feedback-modal').classList.add('active'); closeMenuBtn.click(); };
+document.getElementById('open-feedback-btn').onclick = () => { vibrate(); document.getElementById('tools-modal').classList.remove('active'); document.getElementById('feedback-modal').classList.add('active'); closeSidebar(); };
 const fForm = document.getElementById('feedback-form');
 if(fForm) fForm.onsubmit = async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('fb-submit-btn');
-    const rating = document.querySelector('input[name="rating"]:checked')?.value || 5; 
+    e.preventDefault(); const btn = document.getElementById('fb-submit-btn'); const rating = document.querySelector('input[name="rating"]:checked')?.value || 5; 
     btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin w-4 h-4 inline"></i> Sending...'; refreshIcons(); btn.disabled = true;
-    try { 
-        await LibraryDB.submitRating(parseInt(rating)); 
-        showPopup("Success", "Feedback Sent! Thank you.", null, false, "check-circle"); 
-        fForm.reset(); 
-        setTimeout(() => document.getElementById('feedback-modal').classList.remove('active'), 1000); 
-    } catch { showPopup("Saved", "Rating Saved Locally."); } 
-    finally { btn.innerText = "Send Feedback"; btn.disabled = false; }
+    try { await LibraryDB.submitRating(parseInt(rating)); showPopup("Success", "Feedback Sent! Thank you.", null, false, "check-circle"); fForm.reset(); setTimeout(() => document.getElementById('feedback-modal').classList.remove('active'), 1000); } 
+    catch { showPopup("Saved", "Rating Saved Locally."); } finally { btn.innerText = "Send Feedback"; btn.disabled = false; }
 };
 
 window.showSuccessScreen = function() { vibrate(); document.getElementById('book-modal').classList.remove('active'); document.getElementById('success-modal').classList.add('active'); }
