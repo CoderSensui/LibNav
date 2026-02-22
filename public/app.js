@@ -1,6 +1,44 @@
 document.addEventListener('DOMContentLoaded', () => {
     function renderIcons() { if(typeof lucide !== 'undefined') lucide.createIcons(); }
 
+    const LibraryDB = {
+        dbUrl: "https://libnav-dc2c8-default-rtdb.firebaseio.com/", 
+        books: [],
+        init: async function() {
+            try {
+                const response = await fetch(`${this.dbUrl}.json`);
+                const data = await response.json();
+                if (data && data.books && Array.isArray(data.books)) {
+                    this.books = data.books.filter(b => b !== null);
+                } else {
+                    this.books = []; 
+                }
+                return true;
+            } catch (error) {
+                console.error("Firebase Error:", error);
+                return false;
+            }
+        },
+        getBooks: function() { return this.books; },
+        saveBooks: async function() {
+            try {
+                await fetch(`${this.dbUrl}books.json`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(this.books)
+                });
+                return true;
+            } catch(e) { return false; }
+        },
+        incrementView: async function(id) {
+            const book = this.books.find(b => String(b.id) === String(id));
+            if (book) {
+                book.views = (book.views || 0) + 1;
+                this.saveBooks(); 
+            }
+        }
+    };
+    
     const searchInput = document.getElementById('search-input');
     const autocompleteDropdown = document.getElementById('autocomplete-dropdown');
     const resultsArea = document.getElementById('results-area');
