@@ -1,62 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
     function renderIcons() { if(typeof lucide !== 'undefined') lucide.createIcons(); }
 
-    const LibraryDB = {
-        dbUrl: "https://libnav-dc2c8-default-rtdb.firebaseio.com/", 
-        books: [],
-        init: async function() {
-            try {
-                const response = await fetch(`${this.dbUrl}.json`);
-                const data = await response.json();
-                if (data && data.books && Array.isArray(data.books)) {
-                    this.books = data.books.filter(b => b !== null);
-                } else {
-                    this.books = []; 
-                }
-                return true;
-            } catch (error) {
-                console.error("Firebase Error:", error);
-                return false;
-            }
-        },
-        getBooks: function() { return this.books; },
-        saveBooks: async function() {
-            try {
-                await fetch(`${this.dbUrl}books.json`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(this.books)
-                });
-                return true;
-            } catch(e) { return false; }
-        },
-        incrementView: async function(id) {
-            const book = this.books.find(b => String(b.id) === String(id));
-            if (book) {
-                book.views = (book.views || 0) + 1;
-                this.saveBooks(); 
-            }
-        }
-    };
-
     const searchInput = document.getElementById('search-input');
+    const autocompleteDropdown = document.getElementById('autocomplete-dropdown');
     const resultsArea = document.getElementById('results-area');
     const featuredContainer = document.getElementById('featured-container');
     const hero = document.getElementById('hero');
     const sideMenu = document.getElementById('side-menu');
     const sideMenuOverlay = document.getElementById('side-menu-overlay');
     const micBtn = document.getElementById('mic-btn');
+    const screensaver = document.getElementById('screensaver');
+    const adminModal = document.getElementById('admin-modal');
     const bookModal = document.getElementById('book-modal');
     const carouselImg = document.getElementById('carousel-img');
     const stepCounter = document.getElementById('step-counter');
 
     let selectedGenres = new Set(); 
     let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
+    const IDLE_LIMIT = 30000;
+    let idleTimeout;
     const coverCache = {}; 
     let currentImages = [];
     let currentImageIndex = 0;
     let currentGenre = "";
-    let uptimeInterval = null; // Used to track the live ticking timer
+    let uptimeInterval = null;
 
     const quickTips = [
         "Use the microphone icon to search for books hands-free.",
@@ -68,8 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function showPopup(title, msg, type = 'info', onConfirm = null, showCancel = false) {
         document.getElementById('popup-title').innerText = title;
         document.getElementById('popup-message').innerText = msg;
-        
+        const pop = document.getElementById('custom-popup');
         const iconWrapper = document.getElementById('popup-icon');
+        
         if (type === 'success') {
             iconWrapper.innerHTML = '<i data-lucide="check-circle-2"></i>';
             iconWrapper.style.color = 'var(--success)';
@@ -84,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
             iconWrapper.style.background = 'var(--primary-light)';
         }
 
-        const pop = document.getElementById('custom-popup');
         pop.style.display = 'flex';
         
         const cancelBtn = document.getElementById('popup-cancel');
@@ -110,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(isLight ? 'light' : 'dark');
     });
 
+    // NAVIGATION LOGIC
     function switchSection(sectionId) {
         document.querySelectorAll('.nav-tab, .desk-nav-item').forEach(i => i.classList.remove('active'));
         document.querySelector(`.nav-tab[data-section="${sectionId}"]`)?.classList.add('active');
@@ -121,6 +89,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sectionId === 'tools') {
             const tipEl = document.getElementById('dynamic-tip');
             if(tipEl) tipEl.innerText = quickTips[Math.floor(Math.random() * quickTips.length)];
+        }
+
+        // FULL HOME RESET LOGIC
+        if (sectionId === 'home') {
+            searchInput.value = ''; 
+            autocompleteDropdown.style.display = 'none'; 
+            selectedGenres.clear();
+            
+            // Uncheck all filters
+            document.querySelectorAll('.filter-option input').forEach(c => c.checked = false);
+            
+            // Reset Sidebar active states
+            document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active'));
+            document.querySelector('.menu-item[data-genre="All"]')?.classList.add('active');
+            
+            // Restore Hero & Featured
+            hero.style.display = 'block'; 
+            featuredContainer.style.display = 'block'; 
+            resultsArea.innerHTML = ''; 
+            
+            // Reload featured to ensure bookmark state is fresh
+            loadFeaturedBook();
         }
     }
 
@@ -166,7 +156,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
-            switchSection('home');
+            // Manually switch to home view without doing a full reset (preserve genre selection)
+            document.querySelectorAll('.nav-tab, .desk-nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelector(`.nav-tab[data-section="home"]`)?.classList.add('active');
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`home-section`).classList.add('active');
             
             if(genre === 'All') { 
                 hero.style.display = 'block'; 
@@ -186,11 +180,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const overlay = e.target.closest('.modal-overlay');
         if(overlay) {
             overlay.style.display = 'none';
-            // Stop ticking timer when Stats modal closes
             if(overlay.id === 'stats-modal' && uptimeInterval) clearInterval(uptimeInterval);
         }
     });
 
+    // SHARE LOGIC
     document.getElementById('mobile-share-btn').onclick = async () => {
         const id = document.getElementById('modal-book-id').innerText;
         const url = `${window.location.origin}${window.location.pathname}?book=${id}`;
@@ -330,13 +324,19 @@ document.addEventListener('DOMContentLoaded', () => {
         renderIcons();
     }
 
+    // Toggle Favorite Function (Global)
     window.toggleFavorite = function(e, bookId) {
         e.stopPropagation(); 
         const btn = e.target.closest('.fav-btn');
         btn.classList.toggle('active'); 
         
         const index = favorites.findIndex(id => String(id) === String(bookId));
-        if (index === -1) favorites.push(String(bookId)); else favorites.splice(index, 1);
+        if (index === -1) {
+            favorites.push(String(bookId));
+            showPopup("Saved", "Book added to bookmarks", "success"); // Optional feedback
+        } else {
+            favorites.splice(index, 1);
+        }
         localStorage.setItem('libnav_favs', JSON.stringify(favorites));
     };
 
@@ -368,14 +368,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return canvas.toDataURL();
     }
 
+    // DAILY PICK LOGIC (1 BOOK PER DAY)
     function loadFeaturedBook() {
         const books = LibraryDB.getBooks(); if (books.length === 0) return;
-        const b = books[Math.floor(Math.random() * books.length)];
+        
+        // This math uses the Date String (e.g., "Mon Feb 23 2026") to create a consistent index for 24 hours
+        const dateStr = new Date().toDateString();
+        const dailyIndex = Math.abs(dateStr.split('').reduce((a,b)=>a+(b.charCodeAt(0)),0)) % books.length;
+        const b = books[dailyIndex];
+        
         const isFav = favorites.some(id => String(id) === String(b.id));
         featuredContainer.innerHTML = `
             <div style="margin-bottom: 30px;">
-                <span style="display:flex; gap:8px; color:var(--warning); font-size:0.8rem; font-weight:bold; margin-bottom:10px;"><i data-lucide="star"></i> DAILY PICK</span>
-                <div style="background:var(--surface); border:1px solid var(--border-color); padding:20px; border-radius:16px; display:flex; gap:20px; cursor:pointer;" onclick="openModalById('${b.id}')">
+                <span style="display:flex; gap:8px; color:var(--warning); font-size:0.8rem; font-weight:bold; margin-bottom:10px;"><i data-lucide="star"></i> DAILY PICK (${dateStr})</span>
+                <div style="background:var(--surface); border:1px solid var(--border-color); padding:20px; border-radius:16px; display:flex; gap:20px; cursor:pointer; position:relative;" onclick="openModalById('${b.id}')">
                     <div style="width:90px; height:135px; border-radius:8px; overflow:hidden; position:relative; flex-shrink:0;">
                         <img id="fc-img" src="" style="width:100%; height:100%; object-fit:cover;">
                     </div>
@@ -384,6 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p style="color:var(--text-muted);">${b.author}</p>
                         <span style="background:var(--primary-light); color:var(--primary); padding:4px 12px; border-radius:20px; font-size:0.8rem; font-weight:bold; align-self:flex-start;">${b.genre}</span>
                     </div>
+                    <button class="fav-btn ${isFav ? 'active' : ''}" style="top:20px; right:20px; background:var(--surface-lighter);" onclick="toggleFavorite(event, '${b.id}')"><i data-lucide="bookmark"></i></button>
                 </div>
             </div>`;
         fetchCover(b.title, b.author, 'fc-img');
@@ -392,23 +399,30 @@ document.addEventListener('DOMContentLoaded', () => {
     
     window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => String(x.id) === String(id)); if(b) openModal(b); };
 
-    // --- Stats Modal (Live Ticking Uptime Restored) ---
+    // STATS MODAL (REAL DATA)
     document.getElementById('section-stats-btn')?.addEventListener('click', () => {
         const books = LibraryDB.getBooks();
+        const ratings = LibraryDB.getRatings(); // Real ratings from DB
+        
         const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0});
         const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None"});
         const genres = {}; books.forEach(b=>genres[b.genre]=(genres[b.genre]||0)+1);
         
-        const avg = `⭐ 4.8 <span style="font-size:0.8rem;color:var(--text-muted);">(Community)</span>`;
-        
-        // Setup ticking UI
+        // Calculate Real Average
+        let avgDisplay = "No Ratings";
+        if (ratings.length > 0) {
+            const sum = ratings.reduce((a, b) => a + b, 0);
+            const avg = (sum / ratings.length).toFixed(1);
+            avgDisplay = `⭐ ${avg} <span style="font-size:0.8rem;color:var(--text-muted);">(${ratings.length} Reviews)</span>`;
+        }
+
         document.getElementById('stats-content').innerHTML = `
             <div class="stats-banner"><i data-lucide="server"></i> <span id="uptime-display">Calculating uptime...</span></div>
             <div class="stats-grid">
                 <div class="stat-box"><small>TOTAL BOOKS</small><h2>${books.length}</h2></div>
                 <div class="stat-box"><small>BOOKMARKS</small><h2 style="color:var(--warning);">${favorites.length}</h2></div>
             </div>
-            <div class="stat-box full"><small>GLOBAL RATING</small><h2 style="color:var(--warning);">${avg}</h2></div>
+            <div class="stat-box full"><small>GLOBAL RATING</small><h2 style="color:var(--warning);">${avgDisplay}</h2></div>
             <div class="stat-row"><p><i data-lucide="trending-up"></i> Top Pick</p><div><strong>${mostViewed.title}</strong><span class="view-tag">${mostViewed.views || 0} Views</span></div></div>
             <div class="stat-row"><p><i data-lucide="clock"></i> Newest Arrival</p><div><strong>${newest.title}</strong></div></div>
             <div class="stat-list"><p><i data-lucide="pie-chart"></i> Composition</p>${Object.entries(genres).map(([k,v])=>`<div class="stat-list-item"><span>${k}</span><strong style="color:var(--primary);">${v}</strong></div>`).join('')}</div>
@@ -417,7 +431,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderIcons(); 
         document.getElementById('stats-modal').style.display = 'flex';
 
-        // Ticking logic
         const updateUptime = () => {
             const startDate = new Date("2026-01-01T00:00:00").getTime();
             const now = new Date().getTime();
@@ -429,16 +442,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const s = Math.floor((diff % (1000 * 60)) / 1000);
             
             const uptimeEl = document.getElementById('uptime-display');
-            if (uptimeEl) {
-                uptimeEl.innerText = `Cloud Uptime: ${d}d, ${h}h, ${m}m, ${s}s`;
-            }
+            if (uptimeEl) uptimeEl.innerText = `Cloud Uptime: ${d}d, ${h}h, ${m}m, ${s}s`;
         };
         
-        // Clear old interval just in case
         if (uptimeInterval) clearInterval(uptimeInterval);
-        
-        updateUptime(); // Run immediately so it doesn't wait 1s
-        uptimeInterval = setInterval(updateUptime, 1000); // Tick every second
+        updateUptime(); 
+        uptimeInterval = setInterval(updateUptime, 1000); 
     });
 
     // Feedback Logic 
@@ -449,20 +458,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.getElementById('fb-submit-btn'); 
         btn.innerHTML = '<i data-lucide="loader-2"></i> Sending...'; renderIcons(); btn.disabled = true;
         
+        const rating = parseInt(document.querySelector('input[name="rating"]:checked')?.value || 5);
+        
         const payload = { 
             name: document.getElementById('fb-name').value, 
             email: document.getElementById('fb-email').value, 
-            message: `[Rating: ${document.querySelector('input[name="rating"]:checked')?.value}/5]\n\n${document.getElementById('fb-message').value}` 
+            message: `[Rating: ${rating}/5]\n\n${document.getElementById('fb-message').value}` 
         };
         
         try { 
-            const res = await fetch('/api/send-feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (!res.ok) throw new Error("Network issue");
+            // 1. Submit Rating to Firebase
+            await LibraryDB.submitRating(rating);
             
-            showPopup("Feedback Sent", "Thank you! The email was sent to the developer.", "success");
+            // 2. Send Email
+            await fetch('/api/send-feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            
+            showPopup("Feedback Sent", "Thank you! Rating saved & email sent.", "success");
             fForm.reset(); document.getElementById('feedback-modal').style.display = 'none';
         } catch { 
-            showPopup("Message Saved", "We couldn't reach the email server right now, but your feedback was saved globally.", "info");
+            showPopup("Message Saved", "Email failed, but your rating was saved to the cloud.", "info");
             fForm.reset(); document.getElementById('feedback-modal').style.display = 'none';
         } finally { 
             btn.innerHTML = '<i data-lucide="send"></i> Send feedback'; btn.disabled = false; renderIcons();
@@ -582,6 +596,16 @@ document.addEventListener('DOMContentLoaded', () => {
             showPopup("Deleted", "Book removed from system.", "info");
         }, true); 
     };
+
+    // Soft Reset Hook
+    document.getElementById('factory-reset-btn')?.addEventListener('click', () => {
+        showPopup("Confirm Reset", "This will zero all views and delete all ratings. Continue?", "error", async () => {
+            await LibraryDB.factoryReset();
+            showPopup("Reset Complete", "System data has been wiped.", "success", () => {
+                window.location.reload();
+            });
+        }, true);
+    });
 
     init();
 });
