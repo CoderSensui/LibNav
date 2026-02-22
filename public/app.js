@@ -1,4 +1,4 @@
-/* app.js - Full Monolith Code (Global Features Enabled) */
+/* app.js - Full Monolith Code */
 
 const searchInput = document.getElementById('search-input');
 const resultsArea = document.getElementById('results-area');
@@ -133,7 +133,6 @@ addBookBtn.addEventListener('click', async () => {
     
     const urlInputs = document.querySelectorAll('.step-url-input');
     
-    // Auto-Placeholder Logic
     const imageUrls = Array.from(urlInputs).map((input, index) => {
         const val = input.value.trim();
         if(val) return val;
@@ -216,19 +215,19 @@ function loadFeaturedBook() {
     
     if(!featuredBook) return;
 
-    // Strict Type Checking for Bookmark Heart
+    // FIX: Strict String Comparison for Heart
     const isFav = favorites.some(id => String(id) === String(featuredBook.id));
 
     featuredContainer.innerHTML = `
         <div class="featured-section">
             <span class="featured-label">Daily Global Pick</span>
-            <div class="featured-card" onclick="openModalById('${featuredBook.id}')">
-                <div class="featured-cover" id="feat-cover-${featuredBook.id}">
-                    <button class="fav-btn-grid ${isFav ? 'active' : ''}" style="top:5px; right:5px; border-radius:50%;" onclick="toggleFavorite(event, '${featuredBook.id}')">
+            <div class="featured-card">
+                <div class="featured-cover" id="feat-cover-${featuredBook.id}" onclick="openModalById('${featuredBook.id}')">
+                    <button class="fav-btn-grid ${isFav ? 'active' : ''}" style="top:5px; right:5px; border-radius:50%; width:30px; height:30px;" onclick="toggleFavorite(event, '${featuredBook.id}')">
                         <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
                     </button>
                 </div>
-                <div class="featured-info">
+                <div class="featured-info" onclick="openModalById('${featuredBook.id}')">
                     <h2 style="font-size:1.3rem; margin-bottom:2px; line-height: 1.2;">${featuredBook.title}</h2>
                     <p style="color:var(--text-muted); font-size:0.9rem;">by ${featuredBook.author}</p>
                     <div style="margin-top:8px;"><span class="chip" style="margin:0;">${featuredBook.genre}</span></div>
@@ -519,7 +518,7 @@ function renderResults(books) {
         card.className = 'shelf-book-card';
         card.style.animationDelay = (index < 12) ? `${index * 0.04}s` : '0s';
         
-        // Strict ID check for Fav Heart
+        // FIX: Strict String check prevents broken hearts
         const isFav = favorites.some(id => String(id) === String(book.id));
         const coverId = `img-${book.id}`;
         
@@ -545,14 +544,16 @@ function renderResults(books) {
     resultsArea.appendChild(fragment);
 }
 
+// GLOBAL TOGGLE FAVORITE
 window.toggleFavorite = function(e, bookId) {
     e.stopPropagation(); 
     const index = favorites.findIndex(id => String(id) === String(bookId));
     if (index === -1) favorites.push(String(bookId)); 
     else favorites.splice(index, 1);
+    
     localStorage.setItem('libnav_favs', JSON.stringify(favorites));
     
-    // Auto-update both Grid and Daily Pick immediately
+    // Immediate Update for both Grid and Featured
     performSearch(searchInput.value); 
     loadFeaturedBook();
 }
@@ -579,15 +580,15 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
 
 // ==========================================
-// DYNAMIC SERVER UPTIME MATH & STATS PANEL
+// WEBSITE STATISTICS (RESTORED BOOKMARKS)
 // ==========================================
 document.getElementById('stats-trigger').onclick = () => {
     const books = LibraryDB.getBooks();
     const ratings = LibraryDB.getRatings();
     const totalBooks = books.length;
-    const favCount = favorites.length;
+    const favCount = favorites.length; // Brought back!
 
-    // Uptime Calculation (Simulates running since Jan 1st, 2026)
+    // Uptime Calculation
     const startDate = new Date("2026-01-01T00:00:00").getTime();
     const now = new Date().getTime();
     const diff = now - startDate;
@@ -668,6 +669,9 @@ document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = (e) => e.
 
 if (feedbackBtn) feedbackBtn.addEventListener('click', () => { feedbackModal.classList.add('active'); closeSidebar(); });
 
+// ==========================================
+// 5-STAR RATING FEEDBACK LOGIC
+// ==========================================
 if (feedbackForm) feedbackForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('fb-name').value;
