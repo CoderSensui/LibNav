@@ -231,50 +231,54 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
     .mobile-only, .mobile-only-share, .bottom-nav { display: none !important; }
     .desktop-nav, .desktop-only, .desktop-only-flex { display: flex !important; }
     
-    .app-header .header-left .icon-btn { display: flex !important; } /* Restore hamburger for PC toggle */
-    .close-btn-side { display: flex !important; } /* Restore Sidebar close btn */
+    .app-header .header-left .icon-btn { display: flex !important; } 
+    .close-btn-side { display: flex !important; } 
     
     .app-header { padding: 0 50px; height: 80px;}
     .desktop-nav { gap: 30px; }
     .desk-nav-item { font-size: 1.1rem; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 8px;}
     .desk-nav-item.active { color: var(--primary); font-weight: bold;}
     
-    /* PC Sidebar Toggle Magic */
+    /* PC Sidebar - Refined & Sleeker */
     .side-menu { 
-        position: fixed; top: 80px; left: 0; width: 280px; 
+        position: fixed; top: 80px; left: 0; width: 260px; /* Reduced width */
         height: calc(100vh - 80px); background: var(--surface); 
         display: flex !important; border-right: 1px solid var(--border-color); 
-        box-shadow: none; padding-top: 20px;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.2); /* Added Shadow for Depth */
+        padding-top: 20px;
+        z-index: 90;
     }
     .menu-overlay { display: none !important; }
-    .main-container { margin-left: 280px; max-width: calc(100% - 280px); margin-top: 110px; padding: 0 40px;}
+    
+    /* Adjusted margins for new sidebar width */
+    .main-container { margin-left: 260px; max-width: calc(100% - 260px); margin-top: 110px; padding: 0 40px;}
     
     /* When Sidebar is Closed */
-    body.sidebar-closed .side-menu { left: -280px !important; }
+    body.sidebar-closed .side-menu { left: -260px !important; }
     body.sidebar-closed .main-container { margin-left: auto; margin-right: auto; max-width: 1000px; padding-left: 20px; padding-right: 20px; }
     
     .shelf-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 30px;}
     
-/* PC Book Modal Layout */
-    .modal-box.book-layout { max-width: 800px; padding: 45px; }
-    .book-modal-grid { flex-direction: column; gap: 40px; align-items: stretch;} /* Stack vertically & added gap */
-    .book-left { width: 100%; display: flex; flex-direction: column; align-items: stretch; gap: 20px;}
+    /* PC Book Modal Grid */
+    .modal-box.book-layout { max-width: 950px; padding: 50px 60px; }
+    .book-modal-grid { flex-direction: column; gap: 30px; align-items: stretch;}
+    .book-left { width: 100%; display: flex; flex-direction: column; align-items: stretch;}
     .book-right { width: 100%; display: flex; flex-direction: column; }
     
-    /* PC: Rectangular Horizontal Card - Fitted & Centered */
+    /* PC: Rectangular Horizontal Card */
     .book-info-card {
         flex-direction: row; 
         background: var(--surface);
-        padding: 30px;
+        padding: 30px 40px;
         border-radius: 16px;
         border: 1px solid var(--border-color);
         align-items: center;
-        justify-content: center; /* Centers the inner content */
         text-align: left;
-        gap: 25px;
+        gap: 30px;
         margin-top: 0;
-        width: 100%; /* Fitted through the inside */
+        width: 100%;
         box-sizing: border-box;
+        justify-content: center;
     }
     .cover-avatar-group {
         position: static; 
@@ -295,15 +299,15 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
     .book-text-info { 
         align-items: flex-start; 
         flex: 1; 
-        max-width: 300px; /* Keeps text snug beside the images */
-        display: flex;
-        flex-direction: column;
-        justify-content: center; /* Vertically centers the text */
+        overflow: hidden;
+        display: flex; flex-direction: column; justify-content: center;
+        max-width: 400px;
     }
     .book-text-info h2 { font-size: 1.6rem; margin-bottom: 6px; line-height: 1.2;}
-    .book-text-info p { font-size: 1.1rem; margin-bottom: 12px;}
+    .book-text-info p { font-size: 1.1rem; margin-bottom: 8px;}
     
-    #show-qr-btn { margin-top: 0 !important; }
+    /* FIX: Added Space between Button and Map */
+    #show-qr-btn { margin-top: 20px !important; margin-bottom: 20px; }
     
     .map-carousel { height: 450px; border-width: 2px; margin-top: 0;}
 }
