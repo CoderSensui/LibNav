@@ -318,10 +318,15 @@ function applyTheme(mode) {
     }
 
     function fetchAuthorPic(author) {
-        const el = document.getElementById('modal-author-pic');
-        el.src = generateInitialsImage(author); 
+        const els = [document.getElementById('modal-author-pic-mob'), document.getElementById('modal-author-pic-pc')];
+        const fallback = generateInitialsImage(author);
+        els.forEach(el => { if(el) el.src = fallback; });
+        
         fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(author)}`).then(r=>r.json()).then(d=>{
-            if(d.docs?.[0]?.key) el.src = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg`;
+            if(d.docs?.[0]?.key) {
+                const url = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg`;
+                els.forEach(el => { if(el) el.src = url; });
+            }
         });
     }
 
@@ -341,15 +346,20 @@ function applyTheme(mode) {
 
     async function openModal(book) {
         bookModal.style.display = 'flex'; LibraryDB.incrementView(book.id);
-        
-        document.getElementById('modal-title').innerText = book.title; 
-        document.getElementById('modal-author').innerText = book.author;
         document.getElementById('modal-book-id').innerText = book.id; 
-        document.getElementById('modal-genre').innerText = book.genre;
         
-        const cover = document.getElementById('modal-book-cover-img'); 
-        cover.src = ''; cover.style.opacity = '0'; cover.parentElement.classList.add('skeleton');
-        fetchCoverWithFallback(book.title, book.author, 'modal-book-cover-img', true);
+        // Populate Mobile & PC dynamic tags
+        ['mob', 'pc'].forEach(mode => {
+            const t = document.getElementById(`modal-title-${mode}`); if(t) t.innerText = book.title;
+            const a = document.getElementById(`modal-author-${mode}`); if(a) a.innerText = book.author;
+            const g = document.getElementById(`modal-genre-${mode}`); if(g) g.innerText = book.genre;
+            
+            const cover = document.getElementById(`modal-book-cover-img-${mode}`); 
+            if(cover) { 
+                cover.src = ''; cover.style.opacity = '0'; cover.parentElement.classList.add('skeleton'); 
+                fetchCoverWithFallback(book.title, book.author, `modal-book-cover-img-${mode}`, true); 
+            }
+        });
         
         fetchAuthorPic(book.author);
 
