@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let selectedGenres = new Set(); 
     let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
-    const IDLE_LIMIT = 30000;
+    const IDLE_LIMIT = 30000; // 30 Seconds Fixed
     let idleTimeout;
     const coverCache = {}; 
     let currentImages = [];
@@ -339,6 +339,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const topShare = document.getElementById('top-share-btn');
         if (topShare) topShare.onclick = handleShare;
 
+        // FIXED VIRTUAL SHELF LOGIC
+        const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 4);
+        const relatedContainer = document.getElementById('related-shelf');
+        if (relatedContainer) {
+            relatedContainer.innerHTML = '';
+            related.forEach(rBook => {
+                const div = document.createElement('div');
+                div.className = 'related-card';
+                div.innerHTML = `<img id="rel-${rBook.id}" src="">`;
+                div.onclick = () => openModal(rBook);
+                relatedContainer.appendChild(div);
+                fetchCoverWithFallback(rBook.title, rBook.author, `rel-${rBook.id}`, true);
+            });
+        }
+
         currentImages = book.images || []; 
         currentImageIndex = 0; 
         currentGenre = book.genre; 
@@ -376,16 +391,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(e.target.checked) { selectedGenres.delete('All'); document.querySelector('.filter-option input[value="All"]').checked = false; document.querySelector('.menu-item[data-genre="All"]').classList.remove('active'); selectedGenres.add(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.add('active'); }); } 
                 else { selectedGenres.delete(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.remove('active'); }); }
             }
-            if (selectedGenres.size > 0 && !selectedGenres.has('All')) { hero.style.height = '0'; hero.style.opacity = '0'; hero.style.margin = '0'; featuredContainer.style.display = 'none'; } 
-            else if (searchInput.value === '') { hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; featuredContainer.style.display = 'block'; }
+            if (selectedGenres.size > 0 && !selectedGenres.has('All')) { hero.style.display = 'none'; featuredContainer.style.display = 'none'; } 
+            else if (searchInput.value === '') { hero.style.display = 'block'; featuredContainer.style.display = 'block'; }
             performSearch(searchInput.value);
         };
     });
 
     searchInput.addEventListener('input', (e) => {
         const t = e.target.value.toLowerCase().trim();
-        if (t.length > 0) { hero.style.height = '0'; hero.style.opacity = '0'; hero.style.margin = '0'; featuredContainer.style.display = 'none'; } 
-        else if (selectedGenres.size === 0 || selectedGenres.has('All')) { hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; featuredContainer.style.display = 'block'; }
+        if (t.length > 0) { hero.style.display = 'none'; featuredContainer.style.display = 'none'; } 
+        else if (selectedGenres.size === 0 || selectedGenres.has('All')) { hero.style.display = 'block'; featuredContainer.style.display = 'block'; }
         
         autocompleteDropdown.innerHTML = '';
         if (t.length > 1) {
@@ -450,8 +465,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; if(!e.target.closest('.search-wrapper') && !e.target.closest('#filter-toggle')) filterMenu.style.display='none'; };
-    function resetIdleTimer() { clearTimeout(idleTimeout); screensaver.style.display='none'; idleTimeout = setTimeout(() => { if(!document.body.classList.contains('companion-mode-active')) { switchSection('home'); document.querySelectorAll('.modal-overlay').forEach(m=>m.style.display='none'); screensaver.style.display='flex'; } }, IDLE_LIMIT); }
-    window.onload = resetIdleTimer; document.onmousemove = resetIdleTimer; document.onclick = resetIdleTimer; document.ontouchstart = resetIdleTimer;
+    
+    // SCREENSAVER LOGIC FIXED
+    function resetIdleTimer() { 
+        clearTimeout(idleTimeout); 
+        screensaver.style.display='none'; 
+        idleTimeout = setTimeout(() => { 
+            // Only trigger if not in companion mode
+            if(!document.body.classList.contains('companion-mode-active')) { 
+                switchSection('home'); 
+                document.querySelectorAll('.modal-overlay').forEach(m=>m.style.display='none'); 
+                screensaver.style.display='flex'; 
+            } 
+        }, IDLE_LIMIT); 
+    }
+    
+    // Attach listener to multiple user interactions to accurately track idle time
+    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(evt => 
+        document.addEventListener(evt, resetIdleTimer, true)
+    );
+    window.onload = resetIdleTimer;
     
     let uptimeInterval = null;
     const openStats = () => {
@@ -510,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.showSuccessScreen = function() { document.getElementById('book-modal').style.display = 'none'; document.getElementById('success-modal').style.display = 'flex'; }
     
-    // FIX: Goes home smoothly without refreshing the page!
+    // SUCCESS SCREEN CLOSER - NO RELOAD
     window.closeSuccessScreen = function() { 
         document.getElementById('success-modal').style.display = 'none'; 
         document.body.classList.remove('companion-mode-active'); 
