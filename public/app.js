@@ -441,7 +441,9 @@ function applyTheme(mode) {
         const topShare = document.getElementById('top-share-btn');
         if (topShare) topShare.onclick = handleShare;
 
-        const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 4);
+        // UPGRADED SCROLLABLE VIRTUAL SHELF LOGIC
+        // Fetches up to 15 related books so the user has plenty to swipe through!
+        const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 15);
         const relatedContainer = document.getElementById('related-shelf');
         if (relatedContainer) {
             relatedContainer.innerHTML = '';
