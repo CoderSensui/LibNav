@@ -1,6 +1,7 @@
 :root {
-    --primary: #db2777;
-    --primary-light: rgba(219, 39, 119, 0.15);
+    /* CREAM PINK THEME */
+    --primary: #ff9eb5; 
+    --primary-light: rgba(255, 158, 181, 0.15);
     
     --bg-main: #131314; 
     --surface: #1e1e20;
@@ -78,9 +79,18 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .input-with-icon { margin-bottom: 25px; }
 .input-field { width: 100%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); padding: 20px; border-radius: 16px; font-size: 1.1rem; outline: none; margin-bottom: 15px; transition: 0.3s;}
 .input-field:focus { border-color: var(--primary); }
-.input-with-icon { position: relative; }
+.input-with-icon { position: relative; margin-bottom: 25px; }
 .input-with-icon input { padding-left: 55px !important; }
-.input-with-icon svg { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted);}
+.input-with-icon svg { 
+    position: absolute; 
+    left: 20px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    color: var(--text-muted);
+    margin: 0 !important; 
+    padding: 0 !important;
+    display: block;
+}
 .mt { margin-top: 20px; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;}
 
