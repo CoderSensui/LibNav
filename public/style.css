@@ -100,38 +100,27 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .book-info strong { font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;}
 .book-info small { color: var(--text-muted); }
 
-/* SIDEBAR FIXES: Layout, Header text right, and Icon gaps */
-.side-menu { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: var(--surface); z-index: 200; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; border-right: 1px solid var(--border-color);}
+/* SIDEBAR FIXED LAYOUT */
+.side-menu { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: var(--surface); z-index: 200; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; border-right: 1px solid var(--border-color);}
 .side-menu.active { left: 0; box-shadow: var(--shadow); }
 .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 150; display: none; }
 
 .menu-header { display: flex; justify-content: space-between; align-items: center; padding: 25px 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;}
-.menu-header h2 { display: flex; align-items: center; color: var(--text-main); font-size: 1.2rem; margin: 0; margin-left: auto;}
-.menu-header h2 svg { margin-right: 15px !important; width: 24px; height: 24px; }
+.menu-header h2 { display: flex; align-items: center; color: var(--text-main); font-size: 1.2rem; margin: 0;}
+.menu-header h2 svg { margin-right: 15px !important; width: 24px; height: 24px; } /* Icon space for Categories title */
 
 .close-btn-side { background: transparent; border: none; color: var(--text-muted); cursor: pointer; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 50%; border: 1px solid var(--border-color); transition: 0.2s;}
 .close-btn-side:hover { background: var(--bg-main); color: var(--text-main); }
 
 .menu-content { display: flex; flex-direction: column; gap: 5px; padding: 0 15px;}
 .menu-item { display: flex; align-items: center; padding: 15px 20px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s; text-align: left;}
-.menu-item svg { margin-right: 25px !important; width: 24px !important; }
+.menu-item svg { margin-right: 25px !important; width: 24px !important; } /* WIDE GAP for list items */
 .menu-item:hover { background: var(--bg-main); color: var(--text-main); }
 .menu-item.active { background: var(--primary-light); color: var(--primary); font-weight: bold;}
 .divider { height: 1px; background: var(--border-color); margin: 10px 0; }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 20px;}
-.modal-box { 
-    background: var(--surface); 
-    width: 100%; 
-    max-width: 400px; 
-    border-radius: var(--radius); 
-    border: 1px solid var(--border-color); 
-    padding: 35px 25px; 
-    position: relative; 
-    max-height: 85vh; 
-    overflow-y: auto;
-    box-shadow: var(--shadow);
-}
+.modal-box { background: var(--surface); width: 100%; max-width: 400px; border-radius: var(--radius); border: 1px solid var(--border-color); padding: 35px 25px; position: relative; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow);}
 
 .close-btn { position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-muted); display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 50; transition: 0.2s;}
 .close-btn:hover { background: var(--surface-lighter); color: var(--primary); border-color: var(--primary); }
@@ -143,7 +132,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .popup-icon-wrapper { width: 70px; height: 70px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px;}
 .popup-actions { display: flex; gap: 10px; margin-top: 25px; }
 
-/* THE RESTORED FANCY BOOK MODAL */
 .fancy-book-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; text-align: center; }
 .cover-avatar-group { position: relative; margin-bottom: 20px; margin-top: 15px;}
 .book-cover-wrap { width: 140px; height: 210px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
@@ -212,6 +200,21 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .admin-list-item .actions { display: flex; gap: 10px; }
 .btn-edit { flex: 1; background: var(--primary-light); color: var(--primary); border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;}
 .btn-delete { flex: 1; background: rgba(245,158,11,0.1); color: var(--warning); border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;}
+
+/* SCREENSAVER FIXED */
+.screensaver { 
+    position: fixed; inset: 0; 
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: var(--bg-main); 
+    z-index: 99999; 
+    display: none; 
+    flex-direction: column; justify-content: center; align-items: center;
+}
+.screensaver p { color: var(--text-muted); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-top: 20px; animation: pulse 2s infinite;}
+
+@keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .desktop-only, .desktop-only-qr { display: none; }
 @media (min-width: 850px) {
