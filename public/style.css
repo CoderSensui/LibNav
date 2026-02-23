@@ -112,7 +112,8 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .menu-content { display: flex; flex-direction: column; gap: 5px; padding: 0 15px;}
 
 /* FIX 1: INCREASED GAP FOR MENU ITEMS (from 15px to 20px) */
-.menu-item { display: flex; align-items: center; gap: 20px; padding: 15px 20px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s;}
+.menu-item { display: flex; align-items: center; padding: 15px 20px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s; text-align: left; }
+.menu-item svg { margin-right: 25px !important; width: 24px !important; }
 
 .menu-item:hover { background: var(--bg-main); color: var(--text-main); }
 .menu-item.active { background: var(--primary-light); color: var(--primary); font-weight: bold;}
