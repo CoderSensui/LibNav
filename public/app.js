@@ -28,9 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tips = [
         "Use the microphone icon to search for books hands-free.",
-        "Bookmark a book to instantly find it later.",
-        "Tap the main LibNav logo on the home screen to summon a minion!",
-        "Scan the QR code on a PC to transfer the map to your phone."
+        "Bookmark a book to instantly find it in your Saved list later.",
+        "Double-tap the main LibNav logo on the home screen for a library surprise!",
+        "Browsing on PC? Scan the QR code to seamlessly transfer the map to your phone.",
+        "Filter by 'Favorites' to quickly access the books you've bookmarked."
     ];
 
 function applyTheme(mode) {
@@ -70,16 +71,27 @@ function applyTheme(mode) {
         cancelBtn.onclick = () => pop.style.display = 'none';
     }
 
-// EASTER EGG: SHUSHING LIBRARIAN (1 Tap)
+// EASTER EGG: SHUSHING LIBRARIAN (2 Taps)
+    let logoTapCount = 0;
+    let logoTapTimer;
     document.getElementById('hero-title').addEventListener('click', () => {
-        const shush = document.getElementById('shush-overlay');
-        if (shush) {
-            shush.style.display = 'flex';
-            if (navigator.vibrate) navigator.vibrate(200); // Vibrates phone if supported
-            setTimeout(() => { shush.style.display = 'none'; }, 2000);
+        logoTapCount++;
+        clearTimeout(logoTapTimer);
+        
+        if (logoTapCount === 2) {
+            const shush = document.getElementById('shush-overlay');
+            if (shush) {
+                shush.style.display = 'flex';
+                if (navigator.vibrate) navigator.vibrate([100, 50, 200]); 
+                setTimeout(() => { shush.style.display = 'none'; }, 2000);
+            }
+            logoTapCount = 0; // Reset after successful double tap
+        } else {
+            // Reset count if they don't tap a second time within 400ms
+            logoTapTimer = setTimeout(() => { logoTapCount = 0; }, 400);
         }
     });
-
+    
     document.getElementById('secret-admin-btn').addEventListener('click', () => { adminModal.style.display = 'flex'; });
 
     const imageObserver = new IntersectionObserver((entries, observer) => {
