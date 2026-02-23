@@ -73,6 +73,9 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .btn-success { width: 100%; background: var(--success); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;}
 .btn-outline-warning { width: 100%; background: transparent; border: 2px solid var(--warning); color: var(--warning); padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;}
 
+/* Admin Login Spacing Fix */
+.input-label { display: block; margin-bottom: 12px; color: var(--text-muted); font-weight: 500; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px; }
+.input-with-icon { margin-bottom: 25px; }
 .input-field { width: 100%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); padding: 20px; border-radius: 16px; font-size: 1.1rem; outline: none; margin-bottom: 15px; transition: 0.3s;}
 .input-field:focus { border-color: var(--primary); }
 .input-with-icon { position: relative; }
@@ -226,7 +229,7 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 
 .desktop-only-flex { display: none; }
 
-/* 🌟 DESKTOP & PC MODE LAYOUTS 🌟 */
+/* 🌟 DESKTOP & PC MODE: FLOATING PANEL LAYOUT 🌟 */
 @media (min-width: 850px) {
     .mobile-only, .mobile-only-share, .bottom-nav { display: none !important; }
     .desktop-nav, .desktop-only, .desktop-only-flex { display: flex !important; }
@@ -234,83 +237,57 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
     .app-header .header-left .icon-btn { display: flex !important; } 
     .close-btn-side { display: flex !important; } 
     
-    /* DYNAMIC DASHBOARD HEADER */
-    .app-header { padding: 0 50px; height: 80px; width: calc(100% - 260px); left: 260px;}
-    body.sidebar-closed .app-header { left: 0; width: 100%; }
+    /* Full width header since sidebar is floating */
+    .app-header { padding: 0 50px; height: 80px; width: 100%; left: 0; z-index: 100;}
     
     .desktop-nav { gap: 30px; }
     .desk-nav-item { font-size: 1.1rem; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 8px;}
     .desk-nav-item.active { color: var(--primary); font-weight: bold;}
     
-    /* FULL HEIGHT DASHBOARD SIDEBAR */
+    /* SUGGESTION A: FLOATING SIDEBAR PANEL */
     .side-menu { 
-        position: fixed; top: 0; left: 0; width: 260px; 
-        height: 100vh; background: var(--surface); 
-        display: flex !important; border-right: 1px solid var(--border-color); 
-        box-shadow: 4px 0 24px rgba(0,0,0,0.15); 
-        padding-top: 25px; /* Added space so Categories isn't glued to the top */
+        position: fixed; 
+        top: 100px; /* Detached from header */
+        left: 20px; /* Detached from left edge */
+        width: 260px; 
+        height: calc(100vh - 120px); /* Fits screen with padding */
+        background: var(--surface); 
+        display: flex !important; 
+        border: 1px solid var(--border-color); /* Full border */
+        border-radius: 24px; /* Rounded card look */
+        box-shadow: var(--shadow); /* Floating shadow */
+        padding-top: 10px; 
         z-index: 110; 
     }
     .menu-overlay { display: none !important; }
     
-    .main-container { margin-left: 260px; max-width: calc(100% - 260px); margin-top: 110px; padding: 0 40px;}
+    /* Offset main container to make room for floating sidebar + gap */
+    .main-container { margin-left: 310px; max-width: calc(100% - 330px); margin-top: 110px; padding: 0 40px;}
     
     /* When Sidebar is Closed */
-    body.sidebar-closed .side-menu { left: -260px !important; }
+    body.sidebar-closed .side-menu { left: -300px !important; }
     body.sidebar-closed .main-container { margin-left: auto; margin-right: auto; max-width: 1000px; padding-left: 20px; padding-right: 20px; }
     
     .shelf-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 30px;}
     
-    /* PC Book Modal Grid */
+    /* PC Book Modal */
     .modal-box.book-layout { max-width: 950px; padding: 50px 60px; }
     .book-modal-grid { flex-direction: column; gap: 30px; align-items: stretch;}
     .book-left { width: 100%; display: flex; flex-direction: column; align-items: stretch;}
     .book-right { width: 100%; display: flex; flex-direction: column; }
     
-    /* PC: Rectangular Horizontal Card */
     .book-info-card {
-        flex-direction: row; 
-        background: var(--surface);
-        padding: 30px 40px;
-        border-radius: 16px;
-        border: 1px solid var(--border-color);
-        align-items: center;
-        text-align: left;
-        gap: 30px;
-        margin-top: 0;
-        width: 100%;
-        box-sizing: border-box;
-        justify-content: center;
+        flex-direction: row; background: var(--surface); padding: 30px 40px; border-radius: 16px; border: 1px solid var(--border-color);
+        align-items: center; text-align: left; gap: 30px; margin-top: 0; width: 100%; box-sizing: border-box; justify-content: center;
     }
-    .cover-avatar-group {
-        position: static; 
-        margin: 0;
-        display: flex;
-        flex-direction: row; 
-        align-items: center;
-        gap: 20px;
-        width: auto;
-    }
-    .author-avatar {
-        position: static; 
-        width: 80px; height: 80px;
-        border: 2px solid var(--border-color); 
-        flex-shrink: 0;
-    }
+    .cover-avatar-group { position: static; margin: 0; display: flex; flex-direction: row; align-items: center; gap: 20px; width: auto; }
+    .author-avatar { position: static; width: 80px; height: 80px; border: 2px solid var(--border-color); flex-shrink: 0; }
     .book-cover-wrap { width: 100px; height: 150px; flex-shrink: 0;}
-    .book-text-info { 
-        align-items: flex-start; 
-        flex: 1; 
-        overflow: hidden;
-        display: flex; flex-direction: column; justify-content: center;
-        max-width: 400px;
-    }
+    .book-text-info { align-items: flex-start; flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 400px; }
     .book-text-info h2 { font-size: 1.6rem; margin-bottom: 6px; line-height: 1.2;}
     .book-text-info p { font-size: 1.1rem; margin-bottom: 8px;}
     
-    /* FIX: Added Space between Button and Map */
     #show-qr-btn { margin-top: 20px !important; margin-bottom: 20px; }
-    
     .map-carousel { height: 450px; border-width: 2px; margin-top: 0;}
 }
 
