@@ -240,14 +240,13 @@
             <div class="icon-box" style="margin: 0 auto 15px; width: 60px; height: 60px;"><i data-lucide="smartphone"></i></div>
             <h2 style="margin-bottom: 15px;">Scan to Mobile</h2>
             
-            <div class="tip-box" style="margin-bottom: 25px; text-align: left;">
+            <div class="qr-scanner-box" style="margin-bottom: 20px;">
+                <div id="qrcode"></div>
+                <div class="scanner-line"></div> </div>
+
+            <div class="tip-box" style="margin-bottom: 0; text-align: left;">
                 <div class="tip-header"><i data-lucide="lightbulb"></i> Quick Tip</div>
                 <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0;">Open your phone's camera app and point it at this QR code to seamlessly take the navigation map with you on the go!</p>
-            </div>
-            
-            <div class="qr-scanner-box">
-                <div id="qrcode"></div>
-                <div class="scanner-line"></div> 
             </div>
         </div>
     </div>
@@ -300,6 +299,12 @@
                 <button id="cancel-edit-btn" class="btn-secondary full-width mt" style="display:none;">Cancel Edit</button>
                 
                 <h3 class="sub-title warning mt"><i data-lucide="database"></i> System Data</h3>
+                
+                <div class="input-with-icon" style="margin-bottom: 15px;">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="admin-search" class="input-field" style="padding: 15px 15px 15px 55px; font-size: 1rem; margin-bottom: 0;" placeholder="Search admin books...">
+                </div>
+                
                 <div id="admin-book-list" class="admin-list"></div>
                 
                 <button id="factory-reset-btn" class="btn-outline-warning full-width mt"><i data-lucide="alert-octagon"></i> Factory Reset</button>
