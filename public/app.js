@@ -397,9 +397,10 @@ function applyTheme(mode) {
         const aa = document.getElementById('mobile-action-area');
         if (currentImages && currentImages.length > 0) {
             
-            stepCounter.innerText = `${currentGenre} Step ${currentImageIndex + 1}`;
+            // FIXED: Removed genre and added max steps format (e.g., "Step 1 of 3")
+            stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
             
-            carouselImg.src = currentImages[currentImageIndex]; 
+            carouselImg.src = currentImages[currentImageIndex];
             prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1";
             prevBtn.style.pointerEvents = currentImageIndex === 0 ? "none" : "auto";
             nextBtn.style.opacity = currentImageIndex === currentImages.length - 1 ? "0.3" : "1";
