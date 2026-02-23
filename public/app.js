@@ -116,8 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderIcons();
     }
 
-    // FIX 1: Added 'fromCategory' flag so it doesn't clear your filters when coming from the sidebar
-    function switchSection(sectionId, fromCategory = false) {
+    function switchSection(sectionId) {
         document.querySelectorAll('.nav-tab').forEach(i => i.classList.remove('active'));
         const mobileTab = document.querySelector(`.nav-tab[data-section="${sectionId}"]`);
         if(mobileTab) mobileTab.classList.add('active');
@@ -132,9 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(sectionId === 'tools') {
             document.getElementById('dynamic-tip').innerText = tips[Math.floor(Math.random() * tips.length)];
         }
-        
-        // ONLY reset the home screen if we clicked "Home" manually, not a category
-        if(sectionId === 'home' && !fromCategory) {
+        if(sectionId === 'home') {
             searchInput.value = ''; autocompleteDropdown.style.display = 'none'; selectedGenres.clear();
             document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active'));
             document.querySelector('.menu-item[data-genre="All"]')?.classList.add('active');
@@ -183,9 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             performSearch(''); 
             closeSidebar(); 
-            
-            // FIX 1 cont: Pass "true" to signal we are arriving from the sidebar so it doesn't wipe our selection
-            switchSection('home', true);
+            switchSection('home');
         };
     });
 
@@ -343,21 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const topShare = document.getElementById('top-share-btn');
         if (topShare) topShare.onclick = handleShare;
-
-        // FIX 2: Restored the missing Virtual Shelf ("Also in this section") logic
-        const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 4);
-        const relatedContainer = document.getElementById('related-shelf');
-        if (relatedContainer) {
-            relatedContainer.innerHTML = '';
-            related.forEach(rBook => {
-                const div = document.createElement('div');
-                div.className = 'related-card';
-                div.innerHTML = `<img id="rel-${rBook.id}" src="">`;
-                div.onclick = () => openModal(rBook);
-                relatedContainer.appendChild(div);
-                fetchCoverWithFallback(rBook.title, rBook.author, `rel-${rBook.id}`, true);
-            });
-        }
 
         currentImages = book.images || []; 
         currentImageIndex = 0; 
@@ -529,7 +509,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.showSuccessScreen = function() { document.getElementById('book-modal').style.display = 'none'; document.getElementById('success-modal').style.display = 'flex'; }
-    window.closeSuccessScreen = function() { document.getElementById('success-modal').style.display = 'none'; window.location.href = window.location.pathname; }
+    
+    // FIX 2: SMOOTHLY SWITCH TO HOME WITHOUT RELOADING
+    window.closeSuccessScreen = function() { 
+        document.getElementById('success-modal').style.display = 'none'; 
+        document.body.classList.remove('companion-mode-active'); 
+        switchSection('home'); 
+    }
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; const recognition = new SpeechRecognition(); recognition.lang = 'en-US';
