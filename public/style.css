@@ -65,8 +65,10 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .filter-option input:checked ~ .checkmark:after { content: '✔'; color: white; font-size: 12px;}
 .opt-flex { display: flex; align-items: center; gap: 8px; }
 
-.empty-state { text-align: center; color: var(--text-muted); padding: 40px 0; }
-.empty-state svg { width: 50px; height: 50px; margin-bottom: 15px; color: var(--border-color); }
+.empty-state { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); padding: 60px 20px; }
+.empty-icon-wrap { width: 80px; height: 80px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; box-shadow: 0 0 30px var(--primary-light); }
+.empty-icon-wrap svg { width: 40px; height: 40px; }
+.empty-state h3 { font-size: 1.5rem; margin-bottom: 8px; color: var(--text-main); }
 
 .btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.2s;}
 .btn-primary:active { transform: scale(0.98); }
@@ -80,7 +82,7 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .input-field { width: 100%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); padding: 20px; border-radius: 16px; font-size: 1.1rem; outline: none; margin-bottom: 15px; transition: 0.3s;}
 .input-field:focus { border-color: var(--primary); }
 .input-with-icon { position: relative; margin-bottom: 25px; }
-.input-with-icon input { padding-left: 55px !important; }
+.input-with-icon input { padding-left: 55px !important; margin-bottom: 0 !important; }
 .input-with-icon svg { 
     position: absolute; 
     left: 20px; 
@@ -99,8 +101,9 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .featured-card { background: var(--surface); border: 1px solid var(--border-color); padding: 20px; border-radius: var(--radius); display: flex; gap: 20px; align-items: center; cursor: pointer;}
 .feat-img-wrap { width: 90px; height: 135px; border-radius: 8px; background: var(--border-color); position: relative; flex-shrink: 0;}
 .feat-img-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px;}
-.feat-info { display: flex; flex-direction: column; gap: 8px; }
-.book-badge { background: var(--primary-light); color: var(--primary); padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+.feat-info { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.book-badge { background: var(--primary-light); color: var(--primary); padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; width: fit-content; margin: 0 auto; }
+.feat-info .book-badge, .book-text-info .book-badge, .pc-text-stack .book-badge { margin: 0; }
 
 .shelf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px;}
 .book-card { display: flex; flex-direction: column; gap: 10px; cursor: pointer; animation: fadeInUp 0.4s both;}
@@ -144,6 +147,20 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .popup-box { background: var(--surface); width: 100%; max-width: 320px; border-radius: var(--radius); text-align: center; padding: 35px 25px; position: relative; border: 1px solid var(--border-color); box-shadow: var(--shadow);}
 .popup-icon-wrapper { width: 70px; height: 70px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px;}
 .popup-actions { display: flex; gap: 10px; margin-top: 25px; }
+
+/* 🌟 UPGRADED SUCCESS POPUP 🌟 */
+.success-icon {
+    width: 80px; height: 80px;
+    background: rgba(16, 185, 129, 0.15); 
+    color: var(--success);
+    border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.4);
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.success-icon svg { width: 45px; height: 45px; }
+@keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
 /* 🌟 BOOK MODAL LAYOUT & AVATAR FIXES 🌟 */
 .book-info-card {
