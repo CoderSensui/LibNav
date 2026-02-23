@@ -33,19 +33,30 @@ document.addEventListener('DOMContentLoaded', () => {
         "Scan the QR code on a PC to transfer the map to your phone."
     ];
 
-    function applyTheme(mode) {
-        if(mode === 'light') document.body.classList.add('light-mode');
-        else document.body.classList.remove('light-mode');
+function applyTheme(mode) {
+        const themeIcon = document.getElementById('theme-btn-icon');
+        const themeText = document.getElementById('theme-btn-text');
+
+        if(mode === 'light') {
+            document.body.classList.add('light-mode');
+            if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+            if (themeText) themeText.innerText = "Switch to Dark Mode";
+        } else {
+            document.body.classList.remove('light-mode');
+            if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
+            if (themeText) themeText.innerText = "Switch to Light Mode";
+        }
         renderIcons();
     }
 
     function toggleThemeAction() {
-        const isLight = document.body.classList.toggle('light-mode');
-        localStorage.setItem('theme', isLight ? 'light' : 'dark');
-        applyTheme(isLight ? 'light' : 'dark');
+        const isLight = document.body.classList.contains('light-mode');
+        const newMode = isLight ? 'dark' : 'light';
+        localStorage.setItem('theme', newMode);
+        applyTheme(newMode);
     }
     document.getElementById('section-theme-toggle')?.addEventListener('click', toggleThemeAction);
-
+    
     function showPopup(title, msg, onConfirm, showCancel = false) {
         document.getElementById('popup-title').innerText = title;
         document.getElementById('popup-message').innerText = msg;
@@ -59,15 +70,14 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelBtn.onclick = () => pop.style.display = 'none';
     }
 
+// EASTER EGG: SHUSHING LIBRARIAN (1 Tap)
     document.getElementById('hero-title').addEventListener('click', () => {
-        const minion = document.getElementById('minion-sprite');
-        if(minion.style.display === 'block') return;
-        minion.style.display = 'block'; minion.style.left = '-60px';
-        let pos = -60;
-        const interval = setInterval(() => {
-            pos += 6; minion.style.left = pos + 'px';
-            if(pos > 300) { clearInterval(interval); minion.style.display = 'none'; }
-        }, 16);
+        const shush = document.getElementById('shush-overlay');
+        if (shush) {
+            shush.style.display = 'flex';
+            if (navigator.vibrate) navigator.vibrate(200); // Vibrates phone if supported
+            setTimeout(() => { shush.style.display = 'none'; }, 2000);
+        }
     });
 
     document.getElementById('secret-admin-btn').addEventListener('click', () => { adminModal.style.display = 'flex'; });
