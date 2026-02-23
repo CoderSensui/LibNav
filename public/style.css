@@ -100,22 +100,21 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .book-info strong { font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;}
 .book-info small { color: var(--text-muted); }
 
+/* SIDEBAR FIXES: Layout, Header text right, and Icon gaps */
 .side-menu { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: var(--surface); z-index: 200; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; border-right: 1px solid var(--border-color);}
 .side-menu.active { left: 0; box-shadow: var(--shadow); }
 .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 150; display: none; }
-.menu-header-wrapper { display: flex; justify-content: space-between; align-items: center; padding: 30px 20px 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;}
 
-/* FIX 1: INCREASED GAP FOR HEADER (from 10px to 18px) */
-.menu-header h2 { display: flex; align-items: center; color: var(--text-main); font-size: 1.2rem; }
-.menu-header h2 svg { margin-right: 18px !important; width: 24px !important; height: 24px !important; }
+.menu-header { display: flex; justify-content: space-between; align-items: center; padding: 25px 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;}
+.menu-header h2 { display: flex; align-items: center; color: var(--text-main); font-size: 1.2rem; margin: 0; margin-left: auto;}
+.menu-header h2 svg { margin-right: 15px !important; width: 24px; height: 24px; }
 
-.close-btn-side { background: transparent; border: none; color: var(--text-muted); cursor: pointer; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--border-color);}
+.close-btn-side { background: transparent; border: none; color: var(--text-muted); cursor: pointer; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 50%; border: 1px solid var(--border-color); transition: 0.2s;}
+.close-btn-side:hover { background: var(--bg-main); color: var(--text-main); }
+
 .menu-content { display: flex; flex-direction: column; gap: 5px; padding: 0 15px;}
-
-/* FIX 1: INCREASED GAP FOR MENU ITEMS (from 15px to 20px) */
-.menu-item { display: flex; align-items: center; padding: 15px 20px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s; text-align: left; }
+.menu-item { display: flex; align-items: center; padding: 15px 20px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s; text-align: left;}
 .menu-item svg { margin-right: 25px !important; width: 24px !important; }
-
 .menu-item:hover { background: var(--bg-main); color: var(--text-main); }
 .menu-item.active { background: var(--primary-light); color: var(--primary); font-weight: bold;}
 .divider { height: 1px; background: var(--border-color); margin: 10px 0; }
@@ -144,6 +143,7 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .popup-icon-wrapper { width: 70px; height: 70px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px;}
 .popup-actions { display: flex; gap: 10px; margin-top: 25px; }
 
+/* THE RESTORED FANCY BOOK MODAL */
 .fancy-book-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; text-align: center; }
 .cover-avatar-group { position: relative; margin-bottom: 20px; margin-top: 15px;}
 .book-cover-wrap { width: 140px; height: 210px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
