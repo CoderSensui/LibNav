@@ -106,7 +106,8 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .menu-header-wrapper { display: flex; justify-content: space-between; align-items: center; padding: 30px 20px 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;}
 
 /* FIX 1: INCREASED GAP FOR HEADER (from 10px to 18px) */
-.menu-header-wrapper h2 { display: flex; align-items: center; gap: 18px; color: var(--text-main); font-size: 1.2rem;}
+.menu-header h2 { display: flex; align-items: center; color: var(--text-main); font-size: 1.2rem; }
+.menu-header h2 svg { margin-right: 18px !important; width: 24px !important; height: 24px !important; }
 
 .close-btn-side { background: transparent; border: none; color: var(--text-muted); cursor: pointer; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--border-color);}
 .menu-content { display: flex; flex-direction: column; gap: 5px; padding: 0 15px;}
