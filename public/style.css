@@ -104,10 +104,16 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .side-menu.active { left: 0; box-shadow: var(--shadow); }
 .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 150; display: none; }
 .menu-header-wrapper { display: flex; justify-content: space-between; align-items: center; padding: 30px 20px 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;}
-.menu-header-wrapper h2 { display: flex; align-items: center; gap: 10px; color: var(--text-main); font-size: 1.2rem;}
+
+/* FIX 1: INCREASED GAP FOR HEADER (from 10px to 18px) */
+.menu-header-wrapper h2 { display: flex; align-items: center; gap: 18px; color: var(--text-main); font-size: 1.2rem;}
+
 .close-btn-side { background: transparent; border: none; color: var(--text-muted); cursor: pointer; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--border-color);}
 .menu-content { display: flex; flex-direction: column; gap: 5px; padding: 0 15px;}
-.menu-item { display: flex; align-items: center; gap: 15px; padding: 15px 20px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s;}
+
+/* FIX 1: INCREASED GAP FOR MENU ITEMS (from 15px to 20px) */
+.menu-item { display: flex; align-items: center; gap: 20px; padding: 15px 20px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s;}
+
 .menu-item:hover { background: var(--bg-main); color: var(--text-main); }
 .menu-item.active { background: var(--primary-light); color: var(--primary); font-weight: bold;}
 .divider { height: 1px; background: var(--border-color); margin: 10px 0; }
@@ -136,7 +142,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .popup-icon-wrapper { width: 70px; height: 70px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px;}
 .popup-actions { display: flex; gap: 10px; margin-top: 25px; }
 
-/* THE RESTORED FANCY BOOK MODAL */
 .fancy-book-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; text-align: center; }
 .cover-avatar-group { position: relative; margin-bottom: 20px; margin-top: 15px;}
 .book-cover-wrap { width: 140px; height: 210px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
