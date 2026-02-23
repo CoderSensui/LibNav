@@ -93,7 +93,10 @@
                     <h2>System Tools</h2>
                 </div>
                 <div class="action-list">
-                    <button id="section-theme-toggle" class="action-btn"><i data-lucide="moon"></i> Toggle Dark/Light Mode</button>
+                    <button id="section-theme-toggle" class="action-btn">
+                        <i id="theme-btn-icon" data-lucide="sun"></i> 
+                        <span id="theme-btn-text">Switch to Light Mode</span>
+                    </button>
                     <button id="section-stats-btn" class="action-btn"><i data-lucide="bar-chart-2"></i> View Live Statistics</button>
                     <button id="section-feedback-btn" class="action-btn"><i data-lucide="message-square"></i> Send feedback to developer</button>
                 </div>
@@ -313,6 +316,11 @@
             <p style="margin: 15px 0 25px 0; color:var(--text-muted);">You found the book! Don't forget to formally check it out at the front desk before you leave.</p>
             <button class="btn-primary full-width" onclick="closeSuccessScreen()">Got it, thanks!</button>
         </div>
+    </div>
+
+    <div id="shush-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:100000; display:none; flex-direction:column; justify-content:center; align-items:center; color:white; animation: fadeIn 0.2s;">
+        <h1 style="font-family:'Gloria Hallelujah', cursive; font-size:6rem; color:var(--primary); text-shadow:0 0 30px var(--primary); margin:0;">SHHHHH!</h1>
+        <p style="font-size:1.5rem; opacity:0.8; margin-top:10px;">This is a library.</p>
     </div>
 
     <div id="screensaver" class="screensaver">
