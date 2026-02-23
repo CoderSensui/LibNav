@@ -288,8 +288,22 @@ function applyTheme(mode) {
     function renderAdminList() {
         const books = LibraryDB.getBooks();
         const listContainer = document.getElementById('admin-book-list');
-        if (!books || books.length === 0) { listContainer.innerHTML = '<p style="text-align:center;color:var(--text-muted);">No books found.</p>'; return; }
-        listContainer.innerHTML = books.map(b => `
+        
+        // Grab search input if it exists
+        const searchTerm = (document.getElementById('admin-search')?.value || '').toLowerCase().trim();
+        
+        // Filter books based on search term
+        let filteredBooks = books;
+        if (searchTerm) {
+            filteredBooks = books.filter(b => b.title.toLowerCase().includes(searchTerm) || b.author.toLowerCase().includes(searchTerm));
+        }
+
+        if (!filteredBooks || filteredBooks.length === 0) { 
+            listContainer.innerHTML = '<p style="text-align:center;color:var(--text-muted); padding:20px 0;">No books match your search.</p>'; 
+            return; 
+        }
+        
+        listContainer.innerHTML = filteredBooks.map(b => `
             <div class="admin-list-item">
                 <div class="info"><strong>${b.title}</strong><small>${b.author}</small></div>
                 <div class="actions">
@@ -300,6 +314,8 @@ function applyTheme(mode) {
         renderIcons();
     }
 
+    // Attach listener so the list updates live as the admin types
+    document.getElementById('admin-search')?.addEventListener('input', renderAdminList);
     window.handleDelete = async (id) => { showPopup("Confirm Delete", "Delete this book?", async () => { await LibraryDB.deleteBook(id); renderAdminList(); performSearch(searchInput.value); }, true); };
     document.getElementById('factory-reset-btn').onclick = async () => { showPopup("Defense Mode", "Reset Stats?", async () => { await LibraryDB.factoryReset(); window.location.reload(); }, true); };
 
