@@ -71,10 +71,10 @@ function applyTheme(mode) {
         cancelBtn.onclick = () => pop.style.display = 'none';
     }
 
-// EASTER EGG: SHUSHING LIBRARIAN (2 Taps)
+// EASTER EGG: SHUSHING LIBRARIAN (2 Taps) - Works on PC and Mobile
     let logoTapCount = 0;
     let logoTapTimer;
-    document.getElementById('hero-title').addEventListener('click', () => {
+    const triggerEasterEgg = () => {
         logoTapCount++;
         clearTimeout(logoTapTimer);
         
@@ -85,12 +85,15 @@ function applyTheme(mode) {
                 if (navigator.vibrate) navigator.vibrate([100, 50, 200]); 
                 setTimeout(() => { shush.style.display = 'none'; }, 2000);
             }
-            logoTapCount = 0; // Reset after successful double tap
+            logoTapCount = 0;
         } else {
-            // Reset count if they don't tap a second time within 400ms
             logoTapTimer = setTimeout(() => { logoTapCount = 0; }, 400);
         }
-    });
+    };
+    
+    document.getElementById('hero-title')?.addEventListener('click', triggerEasterEgg);
+    document.getElementById('desktop-logo')?.addEventListener('click', triggerEasterEgg);
+    
     
     document.getElementById('secret-admin-btn').addEventListener('click', () => { adminModal.style.display = 'flex'; });
 
@@ -387,8 +390,18 @@ function applyTheme(mode) {
 
         const handleShare = async () => { 
             const url = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
-            if (navigator.share) await navigator.share({title: 'LibNav', text: `Check out ${book.title}`, url: url}); 
-            else { navigator.clipboard.writeText(url); showPopup("Success", "Link copied!", null, false); } 
+            const shareText = `I found "${book.title}" at the library! 📍 Here is the exact shelf map:`;
+            
+            if (navigator.share) {
+                try { await navigator.share({title: 'LibNav', text: shareText, url: url}); } catch(e){}
+            } else { 
+                navigator.clipboard.writeText(`${shareText} ${url}`); 
+                const toast = document.getElementById('toast-notification');
+                if(toast) {
+                    toast.classList.add('show');
+                    setTimeout(() => toast.classList.remove('show'), 3000);
+                }
+            } 
         };
         
         const topShare = document.getElementById('top-share-btn');
