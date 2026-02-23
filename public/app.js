@@ -336,18 +336,36 @@ function applyTheme(mode) {
     }
 
     function fetchCoverWithFallback(title, author, elementId, isImgTag) {
-        if(coverCache[title]) { applyCover(coverCache[title], elementId, isImgTag); return; }
+        const cacheKey = `${title}-${author}`; // Unique cache key per exact book
+        if(coverCache[cacheKey]) { applyCover(coverCache[cacheKey], elementId, isImgTag); return; }
+        
+        // 1st Attempt: Precise search with Title + Author
         fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1`).then(r=>r.json()).then(d => {
-            if(d.docs?.[0]?.cover_i) { const url = `https://covers.openlibrary.org/b/id/${d.docs[0].cover_i}-M.jpg`; coverCache[title] = url; applyCover(url, elementId, isImgTag); } 
+            if(d.docs && d.docs.length > 0 && d.docs[0].cover_i) { 
+                const url = `https://covers.openlibrary.org/b/id/${d.docs[0].cover_i}-M.jpg`; 
+                coverCache[cacheKey] = url; 
+                applyCover(url, elementId, isImgTag); 
+            } 
             else {
+                // 2nd Attempt: Fallback to just Title
                 fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&limit=1`).then(r2=>r2.json()).then(d2 => {
-                    if(d2.docs?.[0]?.cover_i) { const url = `https://covers.openlibrary.org/b/id/${d2.docs[0].cover_i}-M.jpg`; coverCache[title] = url; applyCover(url, elementId, isImgTag); } 
-                    else { const fb = generateInitialsImage(title); coverCache[title] = fb; applyCover(fb, elementId, isImgTag); }
-                }).catch(() => { const fb = generateInitialsImage(title); coverCache[title] = fb; applyCover(fb, elementId, isImgTag); });
+                    if(d2.docs && d2.docs.length > 0 && d2.docs[0].cover_i) { 
+                        const url = `https://covers.openlibrary.org/b/id/${d2.docs[0].cover_i}-M.jpg`; 
+                        coverCache[cacheKey] = url; 
+                        applyCover(url, elementId, isImgTag); 
+                    } 
+                    else { 
+                        // 3rd Attempt: Fallback to initial letters image
+                        const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); 
+                    }
+                }).catch(() => { const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); });
             }
-        }).catch(() => { const fb = generateInitialsImage(title); coverCache[title] = fb; applyCover(fb, elementId, isImgTag); });
+        }).catch(() => { 
+            // Final Catch: If network fails entirely, generate initials
+            const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); 
+        });
     }
-
+    
     function fetchAuthorPic(author) {
         const els = [document.getElementById('modal-author-pic-mob'), document.getElementById('modal-author-pic-pc')];
         const fallback = generateInitialsImage(author);
@@ -558,14 +576,32 @@ function applyTheme(mode) {
 
     document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; if(!e.target.closest('.search-wrapper') && !e.target.closest('#filter-toggle')) filterMenu.style.display='none'; };
     
+    // FUN FACT API FETCHER
+    async function fetchScreensaverFact() {
+        const factEl = document.getElementById('screensaver-fact');
+        if(!factEl) return;
+        factEl.innerText = "Loading a fun fact...";
+        try {
+            const res = await fetch('https://uselessfacts.jsph.pl/api/v2/facts/random');
+            const data = await res.json();
+            factEl.innerText = data.text;
+        } catch(e) {
+            factEl.innerText = "Reading is to the mind what exercise is to the body.";
+        }
+    }
+
+    // SCREENSAVER LOGIC FIXED
     function resetIdleTimer() { 
         clearTimeout(idleTimeout); 
         screensaver.style.display='none'; 
         idleTimeout = setTimeout(() => { 
+            // Only trigger if not in companion mode
             if(!document.body.classList.contains('companion-mode-active')) { 
                 switchSection('home'); 
                 document.querySelectorAll('.modal-overlay').forEach(m=>m.style.display='none'); 
                 screensaver.style.display='flex'; 
+                fetchScreensaverFact(); // Fetch a new fact when idle
+                renderIcons();
             } 
         }, IDLE_LIMIT); 
     }
