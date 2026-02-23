@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#131314">
+    <meta name="theme-color" content="#000000">
     <title>LibNav | Smart Library</title>
     <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=800">
 </head>
 <body>
 
@@ -20,15 +20,14 @@
     <header class="app-header">
         <div class="header-left">
             <button id="hamburger-btn" class="icon-btn mobile-only"><i data-lucide="menu"></i></button>
-            <div class="top-logo desktop-logo" style="margin-left: 10px;">LibNav</div>
-        </div>
-        <div class="header-right">
             <nav class="desktop-nav">
                 <a href="#" class="desk-nav-item active" data-section="home"><i data-lucide="home"></i> Home</a>
                 <a href="#" class="desk-nav-item" data-section="tools"><i data-lucide="wrench"></i> Tools</a>
                 <a href="#" class="desk-nav-item" data-section="about"><i data-lucide="info"></i> About</a>
             </nav>
-            <button id="secret-admin-btn" class="icon-btn" style="border:none; background:transparent;"><i data-lucide="shield" style="opacity:0.3;"></i></button>
+        </div>
+        <div class="header-right">
+            <div id="secret-admin-btn" class="top-logo">LibNav</div>
         </div>
     </header>
 
@@ -39,14 +38,14 @@
             <button id="close-menu" class="close-btn-side mobile-only"><i data-lucide="x"></i></button>
         </div>
         <div class="menu-content">
-            <button class="menu-item active" data-genre="All"><i data-lucide="book-open"></i> <span>All Books</span></button>
+            <button class="menu-item active" data-genre="All"><i data-lucide="book-open"></i> All Books</button>
             <div class="divider"></div>
-            <button class="menu-item" data-genre="Favorites"><i data-lucide="bookmark"></i> <span>Saved</span></button>
-            <button class="menu-item" data-genre="Fiction"><i data-lucide="sparkles"></i> <span>Fiction</span></button>
-            <button class="menu-item" data-genre="Non-Fiction"><i data-lucide="microscope"></i> <span>Non-Fiction</span></button>
-            <button class="menu-item" data-genre="Romance"><i data-lucide="flower-2"></i> <span>Romance</span></button>
-            <button class="menu-item" data-genre="Science"><i data-lucide="flask-conical"></i> <span>Science</span></button>
-            <button class="menu-item" data-genre="History"><i data-lucide="landmark"></i> <span>History</span></button>
+            <button class="menu-item" data-genre="Favorites"><i data-lucide="bookmark"></i> Saved</button>
+            <button class="menu-item" data-genre="Fiction"><i data-lucide="sparkles"></i> Fiction</button>
+            <button class="menu-item" data-genre="Non-Fiction"><i data-lucide="microscope"></i> Non-Fiction</button>
+            <button class="menu-item" data-genre="Romance"><i data-lucide="flower-2"></i> Romance</button>
+            <button class="menu-item" data-genre="Science"><i data-lucide="flask-conical"></i> Science</button>
+            <button class="menu-item" data-genre="History"><i data-lucide="landmark"></i> History</button>
         </div>
     </div>
 
@@ -55,7 +54,7 @@
         <section id="home-section" class="content-section active">
             <div id="hero" class="hero">
                 <div id="minion-container"><img id="minion-sprite" src="https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif"></div>
-                <h1 id="hero-title" class="hero-title mobile-only-logo">LibNav</h1>
+                <h1 id="hero-title" class="hero-title">LibNav</h1>
                 <p class="hero-subtitle">Find your way to the story</p>
             </div>
 
@@ -64,7 +63,7 @@
                 <input type="text" id="search-input" placeholder="Search title or author..." autocomplete="off">
                 <div class="search-actions">
                     <button id="mic-btn" class="icon-btn"><i data-lucide="mic"></i></button>
-                    <button id="filter-toggle" class="icon-btn mobile-only"><i data-lucide="sliders-horizontal"></i></button>
+                    <button id="filter-toggle" class="icon-btn"><i data-lucide="sliders-horizontal"></i></button>
                 </div>
                 
                 <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
@@ -164,11 +163,12 @@
             <button class="close-btn"><i data-lucide="x"></i></button>
             
             <div class="book-modal-grid">
-                
                 <div class="book-left">
-                    <div class="book-info-card">
-                        <div class="author-avatar skeleton"><img id="modal-author-pic" src=""></div>
-                        <div class="book-cover-wrap skeleton"><img id="modal-book-cover-img" src=""></div>
+                    <div class="fancy-book-header">
+                        <div class="cover-avatar-group">
+                            <div class="book-cover-wrap skeleton"><img id="modal-book-cover-img" src=""></div>
+                            <div class="author-avatar skeleton"><img id="modal-author-pic" src=""></div>
+                        </div>
                         <div class="book-text-info">
                             <h2 id="modal-title">Title</h2>
                             <p id="modal-author">Author</p>
@@ -176,9 +176,12 @@
                         </div>
                     </div>
                     
-                    <button id="show-qr-btn" class="btn-secondary full-width desktop-only-flex mt">
-                        <i data-lucide="qr-code"></i> Send Map to Mobile
-                    </button>
+                    <div class="target-badge desktop-only-qr">Target: #<span id="modal-book-id">0</span></div>
+                    
+                    <div class="qr-box desktop-only-qr">
+                        <div id="qrcode"></div>
+                        <p><i data-lucide="smartphone"></i> Scan for Mobile</p>
+                    </div>
                 </div>
                 
                 <div class="book-right">
@@ -200,18 +203,6 @@
                 <div id="related-shelf" class="related-grid"></div>
             </div>
 
-        </div>
-    </div>
-
-    <div id="qr-modal" class="modal-overlay">
-        <div class="popup-box" style="max-width: 380px;">
-            <button class="close-btn"><i data-lucide="x"></i></button>
-            <div class="icon-box" style="margin: 0 auto 15px; width: 60px; height: 60px;"><i data-lucide="smartphone"></i></div>
-            <h2 style="margin-bottom: 10px;">Scan to Mobile</h2>
-            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 25px; line-height: 1.5;">Quick Tip: Open your phone's camera app and point it at this QR code to seamlessly take the navigation map with you on the go!</p>
-            <div style="background: white; padding: 20px; border-radius: 16px; display: inline-block; border: 1px solid var(--border-color);">
-                <div id="qrcode"></div>
-            </div>
         </div>
     </div>
 
@@ -315,6 +306,7 @@
         <p>Touch screen to start</p>
     </div>
 
+    <script src="database.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
