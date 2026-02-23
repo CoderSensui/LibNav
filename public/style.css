@@ -260,7 +260,7 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 
 /* 🌟 DESKTOP & PC MODE: FLOATING PANEL LAYOUT 🌟 */
 @media (min-width: 850px) {
-    .mobile-only, .mobile-only-share, .bottom-nav { display: none !important; }
+    .mobile-only, .mobile-only-share, .mobile-only-flex, .bottom-nav { display: none !important; }
     .desktop-nav, .desktop-only, .desktop-only-flex { display: flex !important; }
     
     .app-header .header-left .icon-btn { display: flex !important; } 
