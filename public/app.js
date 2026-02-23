@@ -13,13 +13,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const screensaver = document.getElementById('screensaver');
     const adminModal = document.getElementById('admin-modal');
     const bookModal = document.getElementById('book-modal');
-    const qrModal = document.getElementById('qr-modal'); // Bound QR Popup
+    const qrModal = document.getElementById('qr-modal'); 
     const carouselImg = document.getElementById('carousel-img');
     const stepCounter = document.getElementById('step-counter');
 
     let selectedGenres = new Set(); 
     let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
-    const IDLE_LIMIT = 30000; // Exact 30 Seconds Fixed
+    const IDLE_LIMIT = 30000; 
     let idleTimeout;
     const coverCache = {}; 
     let currentImages = [];
@@ -149,9 +149,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterMenu = document.getElementById('filter-menu');
     filterToggle.onclick = (e) => { e.stopPropagation(); filterMenu.style.display = filterMenu.style.display === 'flex' ? 'none' : 'flex'; };
 
-    document.getElementById('hamburger-btn').onclick = () => { sideMenu.classList.add('active'); sideMenuOverlay.style.display = 'block'; filterMenu.style.display='none'; };
-    const closeSidebar = () => { sideMenu.classList.remove('active'); sideMenuOverlay.style.display = 'none'; };
-    document.getElementById('close-menu').onclick = closeSidebar; sideMenuOverlay.onclick = closeSidebar;
+    // --- PC & MOBILE SIDEBAR TOGGLE FIX ---
+    document.getElementById('hamburger-btn').onclick = () => { 
+        if (window.innerWidth >= 850) {
+            // PC: Toggle class to hide/show side-menu smoothly
+            document.body.classList.toggle('sidebar-closed');
+        } else {
+            // Mobile: Standard overlay slide-in
+            sideMenu.classList.add('active'); 
+            sideMenuOverlay.style.display = 'block'; 
+            filterMenu.style.display='none'; 
+        }
+    };
+    const closeSidebar = () => { 
+        if (window.innerWidth >= 850) {
+            document.body.classList.add('sidebar-closed'); // PC Force Close
+        } else {
+            sideMenu.classList.remove('active'); 
+            sideMenuOverlay.style.display = 'none'; 
+        }
+    };
+    document.getElementById('close-menu').onclick = closeSidebar; 
+    sideMenuOverlay.onclick = closeSidebar;
     
     document.querySelectorAll('.close-btn').forEach(btn => btn.onclick = (e) => {
         const overlay = e.target.closest('.modal-overlay');
@@ -180,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             performSearch(''); 
-            if(window.innerWidth < 850) closeSidebar(); // only close sidebar on mobile
+            if(window.innerWidth < 850) closeSidebar(); 
             switchSection('home', true);
         };
     });
@@ -315,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.getElementById('modal-title').innerText = book.title; 
         document.getElementById('modal-author').innerText = book.author;
-        document.getElementById('modal-book-id').innerText = book.id; // Still used for logic
+        document.getElementById('modal-book-id').innerText = book.id; 
         document.getElementById('modal-genre').innerText = book.genre;
         
         const cover = document.getElementById('modal-book-cover-img'); 
@@ -324,7 +343,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         fetchAuthorPic(book.author);
 
-        // Render QR Code in Popup
         const qrContainer = document.getElementById('qrcode');
         if (qrContainer) {
             qrContainer.innerHTML = ''; 
@@ -332,7 +350,6 @@ document.addEventListener('DOMContentLoaded', () => {
             try { new QRCode(qrContainer, { text: dl, width: 140, height: 140, colorDark : "#121212", colorLight : "#ffffff" }); } catch(err) {}
         }
         
-        // Show QR Button Logic
         const showQrBtn = document.getElementById('show-qr-btn');
         if(showQrBtn) showQrBtn.onclick = () => { qrModal.style.display = 'flex'; };
 
@@ -345,7 +362,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const topShare = document.getElementById('top-share-btn');
         if (topShare) topShare.onclick = handleShare;
 
-        // FIXED ALSO IN THIS SECTION (Virtual Shelf)
         const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 4);
         const relatedContainer = document.getElementById('related-shelf');
         if (relatedContainer) {
@@ -472,7 +488,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; if(!e.target.closest('.search-wrapper') && !e.target.closest('#filter-toggle')) filterMenu.style.display='none'; };
     
-    // SCREENSAVER LOGIC 
     function resetIdleTimer() { 
         clearTimeout(idleTimeout); 
         screensaver.style.display='none'; 
@@ -546,6 +561,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.showSuccessScreen = function() { document.getElementById('book-modal').style.display = 'none'; document.getElementById('success-modal').style.display = 'flex'; }
+    
+    // SUCCESS SCREEN CLOSER - NO RELOAD
     window.closeSuccessScreen = function() { 
         document.getElementById('success-modal').style.display = 'none'; 
         document.body.classList.remove('companion-mode-active'); 
