@@ -116,7 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderIcons();
     }
 
-    function switchSection(sectionId) {
+    // FIX 1: Added 'fromCategory' flag so it doesn't clear your filters when coming from the sidebar
+    function switchSection(sectionId, fromCategory = false) {
         document.querySelectorAll('.nav-tab').forEach(i => i.classList.remove('active'));
         const mobileTab = document.querySelector(`.nav-tab[data-section="${sectionId}"]`);
         if(mobileTab) mobileTab.classList.add('active');
@@ -131,7 +132,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if(sectionId === 'tools') {
             document.getElementById('dynamic-tip').innerText = tips[Math.floor(Math.random() * tips.length)];
         }
-        if(sectionId === 'home') {
+        
+        // ONLY reset the home screen if we clicked "Home" manually, not a category
+        if(sectionId === 'home' && !fromCategory) {
             searchInput.value = ''; autocompleteDropdown.style.display = 'none'; selectedGenres.clear();
             document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active'));
             document.querySelector('.menu-item[data-genre="All"]')?.classList.add('active');
@@ -180,7 +183,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             performSearch(''); 
             closeSidebar(); 
-            switchSection('home');
+            
+            // FIX 1 cont: Pass "true" to signal we are arriving from the sidebar so it doesn't wipe our selection
+            switchSection('home', true);
         };
     });
 
@@ -303,7 +308,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => String(x.id) === String(id)); if(b) openModal(b); };
 
-    // --- CAROUSEL LOGIC ---
     const prevBtn = document.getElementById('prev-img-btn');
     const nextBtn = document.getElementById('next-img-btn');
 
@@ -324,7 +328,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         fetchAuthorPic(book.author);
 
-        // BUG FIX: Declare qrContainer inside the function so it doesn't crash!
         const qrContainer = document.getElementById('qrcode');
         if (qrContainer) {
             qrContainer.innerHTML = ''; 
@@ -341,10 +344,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const topShare = document.getElementById('top-share-btn');
         if (topShare) topShare.onclick = handleShare;
 
+        // FIX 2: Restored the missing Virtual Shelf ("Also in this section") logic
+        const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 4);
+        const relatedContainer = document.getElementById('related-shelf');
+        if (relatedContainer) {
+            relatedContainer.innerHTML = '';
+            related.forEach(rBook => {
+                const div = document.createElement('div');
+                div.className = 'related-card';
+                div.innerHTML = `<img id="rel-${rBook.id}" src="">`;
+                div.onclick = () => openModal(rBook);
+                relatedContainer.appendChild(div);
+                fetchCoverWithFallback(rBook.title, rBook.author, `rel-${rBook.id}`, true);
+            });
+        }
+
         currentImages = book.images || []; 
         currentImageIndex = 0; 
         currentGenre = book.genre; 
-        updateCarousel(); // <-- Now safely runs because the QR crash is fixed
+        updateCarousel(); 
         renderIcons();
     }
 
@@ -352,8 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const aa = document.getElementById('mobile-action-area');
         if (currentImages && currentImages.length > 0) {
             
-            // DYNAMIC STEP COUNTER (Changes from Step 1 -> Step 2)
-            stepCounter.innerText = `Step ${currentImageIndex + 1}`;
+            stepCounter.innerText = `${currentGenre} Step ${currentImageIndex + 1}`;
             
             carouselImg.src = currentImages[currentImageIndex]; 
             prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1";
