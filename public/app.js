@@ -443,7 +443,7 @@ function applyTheme(mode) {
 
         // UPGRADED SCROLLABLE VIRTUAL SHELF LOGIC
         // Fetches up to 15 related books so the user has plenty to swipe through!
-        const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 15);
+        const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 25);
         const relatedContainer = document.getElementById('related-shelf');
         if (relatedContainer) {
             relatedContainer.innerHTML = '';
