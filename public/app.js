@@ -467,7 +467,15 @@ function applyTheme(mode) {
 
     function renderResults(books) {
         resultsArea.innerHTML = '';
-        if (books.length === 0) { resultsArea.innerHTML = '<div class="empty-state"><i data-lucide="book-x"></i><p>No books found.</p></div>'; renderIcons(); return; }
+        if (books.length === 0) { 
+            resultsArea.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon-wrap"><i data-lucide="search-x"></i></div>
+                    <h3>No Books Found</h3>
+                    <p>We couldn't find any books matching your search.</p>
+                </div>`; 
+            renderIcons(); return; 
+        }
         const frag = document.createDocumentFragment(); const term = searchInput.value.trim(); const regex = new RegExp(`(${term})`, 'gi');
         books.forEach((book, i) => {
             const card = document.createElement('div'); card.className = 'book-card';
