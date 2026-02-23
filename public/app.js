@@ -13,12 +13,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const screensaver = document.getElementById('screensaver');
     const adminModal = document.getElementById('admin-modal');
     const bookModal = document.getElementById('book-modal');
+    const qrModal = document.getElementById('qr-modal'); // Added QR Modal reference
     const carouselImg = document.getElementById('carousel-img');
     const stepCounter = document.getElementById('step-counter');
 
     let selectedGenres = new Set(); 
     let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
-    const IDLE_LIMIT = 30000; // 30 Seconds Fixed
+    const IDLE_LIMIT = 30000;
     let idleTimeout;
     const coverCache = {}; 
     let currentImages = [];
@@ -314,7 +315,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.getElementById('modal-title').innerText = book.title; 
         document.getElementById('modal-author').innerText = book.author;
-        document.getElementById('modal-book-id').innerText = book.id; 
         document.getElementById('modal-genre').innerText = book.genre;
         
         const cover = document.getElementById('modal-book-cover-img'); 
@@ -323,12 +323,17 @@ document.addEventListener('DOMContentLoaded', () => {
         
         fetchAuthorPic(book.author);
 
+        // QR LOGIC (Generates into the new Popup box)
         const qrContainer = document.getElementById('qrcode');
         if (qrContainer) {
             qrContainer.innerHTML = ''; 
             const dl = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
-            try { new QRCode(qrContainer, { text: dl, width: 120, height: 120, colorDark : "#121212", colorLight : "#ffffff" }); } catch(err) {}
+            try { new QRCode(qrContainer, { text: dl, width: 160, height: 160, colorDark : "#121212", colorLight : "#ffffff" }); } catch(err) {}
         }
+        
+        // Connect the "Send Map to Mobile" button
+        const showQrBtn = document.getElementById('show-qr-btn');
+        if(showQrBtn) showQrBtn.onclick = () => { qrModal.style.display = 'flex'; };
 
         const handleShare = async () => { 
             const url = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
@@ -339,7 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const topShare = document.getElementById('top-share-btn');
         if (topShare) topShare.onclick = handleShare;
 
-        // FIXED VIRTUAL SHELF LOGIC
         const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 4);
         const relatedContainer = document.getElementById('related-shelf');
         if (relatedContainer) {
@@ -391,16 +395,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(e.target.checked) { selectedGenres.delete('All'); document.querySelector('.filter-option input[value="All"]').checked = false; document.querySelector('.menu-item[data-genre="All"]').classList.remove('active'); selectedGenres.add(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.add('active'); }); } 
                 else { selectedGenres.delete(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.remove('active'); }); }
             }
-            if (selectedGenres.size > 0 && !selectedGenres.has('All')) { hero.style.display = 'none'; featuredContainer.style.display = 'none'; } 
-            else if (searchInput.value === '') { hero.style.display = 'block'; featuredContainer.style.display = 'block'; }
+            if (selectedGenres.size > 0 && !selectedGenres.has('All')) { hero.style.height = '0'; hero.style.opacity = '0'; hero.style.margin = '0'; featuredContainer.style.display = 'none'; } 
+            else if (searchInput.value === '') { hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; featuredContainer.style.display = 'block'; }
             performSearch(searchInput.value);
         };
     });
 
     searchInput.addEventListener('input', (e) => {
         const t = e.target.value.toLowerCase().trim();
-        if (t.length > 0) { hero.style.display = 'none'; featuredContainer.style.display = 'none'; } 
-        else if (selectedGenres.size === 0 || selectedGenres.has('All')) { hero.style.display = 'block'; featuredContainer.style.display = 'block'; }
+        if (t.length > 0) { hero.style.height = '0'; hero.style.opacity = '0'; hero.style.margin = '0'; featuredContainer.style.display = 'none'; } 
+        else if (selectedGenres.size === 0 || selectedGenres.has('All')) { hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; featuredContainer.style.display = 'block'; }
         
         autocompleteDropdown.innerHTML = '';
         if (t.length > 1) {
@@ -466,12 +470,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; if(!e.target.closest('.search-wrapper') && !e.target.closest('#filter-toggle')) filterMenu.style.display='none'; };
     
-    // SCREENSAVER LOGIC FIXED
     function resetIdleTimer() { 
         clearTimeout(idleTimeout); 
         screensaver.style.display='none'; 
         idleTimeout = setTimeout(() => { 
-            // Only trigger if not in companion mode
             if(!document.body.classList.contains('companion-mode-active')) { 
                 switchSection('home'); 
                 document.querySelectorAll('.modal-overlay').forEach(m=>m.style.display='none'); 
@@ -480,7 +482,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, IDLE_LIMIT); 
     }
     
-    // Attach listener to multiple user interactions to accurately track idle time
     ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(evt => 
         document.addEventListener(evt, resetIdleTimer, true)
     );
@@ -542,8 +543,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.showSuccessScreen = function() { document.getElementById('book-modal').style.display = 'none'; document.getElementById('success-modal').style.display = 'flex'; }
-    
-    // SUCCESS SCREEN CLOSER - NO RELOAD
     window.closeSuccessScreen = function() { 
         document.getElementById('success-modal').style.display = 'none'; 
         document.body.classList.remove('companion-mode-active'); 
