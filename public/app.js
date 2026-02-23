@@ -529,17 +529,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.showSuccessScreen = function() { document.getElementById('book-modal').style.display = 'none'; document.getElementById('success-modal').style.display = 'flex'; }
-    window.closeSuccessScreen = function() { 
-        // 1. Hide the success modal
-        document.getElementById('success-modal').style.display = 'none'; 
-        
-        // 2. Turn off mobile companion mode if active
-        document.body.classList.remove('companion-mode-active'); 
-        
-        // 3. Navigate back to Home section (No Reload)
-        switchSection('home'); 
-    }
-    
+    window.closeSuccessScreen = function() { document.getElementById('success-modal').style.display = 'none'; window.location.href = window.location.pathname; }
+
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; const recognition = new SpeechRecognition(); recognition.lang = 'en-US';
         micBtn.onclick = () => { if (micBtn.classList.contains('active-mic')) recognition.stop(); else recognition.start(); };
