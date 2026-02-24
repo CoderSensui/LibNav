@@ -320,8 +320,8 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .stars { display: flex; justify-content: center; gap: 8px; flex-direction: row-reverse; }
 .stars input { display: none; }
 .stars label { cursor: pointer; color: var(--border-color); transition: 0.2s; padding: 5px; }
-.stars label i { width: 30px; height: 30px; fill: transparent; transition: 0.2s; stroke-width: 1.5px; }
-.stars input:checked ~ label i, .stars label:hover i, .stars label:hover ~ label i { fill: var(--warning); color: var(--warning); stroke: var(--warning); filter: drop-shadow(0 0 5px rgba(255, 193, 7, 0.5)); transform: scale(1.1); }
+.stars label svg { width: 30px; height: 30px; fill: transparent; transition: 0.2s; stroke-width: 1.5px; }
+.stars input:checked ~ label svg, .stars label:hover svg, .stars label:hover ~ label svg { fill: var(--warning); color: var(--warning); stroke: var(--warning); filter: drop-shadow(0 0 5px rgba(255, 193, 7, 0.5)); transform: scale(1.1); }
 
 .feedback-form .input-field { background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); padding: 14px 18px; border-radius: 12px; font-size: 0.95rem; transition: 0.3s; }
 .feedback-form .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); outline: none; background: var(--surface); }
