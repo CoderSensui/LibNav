@@ -182,13 +182,10 @@ function applyTheme(mode) {
     const filterMenu = document.getElementById('filter-menu');
     filterToggle.onclick = (e) => { e.stopPropagation(); filterMenu.style.display = filterMenu.style.display === 'flex' ? 'none' : 'flex'; };
 
-    // --- PC & MOBILE SIDEBAR TOGGLE FIX ---
     document.getElementById('hamburger-btn').onclick = () => { 
         if (window.innerWidth >= 850) {
-            // PC: Toggle class to hide/show side-menu smoothly
             document.body.classList.toggle('sidebar-closed');
         } else {
-            // Mobile: Standard overlay slide-in
             sideMenu.classList.add('active'); 
             sideMenuOverlay.style.display = 'block'; 
             filterMenu.style.display='none'; 
@@ -300,10 +297,8 @@ function applyTheme(mode) {
         const books = LibraryDB.getBooks();
         const listContainer = document.getElementById('admin-book-list');
         
-        // Grab search input if it exists
         const searchTerm = (document.getElementById('admin-search')?.value || '').toLowerCase().trim();
         
-        // Filter books based on search term
         let filteredBooks = books;
         if (searchTerm) {
             filteredBooks = books.filter(b => b.title.toLowerCase().includes(searchTerm) || b.author.toLowerCase().includes(searchTerm));
@@ -325,7 +320,6 @@ function applyTheme(mode) {
         renderIcons();
     }
 
-    // Attach listener so the list updates live as the admin types
     document.getElementById('admin-search')?.addEventListener('input', renderAdminList);
     window.handleDelete = async (id) => { showPopup("Confirm Delete", "Delete this book?", async () => { await LibraryDB.deleteBook(id); renderAdminList(); performSearch(searchInput.value); }, true); };
     document.getElementById('factory-reset-btn').onclick = async () => { showPopup("Defense Mode", "Reset Stats?", async () => { await LibraryDB.factoryReset(); window.location.reload(); }, true); };
@@ -350,7 +344,6 @@ function applyTheme(mode) {
         const cacheKey = `${title}-${author}`; // Unique cache key per exact book
         if(coverCache[cacheKey]) { applyCover(coverCache[cacheKey], elementId, isImgTag); return; }
         
-        // 1st Attempt: Precise search with Title + Author
         fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1`).then(r=>r.json()).then(d => {
             if(d.docs && d.docs.length > 0 && d.docs[0].cover_i) { 
                 const url = `https://covers.openlibrary.org/b/id/${d.docs[0].cover_i}-M.jpg`; 
@@ -358,7 +351,6 @@ function applyTheme(mode) {
                 applyCover(url, elementId, isImgTag); 
             } 
             else {
-                // 2nd Attempt: Fallback to just Title
                 fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&limit=1`).then(r2=>r2.json()).then(d2 => {
                     if(d2.docs && d2.docs.length > 0 && d2.docs[0].cover_i) { 
                         const url = `https://covers.openlibrary.org/b/id/${d2.docs[0].cover_i}-M.jpg`; 
@@ -366,33 +358,28 @@ function applyTheme(mode) {
                         applyCover(url, elementId, isImgTag); 
                     } 
                     else { 
-                        // 3rd Attempt: Fallback to initial letters image
                         const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); 
                     }
                 }).catch(() => { const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); });
             }
         }).catch(() => { 
-            // Final Catch: If network fails entirely, generate initials
             const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); 
         });
     }
     
     function fetchAuthorPic(author) {
-        // Grabs all possible image elements
         const els = [document.getElementById('modal-author-pic-mob'), document.getElementById('modal-author-pic-pc'), document.getElementById('modal-author-pic')];
         const fallback = generateInitialsImage(author);
         
         els.forEach(el => { 
             if(el) {
                 el.src = fallback; 
-                // Force fallback if the image fails to load
                 el.onerror = function() { this.src = fallback; };
             }
         });
         
         fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(author)}`).then(r=>r.json()).then(d=>{
             if(d.docs?.[0]?.key) {
-                // ?default=false forces a 404 error if no photo exists, triggering our onerror fallback perfectly!
                 const url = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg?default=false`;
                 els.forEach(el => { if(el) el.src = url; });
             }
@@ -417,7 +404,6 @@ function applyTheme(mode) {
         bookModal.style.display = 'flex'; LibraryDB.incrementView(book.id);
         document.getElementById('modal-book-id').innerText = book.id; 
         
-        // Populate Mobile & PC dynamic tags
         ['mob', 'pc'].forEach(mode => {
             const t = document.getElementById(`modal-title-${mode}`); if(t) t.innerText = book.title;
             const a = document.getElementById(`modal-author-${mode}`); if(a) a.innerText = book.author;
@@ -461,8 +447,6 @@ function applyTheme(mode) {
         const topShare = document.getElementById('top-share-btn');
         if (topShare) topShare.onclick = handleShare;
 
-        // UPGRADED SCROLLABLE VIRTUAL SHELF LOGIC
-        // Fetches up to 15 related books so the user has plenty to swipe through!
         const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 25);
         const relatedContainer = document.getElementById('related-shelf');
         if (relatedContainer) {
@@ -488,7 +472,6 @@ function applyTheme(mode) {
         const aa = document.getElementById('mobile-action-area');
         if (currentImages && currentImages.length > 0) {
             
-            // FIXED: Removed genre and added max steps format (e.g., "Step 1 of 3")
             stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
             
             carouselImg.src = currentImages[currentImageIndex];
@@ -703,7 +686,6 @@ function applyTheme(mode) {
 
     document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; if(!e.target.closest('.search-wrapper') && !e.target.closest('#filter-toggle')) filterMenu.style.display='none'; };
     
-    // FUN FACT API FETCHER
     async function fetchScreensaverFact() {
         const factEl = document.getElementById('screensaver-fact');
         if(!factEl) return;
@@ -717,17 +699,15 @@ function applyTheme(mode) {
         }
     }
 
-    // SCREENSAVER LOGIC FIXED
     function resetIdleTimer() { 
         clearTimeout(idleTimeout); 
         screensaver.style.display='none'; 
         idleTimeout = setTimeout(() => { 
-            // Only trigger if not in companion mode
             if(!document.body.classList.contains('companion-mode-active')) { 
                 switchSection('home'); 
                 document.querySelectorAll('.modal-overlay').forEach(m=>m.style.display='none'); 
                 screensaver.style.display='flex'; 
-                fetchScreensaverFact(); // Fetch a new fact when idle
+                fetchScreensaverFact();
                 renderIcons();
             } 
         }, IDLE_LIMIT); 
@@ -795,7 +775,6 @@ function applyTheme(mode) {
 
     window.showSuccessScreen = function() { document.getElementById('book-modal').style.display = 'none'; document.getElementById('success-modal').style.display = 'flex'; }
     
-    // SUCCESS SCREEN CLOSER - NO RELOAD
     window.closeSuccessScreen = function() { 
         document.getElementById('success-modal').style.display = 'none'; 
         document.body.classList.remove('companion-mode-active'); 
