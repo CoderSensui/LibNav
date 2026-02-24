@@ -128,7 +128,13 @@ function applyTheme(mode) {
         applyTheme(saved);
         try { await LibraryDB.init(); } catch(e) {}
         
-        if (window.innerWidth <= 849) document.body.classList.add('is-mobile-device');
+        // FIXED: Checks width to set initial mobile/PC layout
+        if (window.innerWidth <= 849) {
+            document.body.classList.add('is-mobile-device');
+        } else {
+            // Forces the sidebar to be closed by default on PC
+            document.body.classList.add('sidebar-closed'); 
+        }
         
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('book')) {
