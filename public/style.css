@@ -1,5 +1,4 @@
 :root {
-    /* CREAM PINK THEME */
     --primary: #ff9eb5; 
     --primary-light: rgba(255, 158, 181, 0.15);
     
@@ -76,7 +75,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .btn-success { width: 100%; background: var(--success); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;}
 .btn-outline-warning { width: 100%; background: transparent; border: 2px solid var(--warning); color: var(--warning); padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;}
 
-/* Admin Login Spacing Fix */
 .input-label { display: block; margin-bottom: 12px; color: var(--text-muted); font-weight: 500; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px; }
 .input-with-icon { margin-bottom: 25px; }
 .input-field { width: 100%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); padding: 20px; border-radius: 16px; font-size: 1.1rem; outline: none; margin-bottom: 15px; transition: 0.3s;}
@@ -116,29 +114,28 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .book-info strong { font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;}
 .book-info small { color: var(--text-muted); }
 
-/* SIDEBAR FIXED LAYOUT */
 .side-menu { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: var(--surface); z-index: 200; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; border-right: 1px solid var(--border-color);}
 .side-menu.active { left: 0; box-shadow: var(--shadow); }
 .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 150; display: none; }
 
 .menu-header { display: flex; justify-content: space-between; align-items: center; padding: 25px 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;}
 .menu-header h2 { display: flex; align-items: center; color: var(--text-main); font-size: 1.2rem; margin: 0;}
-.menu-header h2 svg { margin-right: 15px !important; width: 24px; height: 24px; } /* Icon space for Categories title */
+.menu-header h2 svg { margin-right: 15px !important; width: 24px; height: 24px; } 
 
 .close-btn-side { background: transparent; border: none; color: var(--text-muted); cursor: pointer; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 50%; border: 1px solid var(--border-color); transition: 0.2s;}
 .close-btn-side:hover { background: var(--bg-main); color: var(--text-main); }
 
 .menu-content { 
     display: flex; flex-direction: column; gap: 5px; padding: 0 15px; 
-    overflow-y: auto; /* Makes it scrollable vertically */
-    flex: 1; /* Takes up the remaining height of the sidebar */
-    padding-bottom: 80px; /* Leaves space at the bottom */
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    overflow-y: auto;
+    flex: 1; 
+    padding-bottom: 80px; 
+    -ms-overflow-style: none;  
+    scrollbar-width: none;  
 }
-.menu-content::-webkit-scrollbar { display: none; } /* Hides scrollbar for Chrome/Safari */
+.menu-content::-webkit-scrollbar { display: none; } 
 .menu-item { display: flex; align-items: center; padding: 15px 20px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s; text-align: left;}
-.menu-item svg { margin-right: 25px !important; width: 24px !important; } /* WIDE GAP for list items */
+.menu-item svg { margin-right: 25px !important; width: 24px !important; } 
 .menu-item:hover { background: var(--bg-main); color: var(--text-main); }
 .menu-item.active { background: var(--primary-light); color: var(--primary); font-weight: bold;}
 .divider { height: 1px; background: var(--border-color); margin: 10px 0; }
@@ -156,7 +153,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .popup-icon-wrapper { width: 70px; height: 70px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px;}
 .popup-actions { display: flex; gap: 10px; margin-top: 25px; }
 
-/* 🌟 UPGRADED SUCCESS POPUP 🌟 */
 .success-icon {
     width: 80px; height: 80px;
     background: rgba(16, 185, 129, 0.15); 
@@ -170,7 +166,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .success-icon svg { width: 45px; height: 45px; }
 @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-/* 🌟 BOOK MODAL LAYOUT & AVATAR FIXES 🌟 */
 .book-info-card {
     display: flex;
     flex-direction: column;
@@ -182,9 +177,9 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 
 .cover-avatar-group { 
     position: relative; 
-    margin-bottom: 35px; /* Spacing so avatar doesn't overlap text */
+    margin-bottom: 35px;
     margin-top: 15px; 
-    display: inline-block; /* CRITICAL: Hugs the cover wrap so absolute avatar stays glued accurately */
+    display: inline-block; 
 }
 .book-cover-wrap { width: 140px; height: 210px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
 .book-cover-wrap img { width: 100%; height: 100%; object-fit: cover; }
@@ -203,31 +198,31 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .virtual-shelf-footer { margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px; width: 100%; }
 .virtual-shelf-footer h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;}
 
-/* NATIVE HORIZONTAL SCROLLING SHELF */
+
 .related-grid { 
     display: flex; 
     gap: 15px; 
     overflow-x: auto; 
     padding-bottom: 10px; 
-    scroll-snap-type: x mandatory; /* Makes swiping snap to books */
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    scroll-snap-type: x mandatory; 
+    -ms-overflow-style: none;  
+    scrollbar-width: none;  
 }
-.related-grid::-webkit-scrollbar { display: none; } /* Hides scrollbar for Chrome/Safari */
+.related-grid::-webkit-scrollbar { display: none; } 
 
 .related-card { 
-    flex: 0 0 auto; /* Prevents books from shrinking */
-    width: 110px; /* Fixed width for horizontal scrolling */
+    flex: 0 0 auto; 
+    width: 110px; 
     aspect-ratio: 2/3; 
     border-radius: 8px; 
     overflow: hidden; 
     border: 1px solid var(--border-color); 
     cursor: pointer; 
     background: var(--border-color); 
-    scroll-snap-align: start; /* Snaps exactly to the left edge */
+    scroll-snap-align: start; 
     transition: transform 0.2s;
 }
-.related-card:hover { transform: translateY(-4px); } /* Cool hover lift effect */
+.related-card:hover { transform: translateY(-4px); } 
 .related-card img { width: 100%; height: 100%; object-fit: cover; }
 
 .card-box { background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 30px; display: flex; flex-direction: column; gap: 20px;}
@@ -273,17 +268,17 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .btn-edit { flex: 1; background: var(--primary-light); color: var(--primary); border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;}
 .btn-delete { flex: 1; background: rgba(245,158,11,0.1); color: var(--warning); border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;}
 
-/* TOAST NOTIFICATION */
+
 .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #1e1e20; color: white; padding: 15px 30px; border-radius: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 15px; z-index: 20000; border: 1px solid #333; opacity: 0; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s; }
 .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 .toast i { color: var(--success); }
 
-/* QR SCANNER ANIMATION */
+
 .qr-scanner-box { position: relative; display: inline-block; background: white; padding: 20px; border-radius: 16px; border: 4px solid var(--border-color); overflow: hidden; }
 .scanner-line { position: absolute; width: 100%; height: 4px; background: var(--primary); box-shadow: 0 0 10px var(--primary); top: 0; left: 0; animation: scan 2s linear infinite; opacity: 0.6; }
 @keyframes scan { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
 
-/* SCREENSAVER FIXED FULL PAGE */
+
 .screensaver { 
     position: fixed; inset: 0; 
     top: 0; left: 0; width: 100vw; height: 100vh;
@@ -300,7 +295,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 
 .desktop-only-flex { display: none; }
 
-/* 🌟 DESKTOP & PC MODE: FLOATING PANEL LAYOUT 🌟 */
 @media (min-width: 850px) {
     .mobile-only, .mobile-only-share, .mobile-only-flex, .bottom-nav { display: none !important; }
     .desktop-nav, .desktop-only, .desktop-only-flex { display: flex !important; }
@@ -308,57 +302,52 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
     .app-header .header-left .icon-btn { display: flex !important; } 
     .close-btn-side { display: flex !important; } 
     
-    /* Full width header since sidebar is floating */
     .app-header { padding: 0 50px; height: 80px; width: 100%; left: 0; z-index: 100;}
     
     .desktop-nav { gap: 30px; }
     .desk-nav-item { font-size: 1.1rem; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 8px;}
     .desk-nav-item.active { color: var(--primary); font-weight: bold;}
     
-    /* FLOATING SIDEBAR PANEL */
     .side-menu { 
         position: fixed; 
-        top: 100px; /* Detached from header */
-        left: 20px; /* Detached from left edge */
+        top: 100px; 
+        left: 20px; 
         width: 260px; 
-        height: calc(100vh - 120px); /* Fits screen with padding */
+        height: calc(100vh - 120px); 
         background: var(--surface); 
         display: flex !important; 
-        border: 1px solid var(--border-color); /* Full border */
-        border-radius: 24px; /* Rounded card look */
-        box-shadow: var(--shadow); /* Floating shadow */
+        border: 1px solid var(--border-color); 
+        border-radius: 24px; 
+        box-shadow: var(--shadow); 
         padding-top: 10px; 
         z-index: 110; 
     }
     .menu-overlay { display: none !important; }
     
-    /* Offset main container to make room for floating sidebar + gap */
     .main-container { margin-left: 310px; max-width: calc(100% - 330px); margin-top: 110px; padding: 0 40px;}
     
-    /* When Sidebar is Closed */
     body.sidebar-closed .side-menu { left: -300px !important; }
     body.sidebar-closed .main-container { margin-left: auto; margin-right: auto; max-width: 1000px; padding-left: 20px; padding-right: 20px; }
     
     .shelf-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 30px;}
     
-    /* === PC MODAL SIZING FIXES === */
     
-    /* 1. Admin Panel - Wider for list & form */
+
     #admin-modal .modal-box { max-width: 750px; padding: 40px; }
     
-    /* 2. Stats Modal - Wider for the grid */
+    
     #stats-modal .modal-box { max-width: 650px; padding: 40px; }
     
-    /* 3. Feedback Modal - Balanced width */
+    
     #feedback-modal .modal-box { max-width: 550px; padding: 40px; }
 
-    /* 4. Book Modal (Existing) */
+
     .modal-box.book-layout { max-width: 850px; padding: 45px; }
     .book-modal-grid { flex-direction: column; gap: 40px; align-items: stretch;}
     .book-left { width: 100%; display: flex; flex-direction: column; align-items: stretch; gap: 20px;}
     .book-right { width: 100%; display: flex; flex-direction: column; }
     
-    /* New PC Rectangular Split Layout */
+    
     .book-info-card-pc {
         background: var(--surface); padding: 30px 40px; border-radius: 16px; border: 1px solid var(--border-color);
         display: flex !important; flex-direction: row; align-items: center; justify-content: space-between; gap: 30px; width: 100%; box-sizing: border-box;
@@ -373,7 +362,6 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
     .pc-text-stack h3 { font-size: 1.4rem; margin-bottom: 0; color: var(--text-main); line-height: 1.2;}
     .pc-text-stack h2 { font-size: 1.5rem; margin-bottom: 10px; color: var(--text-main); line-height: 1.2;}
     
-    /* FIX: Add spacing around the Send Map to Mobile Button */
 #show-qr-btn { 
     margin-top: 20px !important; 
     margin-bottom: 35px !important; 
