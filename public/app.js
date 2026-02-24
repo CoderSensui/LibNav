@@ -631,19 +631,26 @@ function applyTheme(mode) {
 
     function performSearch(term) {
         let books = LibraryDB.getBooks(); term = term.toLowerCase().trim();
+        
         if (term === '' && (selectedGenres.size === 0 || selectedGenres.has('All'))) { 
             document.getElementById('results-area').innerHTML = ''; 
             return; 
         }
+
         let matches = books.filter(b => {
-            const tm = b.title.toLowerCase().includes(term); const am = b.author.toLowerCase().includes(term); let gm = false;
+            const tm = b.title.toLowerCase().includes(term); 
+            const am = b.author.toLowerCase().includes(term); 
+            let gm = false;
+            
             if (selectedGenres.has('All') || selectedGenres.size === 0) gm = true;
-            else { if (selectedGenres.has('Favorites') && favorites.includes(String(b.id))) gm = true; if (selectedGenres.has(b.genre)) gm = true; }
+            else { 
+                if (selectedGenres.has('Favorites') && favorites.includes(String(b.id))) gm = true; 
+                if (selectedGenres.has(b.genre)) gm = true; 
+            }
             return (tm || am) && gm;
         });
         
         matches.sort((a, b) => a.title.localeCompare(b.title));
-        
         renderResults(matches);
     }
 
@@ -656,15 +663,20 @@ function applyTheme(mode) {
             if(b.classList) b.classList.remove('active'); 
             else b.checked = false; 
         });
+
+        switchSection('home', true);
         
-        hero.style.display = 'none'; 
-        featuredContainer.style.display = 'none';
+        const hero = document.getElementById('hero');
+        const feat = document.getElementById('featured-container');
+        if(hero) { hero.style.display = 'none'; hero.style.opacity = '0'; }
+        if(feat) { feat.style.display = 'none'; }
         
         performSearch('');
-        switchSection('home');
         
         const results = document.getElementById('results-area');
-        if (results.innerHTML.trim() === '') {
+        const currentFavs = JSON.parse(localStorage.getItem('libnav_favs')) || [];
+        
+        if (currentFavs.length === 0 || results.innerHTML.trim() === '') {
             results.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon-wrap"><i data-lucide="bookmark"></i></div>
