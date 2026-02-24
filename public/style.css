@@ -128,7 +128,15 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .close-btn-side { background: transparent; border: none; color: var(--text-muted); cursor: pointer; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 50%; border: 1px solid var(--border-color); transition: 0.2s;}
 .close-btn-side:hover { background: var(--bg-main); color: var(--text-main); }
 
-.menu-content { display: flex; flex-direction: column; gap: 5px; padding: 0 15px;}
+.menu-content { 
+    display: flex; flex-direction: column; gap: 5px; padding: 0 15px; 
+    overflow-y: auto; /* Makes it scrollable vertically */
+    flex: 1; /* Takes up the remaining height of the sidebar */
+    padding-bottom: 80px; /* Leaves space at the bottom */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+.menu-content::-webkit-scrollbar { display: none; } /* Hides scrollbar for Chrome/Safari */
 .menu-item { display: flex; align-items: center; padding: 15px 20px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.2s; text-align: left;}
 .menu-item svg { margin-right: 25px !important; width: 24px !important; } /* WIDE GAP for list items */
 .menu-item:hover { background: var(--bg-main); color: var(--text-main); }
