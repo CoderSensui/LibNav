@@ -58,6 +58,7 @@ function applyTheme(mode) {
         localStorage.setItem('theme', newMode);
         applyTheme(newMode);
     }
+    
     document.getElementById('section-theme-toggle')?.addEventListener('click', toggleThemeAction);
     
     function showPopup(title, msg, onConfirm, showCancel = false) {
@@ -72,8 +73,7 @@ function applyTheme(mode) {
         document.getElementById('popup-confirm').onclick = () => { pop.style.display = 'none'; if(onConfirm) onConfirm(); };
         cancelBtn.onclick = () => pop.style.display = 'none';
     }
-
-// EASTER EGG: SHUSHING LIBRARIAN (2 Taps) - Works on PC and Mobile
+    
     let logoTapCount = 0;
     let logoTapTimer;
     const triggerEasterEgg = () => {
@@ -130,11 +130,9 @@ function applyTheme(mode) {
         applyTheme(saved);
         try { await LibraryDB.init(); } catch(e) {}
         
-        // FIXED: Checks width to set initial mobile/PC layout
         if (window.innerWidth <= 849) {
             document.body.classList.add('is-mobile-device');
         } else {
-            // Forces the sidebar to be closed by default on PC
             document.body.classList.add('sidebar-closed'); 
         }
         
@@ -167,10 +165,15 @@ function applyTheme(mode) {
         }
         if(sectionId === 'home' && !fromCategory) {
             searchInput.value = ''; autocompleteDropdown.style.display = 'none'; selectedGenres.clear();
-            document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.menu-item, .filter-option input').forEach(b => {
+                if(b.classList) b.classList.remove('active');
+                else b.checked = false;
+            });
             document.querySelector('.menu-item[data-genre="All"]')?.classList.add('active');
-            hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0';
-            featuredContainer.style.display = 'block'; resultsArea.innerHTML = ''; 
+            const allCheck = document.querySelector('.filter-option input[value="All"]');
+            if(allCheck) allCheck.checked = true;
+            hero.style.display = 'block'; hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0';
+            featuredContainer.style.display = 'block'; resultsArea.innerHTML = '';
         }
     }
 
@@ -210,7 +213,7 @@ function applyTheme(mode) {
     document.querySelectorAll('.menu-item').forEach(btn => {
         btn.onclick = () => {
             const genre = btn.dataset.genre;
-            searchInput.value = ''; selectedGenres.clear(); 
+            selectedGenres.clear();
             
             document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
                 if(b.classList) b.classList.remove('active'); 
@@ -218,17 +221,18 @@ function applyTheme(mode) {
             }); 
             
             btn.classList.add('active');
+            const checkbox = document.querySelector(`.filter-option input[value="${genre}"]`);
+            if (checkbox) checkbox.checked = true;
             
-            if(genre === 'All') { 
-                hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; 
-                featuredContainer.style.display = 'block'; 
-            } else { 
-                selectedGenres.add(genre);
-                hero.style.height = '0'; hero.style.opacity = '0'; hero.style.margin = '0'; 
-                featuredContainer.style.display = 'none'; 
+            if(genre !== 'All') selectedGenres.add(genre);
+            
+            if (searchInput.value.trim() === '') {
+                hero.style.display = 'block'; hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; 
+                featuredContainer.style.display = 'block'; document.getElementById('results-area').innerHTML = '';
+            } else {
+                performSearch(searchInput.value);
             }
             
-            performSearch(''); 
             if(window.innerWidth < 850) closeSidebar(); 
             switchSection('home', true);
         };
@@ -430,18 +434,16 @@ function applyTheme(mode) {
 
         const handleShare = async () => { 
             const url = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
-            const shareText = `I found "${book.title}" at the library! 📍 Here is the exact shelf map:`;
+            const shareText = `I found "${book.title}" at the library! 📍 Here is the exact shelf map: ${url}`;
             
-            if (navigator.share) {
-                try { await navigator.share({title: 'LibNav', text: shareText, url: url}); } catch(e){}
-            } else { 
-                navigator.clipboard.writeText(`${shareText} ${url}`); 
-                const toast = document.getElementById('toast-notification');
-                if(toast) {
-                    toast.classList.add('show');
-                    setTimeout(() => toast.classList.remove('show'), 3000);
-                }
-            } 
+            navigator.clipboard.writeText(shareText); 
+            const toast = document.getElementById('toast-notification');
+            if(toast) {
+                toast.innerHTML = '<i data-lucide="check-circle"></i> Link Copied!';
+                toast.classList.add('show');
+                renderIcons();
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            }
         };
         
         const topShare = document.getElementById('top-share-btn');
@@ -487,7 +489,7 @@ function applyTheme(mode) {
         }
     }
 
-    document.querySelectorAll('.filter-option input').forEach(box => {
+ document.querySelectorAll('.filter-option input').forEach(box => {
         box.onchange = (e) => {
             const val = e.target.value;
             if(val === 'All') {
@@ -498,9 +500,12 @@ function applyTheme(mode) {
                 if(e.target.checked) { selectedGenres.delete('All'); document.querySelector('.filter-option input[value="All"]').checked = false; document.querySelector('.menu-item[data-genre="All"]').classList.remove('active'); selectedGenres.add(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.add('active'); }); } 
                 else { selectedGenres.delete(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.remove('active'); }); }
             }
-            if (selectedGenres.size > 0 && !selectedGenres.has('All')) { hero.style.display = 'none'; featuredContainer.style.display = 'none'; } 
-            else if (searchInput.value === '') { hero.style.display = 'block'; featuredContainer.style.display = 'block'; }
-            performSearch(searchInput.value);
+            if (searchInput.value.trim() === '') { 
+                hero.style.display = 'block'; hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; 
+                featuredContainer.style.display = 'block'; document.getElementById('results-area').innerHTML = ''; 
+            } else { 
+                performSearch(searchInput.value); 
+            }
         };
     });
 
@@ -603,17 +608,21 @@ function applyTheme(mode) {
 
     function performSearch(term) {
         let books = LibraryDB.getBooks(); term = term.toLowerCase().trim();
-        if (term === '' && (selectedGenres.size === 0 || selectedGenres.has('All'))) { resultsArea.innerHTML = ''; return; }
+        if (term === '') { resultsArea.innerHTML = ''; return; }
         let matches = books.filter(b => {
             const tm = b.title.toLowerCase().includes(term); const am = b.author.toLowerCase().includes(term); let gm = false;
             if (selectedGenres.has('All') || selectedGenres.size === 0) gm = true;
             else { if (selectedGenres.has('Favorites') && favorites.includes(String(b.id))) gm = true; if (selectedGenres.has(b.genre)) gm = true; }
             return (tm || am) && gm;
         });
-        if (currentSort === 'A-Z' || (currentSort === 'default' && (selectedGenres.has('All') || term !== ''))) {
+        if (typeof currentSort !== 'undefined') {
+            if (currentSort === 'A-Z' || (currentSort === 'default' && (selectedGenres.has('All') || term !== ''))) {
+                matches.sort((a, b) => a.title.localeCompare(b.title));
+            } else if (currentSort === 'Z-A') {
+                matches.sort((a, b) => b.title.localeCompare(a.title));
+            }
+        } else {
             matches.sort((a, b) => a.title.localeCompare(b.title));
-        } else if (currentSort === 'Z-A') {
-            matches.sort((a, b) => b.title.localeCompare(a.title));
         }
         renderResults(matches);
     }
