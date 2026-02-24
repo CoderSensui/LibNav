@@ -315,7 +315,7 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
     .desk-nav-item { font-size: 1.1rem; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 8px;}
     .desk-nav-item.active { color: var(--primary); font-weight: bold;}
     
-    /* SUGGESTION A: FLOATING SIDEBAR PANEL */
+    /* FLOATING SIDEBAR PANEL */
     .side-menu { 
         position: fixed; 
         top: 100px; /* Detached from header */
@@ -341,10 +341,21 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
     
     .shelf-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 30px;}
     
-    /* PC Book Modal */
-    .modal-box.book-layout { max-width: 950px; padding: 50px 60px; }
-    .book-modal-grid { flex-direction: column; gap: 30px; align-items: stretch;}
-    .book-left { width: 100%; display: flex; flex-direction: column; align-items: stretch;}
+    /* === PC MODAL SIZING FIXES === */
+    
+    /* 1. Admin Panel - Wider for list & form */
+    #admin-modal .modal-box { max-width: 750px; padding: 40px; }
+    
+    /* 2. Stats Modal - Wider for the grid */
+    #stats-modal .modal-box { max-width: 650px; padding: 40px; }
+    
+    /* 3. Feedback Modal - Balanced width */
+    #feedback-modal .modal-box { max-width: 550px; padding: 40px; }
+
+    /* 4. Book Modal (Existing) */
+    .modal-box.book-layout { max-width: 850px; padding: 45px; }
+    .book-modal-grid { flex-direction: column; gap: 40px; align-items: stretch;}
+    .book-left { width: 100%; display: flex; flex-direction: column; align-items: stretch; gap: 20px;}
     .book-right { width: 100%; display: flex; flex-direction: column; }
     
     /* New PC Rectangular Split Layout */
@@ -362,7 +373,7 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
     .pc-text-stack h3 { font-size: 1.4rem; margin-bottom: 0; color: var(--text-main); line-height: 1.2;}
     .pc-text-stack h2 { font-size: 1.5rem; margin-bottom: 10px; color: var(--text-main); line-height: 1.2;}
     
-    #show-qr-btn { margin-top: 20px !important; margin-bottom: 20px; }
+    #show-qr-btn { margin-top: 0 !important; }
     .map-carousel { height: 450px; border-width: 2px; margin-top: 0;}
 }
 
