@@ -226,10 +226,11 @@ function applyTheme(mode) {
             
             if(genre !== 'All') selectedGenres.add(genre);
             
-            if (searchInput.value.trim() === '') {
+            if (genre === 'All' && searchInput.value.trim() === '') {
                 hero.style.display = 'block'; hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; 
                 featuredContainer.style.display = 'block'; document.getElementById('results-area').innerHTML = '';
             } else {
+                hero.style.display = 'none'; featuredContainer.style.display = 'none';
                 performSearch(searchInput.value);
             }
             
@@ -608,24 +609,36 @@ function applyTheme(mode) {
 
     function performSearch(term) {
         let books = LibraryDB.getBooks(); term = term.toLowerCase().trim();
-        if (term === '') { resultsArea.innerHTML = ''; return; }
+        if (term === '' && (selectedGenres.size === 0 || selectedGenres.has('All'))) { 
+            document.getElementById('results-area').innerHTML = ''; 
+            return; 
+        }
         let matches = books.filter(b => {
             const tm = b.title.toLowerCase().includes(term); const am = b.author.toLowerCase().includes(term); let gm = false;
             if (selectedGenres.has('All') || selectedGenres.size === 0) gm = true;
             else { if (selectedGenres.has('Favorites') && favorites.includes(String(b.id))) gm = true; if (selectedGenres.has(b.genre)) gm = true; }
             return (tm || am) && gm;
         });
-        if (typeof currentSort !== 'undefined') {
-            if (currentSort === 'A-Z' || (currentSort === 'default' && (selectedGenres.has('All') || term !== ''))) {
-                matches.sort((a, b) => a.title.localeCompare(b.title));
-            } else if (currentSort === 'Z-A') {
-                matches.sort((a, b) => b.title.localeCompare(a.title));
-            }
-        } else {
-            matches.sort((a, b) => a.title.localeCompare(b.title));
-        }
+        
+        matches.sort((a, b) => a.title.localeCompare(b.title));
+        
         renderResults(matches);
     }
+
+    document.getElementById('quick-bookmark-btn')?.addEventListener('click', () => {
+        searchInput.value = ''; 
+        selectedGenres.clear();
+        selectedGenres.add('Favorites');
+        
+        document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
+            if(b.classList) b.classList.remove('active'); 
+            else b.checked = false; 
+        });
+        
+        hero.style.display = 'none'; featuredContainer.style.display = 'none';
+        performSearch('');
+        switchSection('home');
+    });
 
     function renderResults(books) {
         resultsArea.innerHTML = '';
