@@ -45,7 +45,6 @@
         <div class="menu-content">
             <button class="menu-item active" data-genre="All"><i data-lucide="book-open"></i> <span>All Books</span></button>
             <div class="divider"></div>
-            <button class="menu-item" data-genre="Favorites"><i data-lucide="bookmark"></i> <span>Saved</span></button>
             <button class="menu-item" data-genre="Fiction"><i data-lucide="sparkles"></i> <span>Fiction</span></button>
             <button class="menu-item" data-genre="Non-Fiction"><i data-lucide="microscope"></i> <span>Non-Fiction</span></button>
             <button class="menu-item" data-genre="Romance"><i data-lucide="flower-2"></i> <span>Romance</span></button>
@@ -66,8 +65,8 @@
             <div class="search-wrapper">
                 <i data-lucide="search" class="search-icon"></i>
                 <input type="text" id="search-input" placeholder="Search title or author..." autocomplete="off">
-                <div class="search-actions">
-                    <button id="sort-toggle" class="icon-btn"><i data-lucide="arrow-up-down"></i></button>
+               <div class="search-actions">
+                    <button id="quick-bookmark-btn" class="icon-btn" title="My Reading List"><i data-lucide="bookmark"></i></button>
                     <button id="mic-btn" class="icon-btn mobile-only"><i data-lucide="mic"></i></button>
                     <button id="filter-toggle" class="icon-btn"><i data-lucide="sliders-horizontal"></i></button>
                 </div>
@@ -79,7 +78,6 @@
                 <div id="filter-menu" class="filter-dropdown">
                     <label class="filter-option highlight"><input type="checkbox" value="All"><span class="checkmark"></span><span>All Genres</span></label>
                     <div class="divider"></div>
-                    <label class="filter-option highlight"><input type="checkbox" value="Favorites"><span class="checkmark fav"></span><div class="opt-flex"><i data-lucide="bookmark"></i><span>Bookmarks</span></div></label>
                     <label class="filter-option"><input type="checkbox" value="Fiction"><span class="checkmark"></span><span>Fiction</span></label>
                     <label class="filter-option"><input type="checkbox" value="Non-Fiction"><span class="checkmark"></span><span>Non-Fiction</span></label>
                     <label class="filter-option"><input type="checkbox" value="Romance"><span class="checkmark"></span><span>Romance</span></label>
@@ -331,23 +329,28 @@
     </div>
 
     <div id="feedback-modal" class="modal-overlay">
-        <div class="modal-box">
+        <div class="modal-box feedback-layout">
             <button class="close-btn"><i data-lucide="x"></i></button>
-            <div class="card-header center"><i data-lucide="star" style="color:var(--warning); width:32px; height:32px;"></i><h2>Rate LibNav</h2></div>
-            <p style="text-align:center; color:var(--text-muted); margin-bottom:20px;">Tell us what you think! This will be sent directly to the developers.</p>
-            
-            <form id="feedback-form" class="form-layout">
-                <div class="star-rating">
-                    <input type="radio" id="star5" name="rating" value="5" checked><label for="star5">★</label>
-                    <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
-                    <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
-                    <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
-                    <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
+            <div class="feedback-header">
+                <div class="feedback-icon-wrap"><i data-lucide="rocket"></i></div>
+                <h2>Help Us Improve!</h2>
+                <p>Your feedback fuels the next big update for LibNav.</p>
+            </div>
+            <form id="feedback-form" class="feedback-form">
+                <div class="star-rating-input">
+                    <p>Rate your experience</p>
+                    <div class="stars">
+                        <input type="radio" name="rating" id="star5" value="5" checked><label for="star5"><i data-lucide="star"></i></label>
+                        <input type="radio" name="rating" id="star4" value="4"><label for="star4"><i data-lucide="star"></i></label>
+                        <input type="radio" name="rating" id="star3" value="3"><label for="star3"><i data-lucide="star"></i></label>
+                        <input type="radio" name="rating" id="star2" value="2"><label for="star2"><i data-lucide="star"></i></label>
+                        <input type="radio" name="rating" id="star1" value="1"><label for="star1"><i data-lucide="star"></i></label>
+                    </div>
                 </div>
-                <input type="text" id="fb-name" class="input-field" placeholder="Your Name" style="padding-left:20px;">
-                <input type="email" id="fb-email" class="input-field" placeholder="Your Email (Optional)" style="padding-left:20px;">
-                <textarea id="fb-message" class="input-field" placeholder="How can we improve?" required rows="4" style="padding-left:20px;"></textarea>
-                <button type="submit" class="btn-primary full-width" id="fb-submit-btn"><i data-lucide="send"></i> Send feedback</button>
+                <input type="text" id="fb-name" class="input-field" placeholder="Your Name (Optional)">
+                <input type="email" id="fb-email" class="input-field" placeholder="Your Email (Optional)">
+                <textarea id="fb-message" class="input-field" rows="4" placeholder="Tell us about a bug, a feature idea, or just say hi!" required></textarea>
+                <button type="submit" id="fb-submit-btn" class="primary-btn"><i data-lucide="send"></i> Send to Developer</button>
             </form>
         </div>
     </div>
