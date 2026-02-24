@@ -239,6 +239,28 @@ function applyTheme(mode) {
         };
     });
 
+    document.querySelectorAll('.filter-option input').forEach(box => {
+        box.onchange = (e) => {
+            const val = e.target.value;
+            if(val === 'All') {
+                selectedGenres.clear(); if(e.target.checked) selectedGenres.add('All');
+                document.querySelectorAll('.filter-option input').forEach(c => { if(c.value !== 'All') c.checked = false; });
+                document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active')); if(e.target.checked) document.querySelector('.menu-item[data-genre="All"]').classList.add('active');
+            } else {
+                if(e.target.checked) { selectedGenres.delete('All'); document.querySelector('.filter-option input[value="All"]').checked = false; document.querySelector('.menu-item[data-genre="All"]').classList.remove('active'); selectedGenres.add(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.add('active'); }); } 
+                else { selectedGenres.delete(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.remove('active'); }); }
+            }
+            
+            if ((selectedGenres.size === 0 || selectedGenres.has('All')) && searchInput.value.trim() === '') { 
+                hero.style.display = 'block'; hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; 
+                featuredContainer.style.display = 'block'; document.getElementById('results-area').innerHTML = ''; 
+            } else { 
+                hero.style.display = 'none'; featuredContainer.style.display = 'none';
+                performSearch(searchInput.value); 
+            }
+        };
+    });
+
     document.getElementById('admin-auth-btn').onclick = () => {
         if (document.getElementById('admin-password').value === 'admin123') { 
             document.getElementById('admin-login-screen').style.display = 'none'; 
@@ -635,6 +657,11 @@ function applyTheme(mode) {
             else b.checked = false; 
         });
         
+        const sidebarFav = document.querySelector('.menu-item[data-genre="Favorites"]');
+        if(sidebarFav) sidebarFav.classList.add('active');
+        const dropFav = document.querySelector('.filter-option input[value="Favorites"]');
+        if(dropFav) dropFav.checked = true;
+
         hero.style.display = 'none'; featuredContainer.style.display = 'none';
         performSearch('');
         switchSection('home');
