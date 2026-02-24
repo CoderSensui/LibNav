@@ -25,6 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentImages = [];
     let currentImageIndex = 0;
     let currentGenre = "";
+    let currentSort = 'default';
+    let recentSearches = JSON.parse(localStorage.getItem('libnav_recent')) || [];
 
     const tips = [
         "Use the microphone icon to search for books hands-free.",
@@ -264,6 +266,7 @@ function applyTheme(mode) {
         document.getElementById('admin-form-title').innerText = "Edit Book";
         document.getElementById('new-title').value = book.title; document.getElementById('new-author').value = book.author;
         document.getElementById('new-genre').value = book.genre; document.getElementById('step-count-select').value = book.images.length || 2;
+        const newCheck = document.getElementById('new-arrival-check'); if(newCheck) newCheck.checked = !!book.isNew;
         updateImageInputs();
         const inputs = document.querySelectorAll('.step-url-input'); 
         book.images.forEach((img, i) => { if (inputs[i] && !img.includes('placehold.co')) inputs[i].value = img; });
@@ -274,19 +277,21 @@ function applyTheme(mode) {
     document.getElementById('cancel-edit-btn').onclick = () => {
         document.getElementById('edit-book-id').value = ''; document.getElementById('admin-form-title').innerText = "Add New Book";
         document.getElementById('new-title').value = ''; document.getElementById('new-author').value = '';
+        const newCheck = document.getElementById('new-arrival-check'); if(newCheck) newCheck.checked = false;
         document.getElementById('add-book-btn').innerHTML = '<i data-lucide="upload-cloud"></i> Add to Cloud'; 
         document.getElementById('cancel-edit-btn').style.display = "none"; updateImageInputs(); renderIcons();
     };
 
     document.getElementById('add-book-btn').onclick = async () => {
         const title = document.getElementById('new-title').value.trim(); const author = document.getElementById('new-author').value.trim(); const genre = document.getElementById('new-genre').value; const editingId = document.getElementById('edit-book-id').value;
+        const isNewBox = document.getElementById('new-arrival-check'); const isNew = isNewBox ? isNewBox.checked : false;
         if (!title || !author) return showPopup("Missing Info", "Please fill in title and author.", null, false);
         const imageUrls = Array.from(document.querySelectorAll('.step-url-input')).map((input, i) => input.value.trim() || `https://placehold.co/600x400/121212/db2777?text=${genre}+Step+${i+1}`);
         if (editingId) {
             const books = LibraryDB.getBooks(); const index = books.findIndex(b => String(b.id) === String(editingId));
-            if (index > -1) { books[index].title = title; books[index].author = author; books[index].genre = genre; books[index].images = imageUrls; await LibraryDB.saveToCloud(); showPopup("Success", "Book Updated!", null, false); }
+            if (index > -1) { books[index].title = title; books[index].author = author; books[index].genre = genre; books[index].images = imageUrls; books[index].isNew = isNew; await LibraryDB.saveToCloud(); showPopup("Success", "Book Updated!", null, false); }
         } else {
-            await LibraryDB.addBook({ id: Date.now(), title: title, author: author, genre: genre, images: imageUrls, views: 0 }); showPopup("Success", "Book Added!", null, false);
+            await LibraryDB.addBook({ id: Date.now(), title: title, author: author, genre: genre, images: imageUrls, views: 0, isNew: isNew }); showPopup("Success", "Book Added!", null, false);
         }
         document.getElementById('cancel-edit-btn').click(); renderAdminList(); performSearch(searchInput.value);
     };
@@ -516,6 +521,57 @@ function applyTheme(mode) {
         };
     });
 
+    const recentDropdown = document.getElementById('recent-searches-dropdown');
+    
+    function saveRecentSearch(query) {
+        if (!query.trim()) return;
+        recentSearches = recentSearches.filter(q => q.toLowerCase() !== query.toLowerCase());
+        recentSearches.unshift(query.trim());
+        if (recentSearches.length > 5) recentSearches.pop();
+        localStorage.setItem('libnav_recent', JSON.stringify(recentSearches));
+    }
+
+    function renderRecentSearches() {
+        if (recentSearches.length === 0 || !recentDropdown) { if(recentDropdown) recentDropdown.style.display = 'none'; return; }
+        recentDropdown.innerHTML = `
+            <div class="recent-header">
+                Recent Searches
+                <button class="clear-recent" onclick="clearRecentSearches()"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+            </div>
+            ${recentSearches.map(q => `<div class="auto-item" onclick="selectRecent('${q.replace(/'/g, "\\'")}')"><i data-lucide="clock"></i><div class="auto-text"><strong>${q}</strong></div></div>`).join('')}
+        `;
+        renderIcons();
+    }
+
+    window.clearRecentSearches = function() {
+        recentSearches = [];
+        localStorage.removeItem('libnav_recent');
+        if(recentDropdown) recentDropdown.style.display = 'none';
+    };
+
+    window.selectRecent = function(query) {
+        searchInput.value = query; 
+        if(recentDropdown) recentDropdown.style.display = 'none';
+        performSearch(query);
+    };
+
+    searchInput.addEventListener('focus', () => {
+        if (!searchInput.value.trim() && recentSearches.length > 0 && recentDropdown) {
+            renderRecentSearches();
+            recentDropdown.style.display = 'block';
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (recentDropdown && !searchInput.contains(e.target) && !recentDropdown.contains(e.target)) {
+            recentDropdown.style.display = 'none';
+        }
+    });
+
+    searchInput.addEventListener('change', () => {
+        saveRecentSearch(searchInput.value);
+    });
+
     searchInput.addEventListener('input', (e) => {
         const t = e.target.value.toLowerCase().trim();
         if (t.length > 0) { hero.style.display = 'none'; featuredContainer.style.display = 'none'; } 
@@ -523,6 +579,7 @@ function applyTheme(mode) {
         
         autocompleteDropdown.innerHTML = '';
         if (t.length > 1) {
+            if(recentDropdown) recentDropdown.style.display = 'none';
             const hits = LibraryDB.getBooks().filter(b => b.title.toLowerCase().includes(t) || b.author.toLowerCase().includes(t)).slice(0, 4);
             if (hits.length) {
                 autocompleteDropdown.style.display = 'block';
@@ -530,13 +587,36 @@ function applyTheme(mode) {
                     const d = document.createElement('div'); d.className = 'auto-item';
                     const ht = s.title.replace(new RegExp(`(${t})`, 'gi'), '<span class="text-primary font-bold">$1</span>');
                     d.innerHTML = `<i data-lucide="search" style="color:var(--primary);"></i><div class="auto-text"><strong>${ht}</strong><small>${s.author}</small></div>`;
-                    d.onclick = () => { searchInput.value = s.title; autocompleteDropdown.style.display = 'none'; performSearch(s.title); openModal(s); };
+                    d.onclick = () => { searchInput.value = s.title; saveRecentSearch(s.title); autocompleteDropdown.style.display = 'none'; performSearch(s.title); openModal(s); };
                     autocompleteDropdown.appendChild(d);
                 }); renderIcons();
             } else autocompleteDropdown.style.display = 'none';
-        } else autocompleteDropdown.style.display = 'none';
+        } else {
+            autocompleteDropdown.style.display = 'none';
+            if(recentSearches.length > 0 && recentDropdown) { renderRecentSearches(); recentDropdown.style.display = 'block'; }
+        }
         performSearch(t);
     });
+
+    document.getElementById('sort-toggle')?.addEventListener('click', () => {
+        const btn = document.getElementById('sort-toggle');
+        if (currentSort === 'default') { currentSort = 'A-Z'; btn.style.color = 'var(--primary)'; btn.style.borderColor = 'var(--primary)'; }
+        else if (currentSort === 'A-Z') { currentSort = 'Z-A'; }
+        else { currentSort = 'default'; btn.style.color = ''; btn.style.borderColor = ''; }
+        performSearch(searchInput.value);
+    });
+
+    const bttBtn = document.getElementById('back-to-top-btn');
+    window.addEventListener('scroll', () => {
+        if (bttBtn) {
+            if (window.scrollY > 300) bttBtn.classList.add('visible');
+            else bttBtn.classList.remove('visible');
+        }
+    });
+    bttBtn?.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
 
     function performSearch(term) {
         let books = LibraryDB.getBooks(); term = term.toLowerCase().trim();
@@ -547,7 +627,11 @@ function applyTheme(mode) {
             else { if (selectedGenres.has('Favorites') && favorites.includes(String(b.id))) gm = true; if (selectedGenres.has(b.genre)) gm = true; }
             return (tm || am) && gm;
         });
-        if (selectedGenres.has('All') || term !== '') matches.sort((a, b) => a.title.localeCompare(b.title));
+        if (currentSort === 'A-Z' || (currentSort === 'default' && (selectedGenres.has('All') || term !== ''))) {
+            matches.sort((a, b) => a.title.localeCompare(b.title));
+        } else if (currentSort === 'Z-A') {
+            matches.sort((a, b) => b.title.localeCompare(a.title));
+        }
         renderResults(matches);
     }
 
@@ -562,6 +646,17 @@ function applyTheme(mode) {
                 </div>`; 
             renderIcons(); return; 
         }
+        
+        if (selectedGenres.has('Favorites') && books.length > 0) {
+            const exportHtml = `
+                <div class="saved-actions-bar">
+                    <span><i data-lucide="bookmark-check"></i> Your Reading List</span>
+                    <button class="btn-export" onclick="exportSavedList()"><i data-lucide="share"></i> Share</button>
+                </div>
+            `;
+            resultsArea.insertAdjacentHTML('beforeend', exportHtml);
+        }
+
         const frag = document.createDocumentFragment(); const term = searchInput.value.trim(); const regex = new RegExp(`(${term})`, 'gi');
         books.forEach((book, i) => {
             const card = document.createElement('div'); card.className = 'book-card';
@@ -570,6 +665,7 @@ function applyTheme(mode) {
 
             card.innerHTML = `
                 <div class="cover-box skeleton">
+                    ${book.isNew ? '<div class="new-badge">NEW</div>' : ''}
                     <img id="${coverId}" data-title="${book.title}" data-author="${book.author}" src="">
                     <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${book.id}')"><i data-lucide="bookmark"></i></button>
                 </div>
@@ -580,6 +676,20 @@ function applyTheme(mode) {
         });
         resultsArea.appendChild(frag); renderIcons();
     }
+
+    window.exportSavedList = function() {
+        const books = LibraryDB.getBooks().filter(b => favorites.includes(String(b.id)));
+        let text = "📚 My LibNav Reading List:\n\n";
+        books.forEach((b, i) => { text += `${i + 1}. ${b.title} by ${b.author}\n`; });
+        navigator.clipboard.writeText(text);
+        const toast = document.getElementById('toast-notification');
+        if(toast) {
+            toast.innerHTML = '<i data-lucide="check-circle"></i> Reading List Copied!';
+            toast.classList.add('show');
+            renderIcons();
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    };
 
     window.toggleFavorite = function(e, bookId) {
         e.stopPropagation(); 
