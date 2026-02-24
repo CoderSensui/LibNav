@@ -146,10 +146,10 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 20px;}
 .modal-box { background: var(--surface); width: 100%; max-width: 400px; border-radius: var(--radius); border: 1px solid var(--border-color); padding: 35px 25px; position: relative; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow);}
 
-.close-btn { position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-muted); display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 50; transition: 0.2s;}
+.close-btn { position: absolute; top: 22px; right: 22px; width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-muted); display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 50; transition: 0.2s;}
 .close-btn:hover { background: var(--surface-lighter); color: var(--primary); border-color: var(--primary); }
 
-.share-btn-top { position: absolute; top: 15px; left: 15px; width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-muted); display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 50; transition: 0.2s;}
+.share-btn-top { position: absolute; top: 22px; left: 22px; width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-muted); display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 50; transition: 0.2s;}
 .share-btn-top:hover { background: var(--surface-lighter); color: var(--primary); border-color: var(--primary); }
 
 .popup-box { background: var(--surface); width: 100%; max-width: 320px; border-radius: var(--radius); text-align: center; padding: 35px 25px; position: relative; border: 1px solid var(--border-color); box-shadow: var(--shadow);}
