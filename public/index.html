@@ -67,12 +67,14 @@
                 <i data-lucide="search" class="search-icon"></i>
                 <input type="text" id="search-input" placeholder="Search title or author..." autocomplete="off">
                 <div class="search-actions">
+                    <button id="sort-toggle" class="icon-btn"><i data-lucide="arrow-up-down"></i></button>
                     <button id="mic-btn" class="icon-btn mobile-only"><i data-lucide="mic"></i></button>
-                    
                     <button id="filter-toggle" class="icon-btn"><i data-lucide="sliders-horizontal"></i></button>
                 </div>
                 
                 <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
+                <div id="recent-searches-dropdown" class="autocomplete-dropdown"></div>
+                
                 
                 <div id="filter-menu" class="filter-dropdown">
                     <label class="filter-option highlight"><input type="checkbox" value="All"><span class="checkmark"></span><span>All Genres</span></label>
@@ -145,6 +147,8 @@
                 </div>
             </div>
         </section>
+
+        <button id="back-to-top-btn" class="floating-btn"><i data-lucide="arrow-up"></i></button>
     </main>
 
     <nav class="bottom-nav">
@@ -292,9 +296,15 @@
                         </select>
                     </div>
                 </div>
+
+                <label class="filter-option highlight" style="margin-bottom: 20px; background: var(--bg-main); padding: 15px; border: 1px solid var(--border-color);">
+                    <input type="checkbox" id="new-arrival-check">
+                    <span class="checkmark"></span>
+                    <span style="font-weight: bold; color: var(--primary);">Mark as New Arrival</span>
+                </label>
                 
                 <div id="image-inputs-container" class="dynamic-inputs"></div>
-                
+
                 <button id="add-book-btn" class="btn-success full-width"><i data-lucide="upload-cloud"></i> Add to Cloud</button>
                 <button id="cancel-edit-btn" class="btn-secondary full-width mt" style="display:none;">Cancel Edit</button>
                 
