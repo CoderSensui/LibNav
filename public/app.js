@@ -373,16 +373,25 @@ function applyTheme(mode) {
     }
     
     function fetchAuthorPic(author) {
-        const els = [document.getElementById('modal-author-pic-mob'), document.getElementById('modal-author-pic-pc')];
+        // Grabs all possible image elements
+        const els = [document.getElementById('modal-author-pic-mob'), document.getElementById('modal-author-pic-pc'), document.getElementById('modal-author-pic')];
         const fallback = generateInitialsImage(author);
-        els.forEach(el => { if(el) el.src = fallback; });
+        
+        els.forEach(el => { 
+            if(el) {
+                el.src = fallback; 
+                // Force fallback if the image fails to load
+                el.onerror = function() { this.src = fallback; };
+            }
+        });
         
         fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(author)}`).then(r=>r.json()).then(d=>{
             if(d.docs?.[0]?.key) {
-                const url = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg`;
+                // ?default=false forces a 404 error if no photo exists, triggering our onerror fallback perfectly!
+                const url = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg?default=false`;
                 els.forEach(el => { if(el) el.src = url; });
             }
-        });
+        }).catch(e => console.log("Author fetch error:", e));
     }
 
     function applyCover(url, elId, isImgTag) {
