@@ -373,7 +373,11 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
     .pc-text-stack h3 { font-size: 1.4rem; margin-bottom: 0; color: var(--text-main); line-height: 1.2;}
     .pc-text-stack h2 { font-size: 1.5rem; margin-bottom: 10px; color: var(--text-main); line-height: 1.2;}
     
-    #show-qr-btn { margin-top: 0 !important; }
+    /* FIX: Add spacing around the Send Map to Mobile Button */
+#show-qr-btn { 
+    margin-top: 20px !important; 
+    margin-bottom: 35px !important; 
+}
     .map-carousel { height: 450px; border-width: 2px; margin-top: 0;}
 }
 
