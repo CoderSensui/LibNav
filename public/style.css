@@ -309,6 +309,21 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .clear-recent { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
 .clear-recent:hover { color: var(--warning); }
 
+.feedback-layout { text-align: center; max-width: 450px !important; padding: 35px 25px !important; }
+.feedback-header { margin-bottom: 25px; }
+.feedback-icon-wrap { width: 60px; height: 60px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 15px; border: 2px solid var(--primary); }
+.feedback-icon-wrap i { width: 30px; height: 30px; }
+.feedback-header h2 { font-size: 1.6rem; color: var(--text-main); margin-bottom: 5px; }
+.feedback-header p { color: var(--text-muted); font-size: 0.95rem; }
+.feedback-form { display: flex; flex-direction: column; gap: 15px; text-align: left; }
+.star-rating-input { background: var(--surface-lighter); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;}
+.star-rating-input p { font-weight: bold; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px;}
+.stars { display: flex; justify-content: center; gap: 10px; flex-direction: row-reverse; }
+.stars input { display: none; }
+.stars label { cursor: pointer; color: var(--border-color); transition: 0.2s; }
+.stars label i { width: 35px; height: 35px; fill: transparent; transition: 0.2s; }
+.stars input:checked ~ label i, .stars label:hover i, .stars label:hover ~ label i { fill: var(--warning); color: var(--warning); }
+
 @media (min-width: 850px) {
     .mobile-only, .mobile-only-share, .mobile-only-flex, .bottom-nav { display: none !important; }
     .desktop-nav, .desktop-only, .desktop-only-flex { display: flex !important; }
