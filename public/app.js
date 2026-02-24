@@ -648,7 +648,7 @@ function applyTheme(mode) {
     }
 
     document.getElementById('quick-bookmark-btn')?.addEventListener('click', () => {
-        searchInput.value = ''; 
+        searchInput.value = '';
         selectedGenres.clear();
         selectedGenres.add('Favorites');
         
@@ -657,14 +657,22 @@ function applyTheme(mode) {
             else b.checked = false; 
         });
         
-        const sidebarFav = document.querySelector('.menu-item[data-genre="Favorites"]');
-        if(sidebarFav) sidebarFav.classList.add('active');
-        const dropFav = document.querySelector('.filter-option input[value="Favorites"]');
-        if(dropFav) dropFav.checked = true;
-
-        hero.style.display = 'none'; featuredContainer.style.display = 'none';
+        hero.style.display = 'none'; 
+        featuredContainer.style.display = 'none';
+        
         performSearch('');
         switchSection('home');
+        
+        const results = document.getElementById('results-area');
+        if (results.innerHTML.trim() === '') {
+            results.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon-wrap"><i data-lucide="bookmark"></i></div>
+                    <h3>No Bookmarks Yet</h3>
+                    <p>Tap the bookmark icon on any book to save it here.</p>
+                </div>`;
+            renderIcons();
+        }
     });
 
     function renderResults(books) {
