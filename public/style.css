@@ -294,11 +294,26 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .desktop-only-flex { display: none; }
+.floating-btn { position: fixed; bottom: 100px; right: 20px; width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; border: none; box-shadow: var(--shadow); display: flex; justify-content: center; align-items: center; cursor: pointer; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 90; }
+.floating-btn.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.floating-btn:active { transform: scale(0.9); }
+
+.new-badge { position: absolute; top: -10px; left: -10px; background: var(--primary); color: white; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.75rem; box-shadow: 0 4px 10px rgba(255, 158, 181, 0.5); z-index: 10; letter-spacing: 1px; text-transform: uppercase; border: 2px solid var(--surface); }
+
+.saved-actions-bar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; background: var(--primary-light); padding: 15px 20px; border-radius: 16px; margin-bottom: 10px; border: 1px solid rgba(255, 158, 181, 0.3); }
+.saved-actions-bar span { color: var(--primary); font-weight: bold; display: flex; align-items: center; gap: 8px; }
+.btn-export { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: 0.2s; }
+.btn-export:active { transform: scale(0.95); }
+
+.recent-header { padding: 10px 20px; font-size: 0.8rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; background: var(--surface-lighter); display: flex; justify-content: space-between; align-items: center; }
+.clear-recent { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
+.clear-recent:hover { color: var(--warning); }
 
 @media (min-width: 850px) {
     .mobile-only, .mobile-only-share, .mobile-only-flex, .bottom-nav { display: none !important; }
     .desktop-nav, .desktop-only, .desktop-only-flex { display: flex !important; }
-    
+
+    .floating-btn { bottom: 40px; right: 40px; width: 60px; height: 60px; }
     .app-header .header-left .icon-btn { display: flex !important; } 
     .close-btn-side { display: flex !important; } 
     
