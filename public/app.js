@@ -800,7 +800,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="uptime-pill"><i data-lucide="radio"></i> <span id="uptime-display">Booting...</span></div>
             </div>
             
-            <div class="stats-compact-grid">
+          <div class="stats-compact-grid">
                 <div class="bento-card compact-card">
                     <div class="compact-stat-row">
                         <div class="csr-icon yellow"><i data-lucide="star"></i></div>
@@ -813,29 +813,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
+                <div class="bento-card">
+                    <div class="bento-highlight" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                        <div class="bento-icon" style="background: rgba(255,255,255,0.05); color: var(--text-main); width: 35px; height: 35px; margin: 0;"><i data-lucide="sparkles" style="width:16px; height:16px;"></i></div>
+                        <div class="bento-highlight-info">
+                            <div class="bento-title">Latest Arrival</div>
+                            <h3 style="font-size:1.1rem; color: var(--text-main);">${newest.title}</h3>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="bento-card bento-span-2">
                     <div class="bento-tag">${mostViewed.views} Views</div>
                     <div class="bento-highlight">
                         <div class="bento-icon" style="background: var(--primary); color: white; border: none; box-shadow: 0 0 15px rgba(219,39,119,0.5);"><i data-lucide="flame"></i></div>
                         <div class="bento-highlight-info">
                             <div class="bento-title" style="color: var(--primary);">Trending Pick</div>
-                            <h3>${mostViewed.title}</h3>
-                            <p>${mostViewed.author}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bento-card">
-                    <div class="bento-highlight" style="flex-direction: column; align-items: flex-start; gap: 10px;">
-                        <div class="bento-icon" style="background: rgba(255,255,255,0.05); color: #fff; width: 35px; height: 35px; margin: 0;"><i data-lucide="sparkles" style="width:16px; height:16px;"></i></div>
-                        <div class="bento-highlight-info">
-                            <div class="bento-title">Latest Arrival</div>
-                            <h3 style="font-size:1.1rem;">${newest.title}</h3>
+                            <h3 style="color: var(--text-main);">${mostViewed.title}</h3>
+                            <p style="color: var(--text-muted);">${mostViewed.author}</p>
                         </div>
                     </div>
                 </div>
                 
-                <div class="bento-card compact-card full-width bento-span-3">
+                <div class="bento-card compact-card full-width bento-span-2">
                     <div class="csr-header">
                         <span><i data-lucide="pie-chart" style="width:18px;"></i> Catalog Composition</span>
                         <small>Vault: ${books.length} Books</small>
