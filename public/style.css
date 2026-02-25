@@ -363,3 +363,47 @@ button:active, .book-card:active, .menu-item:active, .icon-btn:active, .nav-item
     .compact-card.full-width { grid-column: span 2; }
     .compact-stat-row { justify-content: center; }
 }
+
+.stats-layout, .feedback-layout { padding-top: 60px !important; }
+
+.desktop-only-flex { display: none !important; }
+@media (min-width: 850px) { .desktop-only-flex { display: flex !important; } }
+
+.floating-btn {
+    position: fixed !important; bottom: 100px !important; right: 20px !important;
+    width: 50px !important; height: 50px !important; border-radius: 50% !important;
+    background: var(--primary) !important; color: white !important; border: none !important;
+    box-shadow: 0 8px 20px rgba(219,39,119,0.4) !important;
+    display: flex !important; justify-content: center !important; align-items: center !important;
+    cursor: pointer !important; opacity: 0; pointer-events: none; transition: 0.3s !important; z-index: 9999 !important;
+}
+.floating-btn.visible { opacity: 1 !important; pointer-events: auto !important; transform: translateY(0) !important; }
+.floating-btn i, .floating-btn svg { width: 24px !important; height: 24px !important; stroke: white !important; }
+
+.featured-card { 
+    flex-direction: column !important; text-align: center !important; 
+    justify-content: center !important; overflow: visible !important;
+}
+.feat-img-wrap { 
+    width: 140px !important; height: 210px !important; 
+    overflow: visible !important; margin: 0 auto !important;
+}
+.feat-img-wrap img { border-radius: 12px !important; box-shadow: var(--shadow) !important; }
+.feat-info { align-items: center !important; width: 100% !important; }
+.featured-card .fav-btn {
+    position: absolute !important; top: 50% !important; left: 50% !important; 
+    transform: translate(-50%, -50%) scale(0.5) !important;
+}
+.featured-card:hover .fav-btn, .featured-card.show-actions .fav-btn { 
+    transform: translate(-50%, -50%) scale(1) !important; 
+}
+
+.saved-actions-bar { 
+    grid-column: 1 / -1 !important; width: 100% !important; display: flex !important; justify-content: space-between !important; 
+    align-items: center !important; background: var(--primary-light) !important; 
+    padding: 15px 20px !important; border-radius: 16px !important; 
+    margin-bottom: 20px !important; border: 1px solid rgba(255, 158, 181, 0.3) !important; 
+    box-sizing: border-box !important;
+}
+.saved-actions-bar span { color: var(--primary) !important; font-weight: bold !important; display: flex !important; align-items: center !important; gap: 8px !important; }
+.btn-export { background: var(--primary) !important; color: white !important; border: none !important; padding: 8px 16px !important; border-radius: 12px !important; font-weight: bold !important; cursor: pointer !important; display: flex !important; align-items: center !important; gap: 8px !important; font-size: 0.9rem !important; }
