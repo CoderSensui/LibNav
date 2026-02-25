@@ -21,7 +21,7 @@
         <i data-lucide="check-circle-2"></i> <span>Link Copied to Clipboard!</span>
     </div>
 
-    <header class="app-header">
+    <header class="app-header top-nav">
         <div class="header-left">
             <button id="hamburger-btn" class="icon-btn"><i data-lucide="menu"></i></button>
             <div id="desktop-logo" class="top-logo desktop-logo" style="margin-left: 10px; cursor: pointer;">LibNav</div>
@@ -43,7 +43,7 @@
             <button id="close-menu" class="close-btn-side"><i data-lucide="x"></i></button>
         </div>
         <div class="menu-content">
-            <button class="menu-item active" data-genre="All"><i data-lucide="book-open"></i> <span>All Books</span></button>
+            <button class="menu-item" data-genre="All"><i data-lucide="book-open"></i> <span>All Books</span></button>
             <div class="divider"></div>
             <button class="menu-item" data-genre="Fiction"><i data-lucide="sparkles"></i> <span>Fiction</span></button>
             <button class="menu-item" data-genre="Non-Fiction"><i data-lucide="microscope"></i> <span>Non-Fiction</span></button>
@@ -73,7 +73,6 @@
                 
                 <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
                 <div id="recent-searches-dropdown" class="autocomplete-dropdown"></div>
-                
                 
                 <div id="filter-menu" class="filter-dropdown">
                     <label class="filter-option highlight"><input type="checkbox" value="All"><span class="checkmark"></span><span>All Genres</span></label>
@@ -169,12 +168,10 @@
 
     <div id="book-modal" class="modal-overlay">
         <div class="modal-box book-layout">
-            
             <button id="top-share-btn" class="share-btn-top"><i data-lucide="share-2"></i></button>
             <button class="close-btn"><i data-lucide="x"></i></button>
             
             <div class="book-modal-grid">
-                
                 <div class="book-left">
                     <span id="modal-book-id" style="display: none;"></span>
 
@@ -190,24 +187,17 @@
                         </div>
                     </div>
 
-                    <div class="book-info-card-pc desktop-only-flex">
-                        <div class="pc-info-half">
-                            <div class="author-portrait skeleton"><img id="modal-author-pic-pc" src=""></div>
-                            <div class="pc-text-stack">
-                                <small>AUTHOR</small>
-                                <h3 id="modal-author-pc">Author</h3>
-                            </div>
+                    <div class="book-info-card-pc desktop-only-flex" style="flex-direction: row; align-items: center; justify-content: center; gap: 40px; border: none; padding: 0;">
+                        <div class="cover-avatar-group">
+                            <div class="book-cover-wrap skeleton" style="width: 160px; height: 240px;"><img id="modal-book-cover-img-pc" src=""></div>
+                            <div class="author-avatar skeleton" style="width: 80px; height: 80px; bottom: -25px; right: -25px;"><img id="modal-author-pic-pc" src=""></div>
                         </div>
-                        <div class="pc-divider"></div>
-                        <div class="pc-info-half">
-                            <div class="book-cover-wrap skeleton"><img id="modal-book-cover-img-pc" src=""></div>
-                            <div class="pc-text-stack">
-                                <h2 id="modal-title-pc">Title</h2>
-                                <span id="modal-genre-pc" class="book-badge">Genre</span>
-                            </div>
+                        <div class="pc-text-stack">
+                            <h2 id="modal-title-pc" style="font-size: 2rem; margin-bottom: 5px;">Title</h2>
+                            <h3 id="modal-author-pc" style="color: var(--text-muted); font-weight: normal; margin-bottom: 15px;">Author</h3>
+                            <span id="modal-genre-pc" class="book-badge">Genre</span>
                         </div>
                     </div>
-                    
                     
                     <button id="show-qr-btn" class="btn-secondary full-width desktop-only-flex mt">
                         <i data-lucide="qr-code"></i> Send Map to Mobile
@@ -232,7 +222,6 @@
                 <h3>Also in this section</h3>
                 <div id="related-shelf" class="related-grid"></div>
             </div>
-
         </div>
     </div>
 
@@ -241,11 +230,10 @@
             <button class="close-btn"><i data-lucide="x"></i></button>
             <div class="icon-box" style="margin: 0 auto 15px; width: 60px; height: 60px;"><i data-lucide="smartphone"></i></div>
             <h2 style="margin-bottom: 15px;">Scan to Mobile</h2>
-            
             <div class="qr-scanner-box" style="margin-bottom: 20px;">
                 <div id="qrcode"></div>
-                <div class="scanner-line"></div> </div>
-
+                <div class="scanner-line"></div> 
+            </div>
             <div class="tip-box" style="margin-bottom: 0; text-align: left;">
                 <div class="tip-header"><i data-lucide="lightbulb"></i> Quick Tip</div>
                 <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0;">Open your phone's camera app and point it at this QR code to seamlessly take the navigation map with you on the go!</p>
@@ -321,9 +309,8 @@
     </div>
 
     <div id="stats-modal" class="modal-overlay">
-        <div class="modal-box">
+        <div class="modal-box stats-layout">
             <button class="close-btn"><i data-lucide="x"></i></button>
-            <div class="card-header" style="border:none;"><div class="icon-box"><i data-lucide="activity"></i></div><h2>Live Statistics</h2></div>
             <div id="stats-content"></div>
         </div>
     </div>
@@ -350,7 +337,7 @@
                 <input type="text" id="fb-name" class="input-field" placeholder="Your Name (Optional)">
                 <input type="email" id="fb-email" class="input-field" placeholder="Your Email (Optional)">
                 <textarea id="fb-message" class="input-field" rows="4" placeholder="Tell us about a bug, a feature idea, or just say hi!" required></textarea>
-                <button type="submit" id="fb-submit-btn" class="primary-btn"><i data-lucide="send"></i> Send to Developer</button>
+                <button type="submit" id="fb-submit-btn" class="btn-primary"><i data-lucide="send"></i> Send to Developer</button>
             </form>
         </div>
     </div>
@@ -373,7 +360,6 @@
     <div id="screensaver" class="screensaver">
         <h1 class="hero-title">LibNav</h1>
         <p style="margin-bottom: 50px;">Touch screen to start</p>
-        
         <div class="tip-box" style="max-width: 400px; text-align: left; background: var(--surface); border-color: var(--border-color); padding: 20px;">
             <div class="tip-header" style="color: var(--primary);"><i data-lucide="sparkles"></i> Did you know?</div>
             <p id="screensaver-fact" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0; text-transform: none; font-weight: normal; letter-spacing: normal; animation: none;">Loading a fun fact...</p>
