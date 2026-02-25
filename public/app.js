@@ -33,7 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
         "Bookmark a book to instantly find it in your Saved list later.",
         "Double-tap the main LibNav logo on the home screen for a library surprise!",
         "Browsing on PC? Scan the QR code to seamlessly transfer the map to your phone.",
-        "Filter by 'Favorites' to quickly access the books you've bookmarked."
+        "Filter by 'Favorites' to quickly access the books you've bookmarked.",
+        "Hold any book cover to see quick options like bookmarking.",
+        "Check the Live Stats to see what's trending on campus.",
+        "Tap the author's picture to see their full name clearly."
     ];
 
     function applyTheme(mode) {
@@ -351,9 +354,10 @@ document.addEventListener('DOMContentLoaded', () => {
         featuredContainer.innerHTML = `
             <div class="featured-wrap">
                 <span class="feat-tag"><i data-lucide="star"></i> Daily Global Pick</span>
-                <div class="featured-card" onclick="openModalById('${b.id}')">
-                    <div class="feat-img-wrap"><img id="fc-img" src="">
-                    <button class="fav-btn ${isFav?'active':''}" onclick="toggleFavorite(event,'${b.id}')"><i data-lucide="bookmark"></i></button></div>
+                <div class="featured-card book-card" onclick="openModalById('${b.id}')"> <div class="feat-img-wrap">
+                        <img id="fc-img" src="">
+                        <button class="fav-btn ${isFav?'active':''}" onclick="toggleFavorite(event,'${b.id}')"><i data-lucide="bookmark"></i></button>
+                    </div>
                     <div class="feat-info"><h2>${b.title}</h2><p>${b.author}</p><span class="book-badge">${b.genre}</span></div>
                 </div>
             </div>`;
@@ -385,15 +389,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function fetchAuthorPic(author) {
-        const els = [document.getElementById('modal-author-pic-mob'), document.getElementById('modal-author-pic-pc')];
+        const el = document.getElementById('umh-author-pic');
+        if(!el) return;
+        
         const fallback = generateInitialsImage(author);
-        els.forEach(el => { 
-            if(el) { el.src = fallback; el.onerror = function() { this.src = fallback; }; }
-        });
+        el.src = fallback;
+        el.onerror = function() { this.src = fallback; };
+        
         fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(author)}`).then(r=>r.json()).then(d=>{
             if(d.docs?.[0]?.key) {
                 const url = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg?default=false`;
-                els.forEach(el => { if(el) el.src = url; });
+                el.src = url;
             }
         }).catch(e => console.log("Author fetch error:", e));
     }
@@ -425,16 +431,16 @@ document.addEventListener('DOMContentLoaded', () => {
         modalBox.style.setProperty('--dynamic-color', glowColor);
         modalBox.classList.add('dynamic-theme');
      
-        ['mob', 'pc'].forEach(mode => {
-            const t = document.getElementById(`modal-title-${mode}`); if(t) t.innerText = book.title;
-            const a = document.getElementById(`modal-author-${mode}`); if(a) a.innerText = book.author;
-            const g = document.getElementById(`modal-genre-${mode}`); if(g) g.innerText = book.genre;
-            const cover = document.getElementById(`modal-book-cover-img-${mode}`); 
-            if(cover) { 
-                cover.src = ''; cover.style.opacity = '0'; cover.parentElement.classList.add('skeleton'); 
-                fetchCoverWithFallback(book.title, book.author, `modal-book-cover-img-${mode}`, true); 
-            }
-        });
+        // POPULATE UNIFIED HEADER
+        document.getElementById('umh-title').innerText = book.title;
+        document.getElementById('umh-author-name').innerText = book.author;
+        document.getElementById('umh-genre').innerText = book.genre;
+        
+        const cover = document.getElementById('umh-book-cover');
+        if(cover) {
+            cover.src = ''; cover.style.opacity = '0'; cover.parentElement.classList.add('skeleton');
+            fetchCoverWithFallback(book.title, book.author, 'umh-book-cover', true);
+        }
         
         fetchAuthorPic(book.author);
 
@@ -689,6 +695,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const allBooks = LibraryDB.getBooks();
         const maxViews = allBooks.reduce((max, b) => Math.max(max, b.views || 0), 0);
+        // Find the FIRST book that matches maxViews to avoid duplicates if tied
+        const trendingBookId = maxViews > 0 ? allBooks.find(b => b.views === maxViews)?.id : null;
 
         const frag = document.createDocumentFragment(); const term = searchInput.value.trim(); const regex = new RegExp(`(${term})`, 'gi');
         books.forEach((book, i) => {
@@ -698,7 +706,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let badgesHtml = '';
             if (book.isNew) badgesHtml += '<div class="new-badge">NEW</div>';
-            if (book.views && book.views === maxViews && maxViews > 0) {
+            // Only add HOT badge if it matches the unique trending ID
+            if (book.id === trendingBookId) {
                 badgesHtml += '<div class="hot-badge"><i data-lucide="flame" style="width:12px;height:12px;fill:white;"></i> HOT</div>';
             }
 
@@ -777,8 +786,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const openStats = () => {
         const books = LibraryDB.getBooks(); const ratings = LibraryDB.getRatings();
-        const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0, author:"N/A"});
-        const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None", author:"N/A"});
         const genres = {}; books.forEach(b=>genres[b.genre]=(genres[b.genre]||0)+1);
         const avg = ratings.length ? `${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)}` : "0.0";
         
@@ -790,52 +797,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="uptime-pill"><i data-lucide="radio"></i> <span id="uptime-display">Booting...</span></div>
             </div>
             
-            <div class="bento-grid">
-                <div class="bento-card">
-                    <div class="bento-icon"><i data-lucide="book-open"></i></div>
-                    <div class="bento-title">Vault Capacity</div>
-                    <div class="bento-value">${books.length}</div>
-                    <div class="bento-sub">Total cataloged books</div>
-                </div>
-                
-                <div class="bento-card">
-                    <div class="bento-icon"><i data-lucide="star"></i></div>
-                    <div class="bento-title">Global Rating</div>
-                    <div class="bento-value">${avg}</div>
-                    <div class="bento-sub">${ratings.length} student reviews</div>
-                </div>
-                
-                <div class="bento-card">
-                    <div class="bento-icon"><i data-lucide="bookmark"></i></div>
-                    <div class="bento-title">Engagement</div>
-                    <div class="bento-value">${favorites.length}</div>
-                    <div class="bento-sub">Active bookmarks</div>
-                </div>
-
-                <div class="bento-card bento-span-2">
-                    <div class="bento-tag">${mostViewed.views} Views</div>
-                    <div class="bento-highlight">
-                        <div class="bento-icon" style="background: var(--primary); color: white; border: none; box-shadow: 0 0 15px rgba(219,39,119,0.5);"><i data-lucide="flame"></i></div>
-                        <div class="bento-highlight-info">
-                            <div class="bento-title" style="color: var(--primary);">Trending Pick</div>
-                            <h3>${mostViewed.title}</h3>
-                            <p>${mostViewed.author}</p>
-                        </div>
+            <div class="stats-compact-grid">
+                <div class="bento-card compact-card">
+                    <div class="compact-stat-row">
+                        <div class="csr-icon yellow"><i data-lucide="star"></i></div>
+                        <div><strong>${avg}</strong> <span>Global Rating</span></div>
+                    </div>
+                    <div class="compact-divider"></div>
+                    <div class="compact-stat-row">
+                        <div class="csr-icon pink"><i data-lucide="bookmark"></i></div>
+                        <div><strong>${favorites.length}</strong> <span>Bookmarks</span></div>
                     </div>
                 </div>
-
-                <div class="bento-card">
-                    <div class="bento-highlight" style="flex-direction: column; align-items: flex-start; gap: 10px;">
-                        <div class="bento-icon" style="background: rgba(255,255,255,0.05); color: #fff; width: 35px; height: 35px; margin: 0;"><i data-lucide="sparkles" style="width:16px; height:16px;"></i></div>
-                        <div class="bento-highlight-info">
-                            <div class="bento-title">Latest Arrival</div>
-                            <h3 style="font-size:1.1rem;">${newest.title}</h3>
-                        </div>
+                
+                <div class="bento-card compact-card full-width">
+                    <div class="csr-header">
+                        <span><i data-lucide="pie-chart" style="width:18px;"></i> Catalog Composition</span>
+                        <small>Vault: ${books.length} Books</small>
                     </div>
-                </div>
-
-                <div class="bento-card bento-span-3">
-                    <div class="bento-title" style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"><i data-lucide="pie-chart" style="width:16px; height:16px;"></i> Catalog Composition</div>
                     <div class="neon-bars">
                         ${Object.entries(genres).map(([k,v])=>`
                             <div class="neon-bar-row">
@@ -937,6 +916,18 @@ document.addEventListener('DOMContentLoaded', () => {
              document.querySelectorAll('.book-card.show-actions').forEach(c => c.classList.remove('show-actions'));
         }
     });
+
+    // Offline Detection Logic
+    window.addEventListener('online', () => {
+        document.getElementById('offline-banner').style.display = 'none';
+    });
+    window.addEventListener('offline', () => {
+        document.getElementById('offline-banner').style.display = 'flex';
+    });
+    // Check initial state
+    if (!navigator.onLine) {
+        document.getElementById('offline-banner').style.display = 'flex';
+    }
     
     init();
 });
