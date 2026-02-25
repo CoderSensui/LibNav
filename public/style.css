@@ -384,39 +384,65 @@ button:active, .book-card:active, .menu-item:active, .icon-btn:active, .nav-item
     flex-direction: column !important; text-align: center !important; 
     justify-content: center !important; overflow: visible !important;
 }
+/* --- ULTIMATE UI FIXES --- */
+
+/* 1. Daily Pick Image & Bookmark Fix */
 .feat-img-wrap { 
     width: 140px !important; height: 210px !important; 
-    margin: 0 auto !important; position: relative !important; 
+    margin: 0 auto 15px auto !important; position: relative !important; 
     display: flex !important; justify-content: center !important; align-items: center !important;
+    border-radius: 12px !important; box-shadow: var(--shadow) !important;
 }
 .feat-img-wrap img { 
-    border-radius: 12px !important; box-shadow: var(--shadow) !important; 
-    transition: filter 0.4s ease, transform 0.4s ease !important; 
     width: 100% !important; height: 100% !important; object-fit: cover !important; 
+    border-radius: 12px !important; transition: filter 0.4s ease, transform 0.4s ease !important; 
 }
-.feat-info { align-items: center !important; width: 100% !important; }
-
-/* FIXED: Daily Pick Bookmark Button Design & Hide State */
 .featured-card .fav-btn {
     position: absolute !important; top: 50% !important; left: 50% !important; 
     transform: translate(-50%, -50%) scale(0.5) !important;
     width: 65px !important; height: 65px !important; 
     background: rgba(18, 18, 18, 0.6) !important; 
     border: 2px solid var(--primary) !important; color: var(--primary) !important; 
-    border-radius: 50% !important; opacity: 0 !important; z-index: 10 !important; 
+    border-radius: 50% !important; z-index: 10 !important; 
     display: flex !important; justify-content: center !important; align-items: center !important; 
     transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
 }
-.featured-card .fav-btn svg, .featured-card .fav-btn i { width: 30px !important; height: 30px !important; }
-.featured-card .fav-btn.active { background: var(--primary) !important; color: white !important; }
 
-/* Hold/Hover Reveal */
-.featured-card:hover .feat-img-wrap img, .featured-card.show-actions .feat-img-wrap img { 
-    filter: blur(4px) brightness(0.4) !important; transform: scale(0.95) !important; 
+/* Force bookmark to be HIDDEN by default even if active */
+.cover-box .fav-btn, .featured-card .fav-btn,
+.cover-box .fav-btn.active, .featured-card .fav-btn.active { 
+    opacity: 0 !important; 
 }
+.cover-box .fav-btn.active, .featured-card .fav-btn.active { 
+    background: var(--primary) !important; color: white !important; 
+}
+
+/* Force bookmark to SHOW only on Hover or Hold */
+.book-card:hover .fav-btn, .book-card.show-actions .fav-btn,
 .featured-card:hover .fav-btn, .featured-card.show-actions .fav-btn { 
     opacity: 1 !important; transform: translate(-50%, -50%) scale(1) !important; 
 }
+
+/* 2. Recent Searches Dropdown & Styling Fix */
+.autocomplete-dropdown { 
+    position: absolute !important; top: 110% !important; left: 0 !important; width: 100% !important; 
+    background: var(--surface) !important; 
+    border: 2px solid var(--border-color) !important; 
+    border-radius: 16px !important; display: none; flex-direction: column !important; overflow: hidden !important; 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3) !important; 
+    z-index: 9999 !important; 
+}
+body.light-mode .autocomplete-dropdown {
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
+}
+.auto-item { padding: 15px 20px !important; display: flex !important; align-items: center !important; gap: 15px !important; border-bottom: 1px solid var(--border-color) !important; cursor: pointer !important; transition: 0.2s !important; }
+.auto-item:hover { background: var(--surface-lighter) !important; }
+.auto-item:last-child { border-bottom: none !important; }
+
+.recent-header { padding: 15px 20px !important; font-size: 0.8rem !important; font-weight: bold !important; color: var(--text-muted) !important; text-transform: uppercase !important; letter-spacing: 1px !important; background: var(--surface-lighter) !important; display: flex !important; justify-content: space-between !important; align-items: center !important; border-bottom: 1px solid var(--border-color) !important; }
+.recent-header span { display: flex !important; align-items: center !important; gap: 8px !important; }
+.clear-recent { background: rgba(239, 68, 68, 0.1) !important; border: none !important; color: #ef4444 !important; padding: 6px 12px !important; border-radius: 8px !important; cursor: pointer !important; font-size: 0.75rem !important; transition: 0.2s !important; display: flex !important; align-items: center !important; gap: 6px !important; font-weight: bold !important;}
+.clear-recent:hover { background: rgba(239, 68, 68, 0.2) !important; }
 
 /* Ensure the grid spans perfectly on PC without gaps */
 @media (min-width: 850px) {
