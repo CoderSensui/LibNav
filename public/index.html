@@ -14,7 +14,11 @@
 <body>
 
     <div id="offline-banner" class="offline-banner">
-        <i data-lucide="wifi-off"></i> <span>You are offline. Viewing cached library.</span>
+        <div class="wifi-icon-anim"><i data-lucide="wifi-off"></i></div>
+        <div class="offline-text">
+            <strong>You are offline</strong>
+            <span>Browsing cached library version</span>
+        </div>
     </div>
 
     <div id="toast-notification" class="toast">
@@ -175,30 +179,22 @@
                 <div class="book-left">
                     <span id="modal-book-id" style="display: none;"></span>
 
-                    <div class="book-info-card mobile-only-flex">
-                        <div class="cover-avatar-group">
-                            <div class="book-cover-wrap skeleton"><img id="modal-book-cover-img-mob" src=""></div>
-                            <div class="author-avatar skeleton"><img id="modal-author-pic-mob" src=""></div>
+                    <div class="unified-modal-header">
+                        <div class="umh-book-section">
+                            <div class="umh-cover-wrap skeleton"><img id="umh-book-cover" src=""></div>
+                            <div class="umh-book-info">
+                                <h2 id="umh-title">Title</h2>
+                                <span id="umh-genre" class="book-badge">Genre</span>
+                            </div>
                         </div>
-                        <div class="book-text-info">
-                            <h2 id="modal-title-mob">Title</h2>
-                            <p id="modal-author-mob">Author</p>
-                            <span id="modal-genre-mob" class="book-badge">Genre</span>
-                        </div>
-                    </div>
-
-                    <div class="book-info-card-pc desktop-only-flex" style="flex-direction: row; align-items: center; justify-content: center; gap: 40px; border: none; padding: 0;">
-                        <div class="cover-avatar-group">
-                            <div class="book-cover-wrap skeleton" style="width: 160px; height: 240px;"><img id="modal-book-cover-img-pc" src=""></div>
-                            <div class="author-avatar skeleton" style="width: 80px; height: 80px; bottom: -25px; right: -25px;"><img id="modal-author-pic-pc" src=""></div>
-                        </div>
-                        <div class="pc-text-stack">
-                            <h2 id="modal-title-pc" style="font-size: 2rem; margin-bottom: 5px;">Title</h2>
-                            <h3 id="modal-author-pc" style="color: var(--text-muted); font-weight: normal; margin-bottom: 15px;">Author</h3>
-                            <span id="modal-genre-pc" class="book-badge">Genre</span>
+                        
+                        <div class="umh-divider"></div>
+                        
+                        <div class="umh-author-section">
+                            <div class="umh-author-wrap skeleton"><img id="umh-author-pic" src=""></div>
+                            <h3 id="umh-author-name">Author</h3>
                         </div>
                     </div>
-                    
                     <button id="show-qr-btn" class="btn-secondary full-width desktop-only-flex mt">
                         <i data-lucide="qr-code"></i> Send Map to Mobile
                     </button>
