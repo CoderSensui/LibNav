@@ -433,10 +433,33 @@ function applyTheme(mode) {
     prevBtn.onclick = () => { if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } };
     nextBtn.onclick = () => { if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } };
 
-    async function openModal(book) {
+  async function openModal(book) {
         bookModal.style.display = 'flex'; LibraryDB.incrementView(book.id);
         document.getElementById('modal-book-id').innerText = book.id; 
         
+        const modalBox = bookModal.querySelector('.modal-box');
+        modalBox.classList.remove('dynamic-theme');
+        modalBox.style.removeProperty('--dynamic-color');
+        
+        const coverImgId = `img-${book.id}`; 
+        const gridImg = document.getElementById(coverImgId);
+        
+        if (gridImg) {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 1; canvas.height = 1;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(gridImg, 0, 0, 1, 1);
+                const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+                const color = `rgba(${r}, ${g}, ${b}, 0.6)`;
+                
+                modalBox.style.setProperty('--dynamic-color', color);
+                modalBox.classList.add('dynamic-theme');
+            } catch (e) {
+                console.log("Could not extract color, using default.");
+            }
+        }
+     
         ['mob', 'pc'].forEach(mode => {
             const t = document.getElementById(`modal-title-${mode}`); if(t) t.innerText = book.title;
             const a = document.getElementById(`modal-author-${mode}`); if(a) a.innerText = book.author;
@@ -484,8 +507,8 @@ function applyTheme(mode) {
             relatedContainer.innerHTML = '';
             related.forEach(rBook => {
                 const div = document.createElement('div');
-                div.className = 'related-card';
-                div.innerHTML = `<img id="rel-${rBook.id}" src="">`;
+                div.className = 'related-card skeleton'; 
+                div.innerHTML = `<img id="rel-${rBook.id}" src="" style="opacity:0" onload="this.style.opacity=1;this.parentElement.classList.remove('skeleton')">`;
                 div.onclick = () => openModal(rBook);
                 relatedContainer.appendChild(div);
                 fetchCoverWithFallback(rBook.title, rBook.author, `rel-${rBook.id}`, true);
@@ -498,7 +521,7 @@ function applyTheme(mode) {
         updateCarousel(); 
         renderIcons();
     }
-
+    
     function updateCarousel() {
         const aa = document.getElementById('mobile-action-area');
         if (currentImages && currentImages.length > 0) {
@@ -922,5 +945,49 @@ function applyTheme(mode) {
         recognition.onresult = (e) => { searchInput.value = e.results[0][0].transcript; searchInput.dispatchEvent(new Event('input')); };
     } else micBtn.style.display = 'none';
 
+    let lastScrollY = window.scrollY;
+    const topNav = document.querySelector('.top-nav') || document.getElementById('search-wrapper') || document.querySelector('.search-wrapper'); // Adjust selector based on your HTML structure
+    
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 100) { 
+            if (window.scrollY > lastScrollY) {
+                if(topNav) topNav.classList.add('header-hidden');
+            } else {
+                if(topNav) topNav.classList.remove('header-hidden');
+            }
+        } else {
+            if(topNav) topNav.classList.remove('header-hidden');
+        }
+        lastScrollY = window.scrollY;
+    });
+
+    let holdTimer;
+    const holdDuration = 600; 
+    document.getElementById('results-area').addEventListener('touchstart', (e) => {
+        const card = e.target.closest('.book-card');
+        if (!card) return;
+        
+        document.querySelectorAll('.book-card.show-actions').forEach(c => c.classList.remove('show-actions'));
+
+        holdTimer = setTimeout(() => {
+            if(navigator.vibrate) navigator.vibrate(50); // Haptic feedback
+            card.classList.add('show-actions');
+        }, holdDuration);
+    }, {passive: true});
+
+    document.getElementById('results-area').addEventListener('touchend', () => {
+        clearTimeout(holdTimer);
+    });
+    
+    document.getElementById('results-area').addEventListener('touchmove', () => {
+        clearTimeout(holdTimer); 
+    });
+
+    document.addEventListener('click', (e) => {
+        if(!e.target.closest('.book-card')) {
+             document.querySelectorAll('.book-card.show-actions').forEach(c => c.classList.remove('show-actions'));
+        }
+    });
+    
     init();
 });
