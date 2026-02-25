@@ -210,7 +210,7 @@ function applyTheme(mode) {
         if(overlay) overlay.style.display = 'none';
     });
 
-    document.querySelectorAll('.menu-item').forEach(btn => {
+   document.querySelectorAll('.menu-item').forEach(btn => {
         btn.onclick = () => {
             const genre = btn.dataset.genre;
             selectedGenres.clear();
@@ -226,11 +226,14 @@ function applyTheme(mode) {
             
             if(genre !== 'All') selectedGenres.add(genre);
             
+            const hero = document.getElementById('hero');
+            const feat = document.getElementById('featured-container');
+            if(hero) { hero.style.display = 'none'; hero.style.opacity = '0'; }
+            if(feat) { feat.style.display = 'none'; }
+            
             if (genre === 'All' && searchInput.value.trim() === '') {
-                hero.style.display = 'block'; hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; 
-                featuredContainer.style.display = 'block'; document.getElementById('results-area').innerHTML = '';
+                performSearch('', true);
             } else {
-                hero.style.display = 'none'; featuredContainer.style.display = 'none';
                 performSearch(searchInput.value);
             }
             
@@ -251,16 +254,19 @@ function applyTheme(mode) {
                 else { selectedGenres.delete(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.remove('active'); }); }
             }
             
+            const hero = document.getElementById('hero');
+            const feat = document.getElementById('featured-container');
+            if(hero) { hero.style.display = 'none'; hero.style.opacity = '0'; }
+            if(feat) { feat.style.display = 'none'; }
+            
             if ((selectedGenres.size === 0 || selectedGenres.has('All')) && searchInput.value.trim() === '') { 
-                hero.style.display = 'block'; hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; 
-                featuredContainer.style.display = 'block'; document.getElementById('results-area').innerHTML = ''; 
+                performSearch('', true);
             } else { 
-                hero.style.display = 'none'; featuredContainer.style.display = 'none';
                 performSearch(searchInput.value); 
             }
         };
     });
-
+    
     document.getElementById('admin-auth-btn').onclick = () => {
         if (document.getElementById('admin-password').value === 'admin123') { 
             document.getElementById('admin-login-screen').style.display = 'none'; 
@@ -629,10 +635,10 @@ function applyTheme(mode) {
     });
 
 
-    function performSearch(term) {
+    function performSearch(term, forceShowAll = false) {
         let books = LibraryDB.getBooks(); term = term.toLowerCase().trim();
         
-        if (term === '' && (selectedGenres.size === 0 || selectedGenres.has('All'))) { 
+        if (!forceShowAll && term === '' && (selectedGenres.size === 0 || selectedGenres.has('All'))) { 
             document.getElementById('results-area').innerHTML = ''; 
             return; 
         }
@@ -790,31 +796,69 @@ function applyTheme(mode) {
     let uptimeInterval = null;
     const openStats = () => {
         const books = LibraryDB.getBooks(); const ratings = LibraryDB.getRatings();
-        const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0});
-        const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None"});
+        const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0, author:"N/A"});
+        const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None", author:"N/A"});
         const genres = {}; books.forEach(b=>genres[b.genre]=(genres[b.genre]||0)+1);
-        const avg = ratings.length ? `⭐ ${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)} <span style="font-size:0.8rem;color:var(--text-muted);">(${ratings.length} Reviews)</span>` : "No Ratings";
+        const avg = ratings.length ? `${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)}` : "0.0";
         
         document.getElementById('stats-content').innerHTML = `
-            <div class="stats-banner"><i data-lucide="server"></i> <span id="uptime-display">Calculating uptime...</span></div>
-            <div class="stats-grid">
-                <div class="stat-box"><small>TOTAL BOOKS</small><h2>${books.length}</h2></div>
-                <div class="stat-box"><small>BOOKMARKS</small><h2 style="color:var(--warning);">${favorites.length}</h2></div>
+            <div class="stats-header-pro">
+                <div class="uptime-badge"><i data-lucide="activity"></i> <span id="uptime-display">Calculating uptime...</span></div>
             </div>
-            <div class="stat-box full"><small>GLOBAL RATING</small><h2>${avg}</h2></div>
-            <div class="stat-row"><p><i data-lucide="trending-up"></i> Top Pick</p><div><strong>${mostViewed.title}</strong><span class="view-tag">${mostViewed.views} Views</span></div></div>
-            <div class="stat-row"><p><i data-lucide="clock"></i> Newest Arrival</p><div><strong>${newest.title}</strong></div></div>
-            <div class="stat-list"><p><i data-lucide="pie-chart"></i> Composition</p>${Object.entries(genres).map(([k,v])=>`<div class="stat-list-item"><span>${k}</span><strong>${v}</strong></div>`).join('')}</div>
-        `; renderIcons(); document.getElementById('stats-modal').style.display = 'flex';
+            
+            <div class="stats-grid-pro">
+                <div class="stat-card-pro gradient-1">
+                    <div class="stat-icon"><i data-lucide="book-open"></i></div>
+                    <div class="stat-info"><small>Total Books</small><h2>${books.length}</h2></div>
+                </div>
+                <div class="stat-card-pro gradient-2">
+                    <div class="stat-icon"><i data-lucide="star"></i></div>
+                    <div class="stat-info"><small>Global Rating</small><h2>${avg}</h2><span class="sub-text">${ratings.length} Reviews</span></div>
+                </div>
+                <div class="stat-card-pro gradient-3">
+                    <div class="stat-icon"><i data-lucide="bookmark"></i></div>
+                    <div class="stat-info"><small>Bookmarks</small><h2>${favorites.length}</h2></div>
+                </div>
+            </div>
+
+            <div class="stats-row-pro">
+                <div class="stat-highlight">
+                    <div class="hl-header"><i data-lucide="trending-up" style="color:var(--primary);"></i> Most Popular</div>
+                    <h3>${mostViewed.title}</h3>
+                    <p>${mostViewed.author}</p>
+                    <div class="view-pill">${mostViewed.views} Views</div>
+                </div>
+                <div class="stat-highlight">
+                    <div class="hl-header"><i data-lucide="clock" style="color:var(--warning);"></i> Newest Arrival</div>
+                    <h3>${newest.title}</h3>
+                    <p>${newest.author}</p>
+                </div>
+            </div>
+
+            <div class="stats-composition-pro">
+                <div class="hl-header"><i data-lucide="pie-chart"></i> Catalog Composition</div>
+                <div class="genre-bars">
+                    ${Object.entries(genres).map(([k,v])=>`
+                        <div class="genre-bar-wrap">
+                            <div class="genre-bar-label"><span>${k}</span> <strong>${v}</strong></div>
+                            <div class="genre-bar-track"><div class="genre-bar-fill" style="width: ${(v/books.length)*100}%"></div></div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `; 
+        renderIcons(); 
+        document.getElementById('stats-modal').style.display = 'flex';
 
         const updateUptime = () => {
             const startDate = new Date("2026-01-01T00:00:00").getTime(); const diff = new Date().getTime() - startDate;
             const d = Math.floor(diff / (1000 * 60 * 60 * 24)); const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); 
             const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)); const s = Math.floor((diff % (1000 * 60)) / 1000);
-            const el = document.getElementById('uptime-display'); if(el) el.innerText = `Cloud Uptime: ${d}d, ${h}h, ${m}m, ${s}s`;
+            const el = document.getElementById('uptime-display'); if(el) el.innerText = `Cloud Uptime: ${d}d ${h}h ${m}m ${s}s`;
         };
         if(uptimeInterval) clearInterval(uptimeInterval); updateUptime(); uptimeInterval = setInterval(updateUptime, 1000);
     };
+    
     document.getElementById('section-stats-btn')?.addEventListener('click', openStats);
 
     const openFeedback = () => { document.getElementById('feedback-modal').style.display = 'flex'; };
