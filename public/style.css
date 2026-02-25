@@ -399,16 +399,24 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 
 .top-nav {
     position: sticky; top: 0; z-index: 100;
-    background: rgba(18, 18, 18, 0.75); /* Semi-transparent */
-    backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    background: rgba(18, 18, 18, 0.8) !important;
+    backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), background 0.3s ease !important;
 }
-.bottom-nav {
-    background: rgba(18, 18, 18, 0.75);
-    backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+
+.bottom-nav { 
+    background: rgba(18, 18, 18, 0.8) !important; 
+    backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important; 
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    transition: background 0.3s ease !important;
 }
+
+body.light-mode .top-nav, body.light-mode .bottom-nav {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
 .header-hidden { transform: translateY(-100%); }
 
 button:active, .book-card:active, .menu-item:active, .icon-btn:active, .nav-item:active {
@@ -527,11 +535,6 @@ body.light-mode .bottom-nav { background: rgba(255, 255, 255, 0.95); }
 .nav-tab.active { color: var(--primary); font-weight: bold; background: var(--primary-light);}
 .nav-tab svg { transition: transform 0.2s ease; }
 .nav-tab.active svg { transform: translateY(-2px); }
-
-.bottom-nav { 
-    background: rgba(18, 18, 18, 0.75) !important; 
-    backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important; 
-}
 
 .cover-box { display: flex; justify-content: center; align-items: center; }
 .cover-box img { transition: filter 0.4s ease, transform 0.4s ease !important; }
