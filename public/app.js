@@ -794,6 +794,7 @@ function applyTheme(mode) {
     window.onload = resetIdleTimer;
     
     let uptimeInterval = null;
+    
     const openStats = () => {
         const books = LibraryDB.getBooks(); const ratings = LibraryDB.getRatings();
         const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0, author:"N/A"});
@@ -801,49 +802,68 @@ function applyTheme(mode) {
         const genres = {}; books.forEach(b=>genres[b.genre]=(genres[b.genre]||0)+1);
         const avg = ratings.length ? `${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)}` : "0.0";
         
+        document.getElementById('stats-modal').firstElementChild.classList.add('stats-layout');
+
         document.getElementById('stats-content').innerHTML = `
-            <div class="stats-header-pro">
-                <div class="uptime-badge"><i data-lucide="activity"></i> <span id="uptime-display">Calculating uptime...</span></div>
+            <div class="stats-header-neon">
+                <h2>System Dashboard</h2>
+                <div class="uptime-pill"><i data-lucide="radio"></i> <span id="uptime-display">Booting...</span></div>
             </div>
             
-            <div class="stats-grid-pro">
-                <div class="stat-card-pro gradient-1">
-                    <div class="stat-icon"><i data-lucide="book-open"></i></div>
-                    <div class="stat-info"><small>Total Books</small><h2>${books.length}</h2></div>
+            <div class="bento-grid">
+                <div class="bento-card">
+                    <div class="bento-icon"><i data-lucide="book-open"></i></div>
+                    <div class="bento-title">Vault Capacity</div>
+                    <div class="bento-value">${books.length}</div>
+                    <div class="bento-sub">Total cataloged books</div>
                 </div>
-                <div class="stat-card-pro gradient-2">
-                    <div class="stat-icon"><i data-lucide="star"></i></div>
-                    <div class="stat-info"><small>Global Rating</small><h2>${avg}</h2><span class="sub-text">${ratings.length} Reviews</span></div>
+                
+                <div class="bento-card">
+                    <div class="bento-icon" style="color: #eab308; background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.2);"><i data-lucide="star"></i></div>
+                    <div class="bento-title">Global Rating</div>
+                    <div class="bento-value">${avg}</div>
+                    <div class="bento-sub">${ratings.length} student reviews</div>
                 </div>
-                <div class="stat-card-pro gradient-3">
-                    <div class="stat-icon"><i data-lucide="bookmark"></i></div>
-                    <div class="stat-info"><small>Bookmarks</small><h2>${favorites.length}</h2></div>
+                
+                <div class="bento-card">
+                    <div class="bento-icon" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.2);"><i data-lucide="bookmark"></i></div>
+                    <div class="bento-title">Engagement</div>
+                    <div class="bento-value">${favorites.length}</div>
+                    <div class="bento-sub">Active bookmarks</div>
                 </div>
-            </div>
 
-            <div class="stats-row-pro">
-                <div class="stat-highlight">
-                    <div class="hl-header"><i data-lucide="trending-up" style="color:var(--primary);"></i> Most Popular</div>
-                    <h3>${mostViewed.title}</h3>
-                    <p>${mostViewed.author}</p>
-                    <div class="view-pill">${mostViewed.views} Views</div>
-                </div>
-                <div class="stat-highlight">
-                    <div class="hl-header"><i data-lucide="clock" style="color:var(--warning);"></i> Newest Arrival</div>
-                    <h3>${newest.title}</h3>
-                    <p>${newest.author}</p>
-                </div>
-            </div>
-
-            <div class="stats-composition-pro">
-                <div class="hl-header"><i data-lucide="pie-chart"></i> Catalog Composition</div>
-                <div class="genre-bars">
-                    ${Object.entries(genres).map(([k,v])=>`
-                        <div class="genre-bar-wrap">
-                            <div class="genre-bar-label"><span>${k}</span> <strong>${v}</strong></div>
-                            <div class="genre-bar-track"><div class="genre-bar-fill" style="width: ${(v/books.length)*100}%"></div></div>
+                <div class="bento-card bento-span-2" style="background: linear-gradient(135deg, rgba(219,39,119,0.05) 0%, rgba(0,0,0,0) 100%);">
+                    <div class="bento-tag">${mostViewed.views} Views</div>
+                    <div class="bento-highlight">
+                        <div class="bento-icon" style="background: var(--primary); color: white; border: none; box-shadow: 0 0 15px rgba(219,39,119,0.5);"><i data-lucide="flame"></i></div>
+                        <div class="bento-highlight-info">
+                            <div class="bento-title" style="color: var(--primary);">Trending Pick</div>
+                            <h3>${mostViewed.title}</h3>
+                            <p>${mostViewed.author}</p>
                         </div>
-                    `).join('')}
+                    </div>
+                </div>
+
+                <div class="bento-card">
+                    <div class="bento-highlight" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                        <div class="bento-icon" style="background: rgba(255,255,255,0.05); color: #fff; width: 35px; height: 35px; margin: 0;"><i data-lucide="sparkles" style="width:16px; height:16px;"></i></div>
+                        <div class="bento-highlight-info">
+                            <div class="bento-title">Latest Arrival</div>
+                            <h3 style="font-size:1.1rem;">${newest.title}</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bento-card bento-span-3">
+                    <div class="bento-title" style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"><i data-lucide="pie-chart" style="width:16px; height:16px;"></i> Catalog Composition</div>
+                    <div class="neon-bars">
+                        ${Object.entries(genres).map(([k,v])=>`
+                            <div class="neon-bar-row">
+                                <div class="neon-bar-labels"><span>${k}</span> <span>${v} Vol</span></div>
+                                <div class="neon-bar-track"><div class="neon-bar-fill" style="width: ${(v/books.length)*100}%"></div></div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
             </div>
         `; 
@@ -854,7 +874,7 @@ function applyTheme(mode) {
             const startDate = new Date("2026-01-01T00:00:00").getTime(); const diff = new Date().getTime() - startDate;
             const d = Math.floor(diff / (1000 * 60 * 60 * 24)); const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); 
             const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)); const s = Math.floor((diff % (1000 * 60)) / 1000);
-            const el = document.getElementById('uptime-display'); if(el) el.innerText = `Cloud Uptime: ${d}d ${h}h ${m}m ${s}s`;
+            const el = document.getElementById('uptime-display'); if(el) el.innerText = `Online: ${d}d ${h}h ${m}m ${s}s`;
         };
         if(uptimeInterval) clearInterval(uptimeInterval); updateUptime(); uptimeInterval = setInterval(updateUptime, 1000);
     };
