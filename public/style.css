@@ -458,3 +458,30 @@ body.light-mode .autocomplete-dropdown {
 }
 .saved-actions-bar span { color: var(--primary) !important; font-weight: bold !important; display: flex !important; align-items: center !important; gap: 8px !important; }
 .btn-export { background: var(--primary) !important; color: white !important; border: none !important; padding: 8px 16px !important; border-radius: 12px !important; font-weight: bold !important; cursor: pointer !important; display: flex !important; align-items: center !important; gap: 8px !important; font-size: 0.9rem !important; }
+
+
+.empty-state { 
+    grid-column: 1 / -1 !important; 
+    display: flex !important; flex-direction: column !important; 
+    align-items: center !important; justify-content: center !important; 
+    text-align: center !important; padding: 60px 20px !important; 
+    width: 100% !important; min-height: 40vh !important;
+}
+.empty-icon-wrap { 
+    width: 90px !important; height: 90px !important; 
+    background: linear-gradient(135deg, rgba(219, 39, 119, 0.15) 0%, rgba(0,0,0,0) 100%) !important; 
+    color: var(--primary) !important; border-radius: 50% !important; 
+    display: flex !important; justify-content: center !important; align-items: center !important; 
+    margin-bottom: 25px !important; border: 1px solid rgba(219, 39, 119, 0.3) !important; 
+    box-shadow: 0 0 40px rgba(219, 39, 119, 0.2) !important; 
+    animation: float 3s ease-in-out infinite !important;
+}
+.empty-icon-wrap svg { width: 45px !important; height: 45px !important; stroke-width: 1.5px !important; }
+.empty-state h3 { font-size: 1.8rem !important; margin-bottom: 10px !important; color: var(--text-main) !important; font-weight: 800 !important; }
+.empty-state p { color: var(--text-muted) !important; font-size: 1rem !important; max-width: 300px !important; line-height: 1.5 !important; }
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
