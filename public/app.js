@@ -655,11 +655,11 @@ document.addEventListener('DOMContentLoaded', () => {
             switchSection('home', true);
             const results = document.getElementById('results-area');
             if (results.innerHTML.trim() === '') {
-                results.innerHTML = `
+                resultsArea.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-icon-wrap"><i data-lucide="bookmark"></i></div>
+                        <div class="empty-icon-wrap"><i data-lucide="bookmark-minus"></i></div>
                         <h3>No Bookmarks Yet</h3>
-                        <p>Hold or Hover the bookmark icon on any book to save it here.</p>
+                        <p>Hold or hover over any book cover to add it to your reading list.</p>
                     </div>`;
                 renderIcons();
             }
@@ -678,9 +678,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (books.length === 0) { 
             resultsArea.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon-wrap"><i data-lucide="search-x"></i></div>
-                    <h3>No Books Found</h3>
-                    <p>We couldn't find any books matching your search.</p>
+                    <div class="empty-icon-wrap"><i data-lucide="ghost"></i></div>
+                    <h3>Whoops! Ghost Town.</h3>
+                    <p>We couldn't find any books matching your search. Try a different title or author.</p>
                 </div>`; 
             renderIcons(); return; 
         }
@@ -813,28 +813,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
-                <div class="bento-card">
+                <div class="bento-card" style="position: relative;">
+                    <div style="position: absolute; top: 15px; right: 15px; color: var(--primary); font-size: 0.75rem; font-weight: bold;">${mostViewed.views} V</div>
                     <div class="bento-highlight" style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px;">
-                        <div class="bento-icon" style="min-width: 42px; width: 42px; height: 42px; background: var(--surface-lighter); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 12px; display: flex; justify-content: center; align-items: center; margin: 0; flex-shrink: 0;"><i data-lucide="sparkles" style="width:20px; height:20px;"></i></div>
+                        <div class="bento-icon" style="min-width: 42px; width: 42px; height: 42px; background: var(--primary); color: white; border: none; box-shadow: 0 0 15px rgba(219,39,119,0.5); border-radius: 12px; display: flex; justify-content: center; align-items: center; margin: 0; flex-shrink: 0;"><i data-lucide="flame" style="width:20px; height:20px;"></i></div>
                         <div class="bento-highlight-info" style="display: flex; flex-direction: column; text-align: left;">
-                            <div class="bento-title" style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 4px;">Latest Arrival</div>
-                            <h3 style="color: var(--text-main); font-size: 1.2rem; margin: 0; line-height: 1.2;">${newest.title}</h3>
+                            <div class="bento-title" style="color: var(--primary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 4px;">Trending</div>
+                            <h3 style="color: var(--text-main); font-size: 1.1rem; margin: 0; line-height: 1.2;">${mostViewed.title}</h3>
                         </div>
                     </div>
                 </div>
 
-                <div class="bento-card bento-span-2" style="position: relative;">
-                    <div style="position: absolute; top: 20px; right: 20px; background: var(--primary-light); color: var(--primary); padding: 6px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">${mostViewed.views} Views</div>
+                <div class="bento-card bento-span-2">
                     <div class="bento-highlight" style="display: flex; flex-direction: row; align-items: center; gap: 18px;">
-                        <div class="bento-icon" style="min-width: 50px; width: 50px; height: 50px; background: var(--primary); color: white; border: none; box-shadow: 0 0 15px rgba(219,39,119,0.5); border-radius: 14px; display: flex; justify-content: center; align-items: center; margin: 0; flex-shrink: 0;"><i data-lucide="flame"></i></div>
+                        <div class="bento-icon" style="min-width: 50px; width: 50px; height: 50px; background: var(--surface-lighter); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 14px; display: flex; justify-content: center; align-items: center; margin: 0; flex-shrink: 0;"><i data-lucide="sparkles"></i></div>
                         <div class="bento-highlight-info" style="display: flex; flex-direction: column; text-align: left;">
-                            <div class="bento-title" style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 4px;">Trending Pick</div>
-                            <h3 style="color: var(--text-main); font-size: 1.4rem; margin: 0 0 4px 0; line-height: 1.2;">${mostViewed.title}</h3>
-                            <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">${mostViewed.author}</p>
+                            <div class="bento-title" style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 4px;">Latest Arrival</div>
+                            <h3 style="color: var(--text-main); font-size: 1.4rem; margin: 0 0 4px 0; line-height: 1.2;">${newest.title}</h3>
+                            <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">${newest.author}</p>
                         </div>
                     </div>
                 </div>
-                
+                       
                 <div class="bento-card compact-card full-width bento-span-2">
                     <div class="csr-header">
                         <span><i data-lucide="pie-chart" style="width:18px;"></i> Catalog Composition</span>
