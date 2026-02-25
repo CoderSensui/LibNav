@@ -527,3 +527,40 @@ body.light-mode .bottom-nav { background: rgba(255, 255, 255, 0.95); }
 .nav-tab.active { color: var(--primary); font-weight: bold; background: var(--primary-light);}
 .nav-tab svg { transition: transform 0.2s ease; }
 .nav-tab.active svg { transform: translateY(-2px); }
+
+.bottom-nav { 
+    background: rgba(18, 18, 18, 0.75) !important; 
+    backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important; 
+}
+
+.cover-box { display: flex; justify-content: center; align-items: center; }
+.cover-box img { transition: filter 0.4s ease, transform 0.4s ease !important; }
+
+.book-card:hover .cover-box img, .book-card.show-actions .cover-box img { 
+    filter: blur(4px) brightness(0.4) !important; 
+    transform: scale(0.95) !important; 
+}
+
+.cover-box .fav-btn { 
+    position: absolute !important; top: 50% !important; left: 50% !important; 
+    transform: translate(-50%, -50%) scale(0.5) !important; 
+    width: 65px !important; height: 65px !important; 
+    background: rgba(18, 18, 18, 0.6) !important; 
+    border: 2px solid var(--primary) !important; color: var(--primary) !important; 
+    border-radius: 50% !important; opacity: 0 !important; z-index: 10 !important; 
+}
+.cover-box .fav-btn svg, .cover-box .fav-btn i { width: 30px; height: 30px; }
+
+.book-card:hover .fav-btn, .book-card.show-actions .fav-btn { 
+    opacity: 1 !important; transform: translate(-50%, -50%) scale(1) !important; 
+}
+.cover-box .fav-btn.active { background: var(--primary) !important; color: white !important; }
+
+[id^="modal-author-pic"] {
+    margin: 10px auto 20px auto !important;
+    display: block;
+    box-shadow: 0 0 0 3px var(--surface);
+}
+
+.bento-card { background: #121212 !important; border-color: #2a2a2a !important; }
+.bento-card:hover { border-color: var(--primary) !important; box-shadow: 0 10px 30px rgba(219,39,119,0.15) !important; }
