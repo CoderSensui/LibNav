@@ -386,16 +386,41 @@ button:active, .book-card:active, .menu-item:active, .icon-btn:active, .nav-item
 }
 .feat-img-wrap { 
     width: 140px !important; height: 210px !important; 
-    overflow: visible !important; margin: 0 auto !important;
+    margin: 0 auto !important; position: relative !important; 
+    display: flex !important; justify-content: center !important; align-items: center !important;
 }
-.feat-img-wrap img { border-radius: 12px !important; box-shadow: var(--shadow) !important; }
+.feat-img-wrap img { 
+    border-radius: 12px !important; box-shadow: var(--shadow) !important; 
+    transition: filter 0.4s ease, transform 0.4s ease !important; 
+    width: 100% !important; height: 100% !important; object-fit: cover !important; 
+}
 .feat-info { align-items: center !important; width: 100% !important; }
+
+/* FIXED: Daily Pick Bookmark Button Design & Hide State */
 .featured-card .fav-btn {
     position: absolute !important; top: 50% !important; left: 50% !important; 
     transform: translate(-50%, -50%) scale(0.5) !important;
+    width: 65px !important; height: 65px !important; 
+    background: rgba(18, 18, 18, 0.6) !important; 
+    border: 2px solid var(--primary) !important; color: var(--primary) !important; 
+    border-radius: 50% !important; opacity: 0 !important; z-index: 10 !important; 
+    display: flex !important; justify-content: center !important; align-items: center !important; 
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+.featured-card .fav-btn svg, .featured-card .fav-btn i { width: 30px !important; height: 30px !important; }
+.featured-card .fav-btn.active { background: var(--primary) !important; color: white !important; }
+
+/* Hold/Hover Reveal */
+.featured-card:hover .feat-img-wrap img, .featured-card.show-actions .feat-img-wrap img { 
+    filter: blur(4px) brightness(0.4) !important; transform: scale(0.95) !important; 
 }
 .featured-card:hover .fav-btn, .featured-card.show-actions .fav-btn { 
-    transform: translate(-50%, -50%) scale(1) !important; 
+    opacity: 1 !important; transform: translate(-50%, -50%) scale(1) !important; 
+}
+
+/* Ensure the grid spans perfectly on PC without gaps */
+@media (min-width: 850px) {
+    .stats-compact-grid .bento-span-2 { grid-column: span 2 !important; }
 }
 
 .saved-actions-bar { 
