@@ -36,7 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
         "Filter by 'Favorites' to quickly access the books you've bookmarked.",
         "Hold any book cover to see quick options like bookmarking.",
         "Check the Live Stats to see what's trending on campus.",
-        "Tap the author's picture to see their full name clearly."
+        "Tap the author's picture to see their full name clearly.",
+        "Use the arrow button to instantly snap back to the top of the shelf.",
+        "Books marked with a 'HOT' badge are currently the most viewed."
     ];
 
     function applyTheme(mode) {
@@ -783,9 +785,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.onload = resetIdleTimer;
     
     let uptimeInterval = null;
-    
     const openStats = () => {
         const books = LibraryDB.getBooks(); const ratings = LibraryDB.getRatings();
+        const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0, author:"N/A"});
+        const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None", author:"N/A"});
         const genres = {}; books.forEach(b=>genres[b.genre]=(genres[b.genre]||0)+1);
         const avg = ratings.length ? `${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)}` : "0.0";
         
@@ -809,8 +812,30 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div><strong>${favorites.length}</strong> <span>Bookmarks</span></div>
                     </div>
                 </div>
+
+                <div class="bento-card bento-span-2">
+                    <div class="bento-tag">${mostViewed.views} Views</div>
+                    <div class="bento-highlight">
+                        <div class="bento-icon" style="background: var(--primary); color: white; border: none; box-shadow: 0 0 15px rgba(219,39,119,0.5);"><i data-lucide="flame"></i></div>
+                        <div class="bento-highlight-info">
+                            <div class="bento-title" style="color: var(--primary);">Trending Pick</div>
+                            <h3>${mostViewed.title}</h3>
+                            <p>${mostViewed.author}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bento-card">
+                    <div class="bento-highlight" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                        <div class="bento-icon" style="background: rgba(255,255,255,0.05); color: #fff; width: 35px; height: 35px; margin: 0;"><i data-lucide="sparkles" style="width:16px; height:16px;"></i></div>
+                        <div class="bento-highlight-info">
+                            <div class="bento-title">Latest Arrival</div>
+                            <h3 style="font-size:1.1rem;">${newest.title}</h3>
+                        </div>
+                    </div>
+                </div>
                 
-                <div class="bento-card compact-card full-width">
+                <div class="bento-card compact-card full-width bento-span-3">
                     <div class="csr-header">
                         <span><i data-lucide="pie-chart" style="width:18px;"></i> Catalog Composition</span>
                         <small>Vault: ${books.length} Books</small>
