@@ -960,15 +960,17 @@ function applyTheme(mode) {
         const currentScrollY = window.scrollY;
         
         if (currentScrollY > 100) { 
-            if (currentScrollY > lastScrollY + 5) {
+            if (currentScrollY > lastScrollY + 10) {
                 if(topNav) topNav.classList.add('header-hidden');
-            } else if (currentScrollY < lastScrollY - 5) {
+                lastScrollY = currentScrollY;
+            } else if (currentScrollY < lastScrollY - 10) {
                 if(topNav) topNav.classList.remove('header-hidden');
+                lastScrollY = currentScrollY;
             }
         } else {
             if(topNav) topNav.classList.remove('header-hidden');
+            lastScrollY = currentScrollY;
         }
-        lastScrollY = currentScrollY;
     }, { passive: true });
 
     let holdTimer;
