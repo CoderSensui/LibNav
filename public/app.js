@@ -36,10 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
         "Filter by 'Favorites' to quickly access the books you've bookmarked."
     ];
 
-function applyTheme(mode) {
+    function applyTheme(mode) {
         const themeIcon = document.getElementById('theme-btn-icon');
         const themeText = document.getElementById('theme-btn-text');
-
         if(mode === 'light') {
             document.body.classList.add('light-mode');
             if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
@@ -66,10 +65,8 @@ function applyTheme(mode) {
         document.getElementById('popup-message').innerText = msg;
         const pop = document.getElementById('custom-popup');
         pop.style.display = 'flex';
-        
         const cancelBtn = document.getElementById('popup-cancel');
         cancelBtn.style.display = showCancel ? 'flex' : 'none';
-        
         document.getElementById('popup-confirm').onclick = () => { pop.style.display = 'none'; if(onConfirm) onConfirm(); };
         cancelBtn.onclick = () => pop.style.display = 'none';
     }
@@ -79,7 +76,6 @@ function applyTheme(mode) {
     const triggerEasterEgg = () => {
         logoTapCount++;
         clearTimeout(logoTapTimer);
-        
         if (logoTapCount === 2) {
             const shush = document.getElementById('shush-overlay');
             if (shush) {
@@ -95,7 +91,6 @@ function applyTheme(mode) {
     
     document.getElementById('hero-title')?.addEventListener('click', triggerEasterEgg);
     document.getElementById('desktop-logo')?.addEventListener('click', triggerEasterEgg);
-    
     
     document.getElementById('secret-admin-btn').addEventListener('click', () => { adminModal.style.display = 'flex'; });
 
@@ -196,7 +191,7 @@ function applyTheme(mode) {
     };
     const closeSidebar = () => { 
         if (window.innerWidth >= 850) {
-            document.body.classList.add('sidebar-closed'); // PC Force Close
+            document.body.classList.add('sidebar-closed'); 
         } else {
             sideMenu.classList.remove('active'); 
             sideMenuOverlay.style.display = 'none'; 
@@ -210,20 +205,17 @@ function applyTheme(mode) {
         if(overlay) overlay.style.display = 'none';
     });
 
-   document.querySelectorAll('.menu-item').forEach(btn => {
+    document.querySelectorAll('.menu-item').forEach(btn => {
         btn.onclick = () => {
             const genre = btn.dataset.genre;
             selectedGenres.clear();
-            
             document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
                 if(b.classList) b.classList.remove('active'); 
                 else b.checked = false; 
             }); 
-            
             btn.classList.add('active');
             const checkbox = document.querySelector(`.filter-option input[value="${genre}"]`);
             if (checkbox) checkbox.checked = true;
-            
             if(genre !== 'All') selectedGenres.add(genre);
             
             const hero = document.getElementById('hero');
@@ -236,7 +228,6 @@ function applyTheme(mode) {
             } else {
                 performSearch(searchInput.value);
             }
-            
             if(window.innerWidth < 850) closeSidebar(); 
             switchSection('home', true);
         };
@@ -329,19 +320,15 @@ function applyTheme(mode) {
     function renderAdminList() {
         const books = LibraryDB.getBooks();
         const listContainer = document.getElementById('admin-book-list');
-        
         const searchTerm = (document.getElementById('admin-search')?.value || '').toLowerCase().trim();
-        
         let filteredBooks = books;
         if (searchTerm) {
             filteredBooks = books.filter(b => b.title.toLowerCase().includes(searchTerm) || b.author.toLowerCase().includes(searchTerm));
         }
-
         if (!filteredBooks || filteredBooks.length === 0) { 
             listContainer.innerHTML = '<p style="text-align:center;color:var(--text-muted); padding:20px 0;">No books match your search.</p>'; 
             return; 
         }
-        
         listContainer.innerHTML = filteredBooks.map(b => `
             <div class="admin-list-item">
                 <div class="info"><strong>${b.title}</strong><small>${b.author}</small></div>
@@ -376,21 +363,18 @@ function applyTheme(mode) {
     function fetchCoverWithFallback(title, author, elementId, isImgTag) {
         const cacheKey = `${title}-${author}`; 
         if(coverCache[cacheKey]) { applyCover(coverCache[cacheKey], elementId, isImgTag); return; }
-        
         fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1`).then(r=>r.json()).then(d => {
             if(d.docs && d.docs.length > 0 && d.docs[0].cover_i) { 
                 const url = `https://covers.openlibrary.org/b/id/${d.docs[0].cover_i}-M.jpg`; 
                 coverCache[cacheKey] = url; 
                 applyCover(url, elementId, isImgTag); 
-            } 
-            else {
+            } else {
                 fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&limit=1`).then(r2=>r2.json()).then(d2 => {
                     if(d2.docs && d2.docs.length > 0 && d2.docs[0].cover_i) { 
                         const url = `https://covers.openlibrary.org/b/id/${d2.docs[0].cover_i}-M.jpg`; 
                         coverCache[cacheKey] = url; 
                         applyCover(url, elementId, isImgTag); 
-                    } 
-                    else { 
+                    } else { 
                         const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); 
                     }
                 }).catch(() => { const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); });
@@ -401,16 +385,11 @@ function applyTheme(mode) {
     }
     
     function fetchAuthorPic(author) {
-        const els = [document.getElementById('modal-author-pic-mob'), document.getElementById('modal-author-pic-pc'), document.getElementById('modal-author-pic')];
+        const els = [document.getElementById('modal-author-pic-mob'), document.getElementById('modal-author-pic-pc')];
         const fallback = generateInitialsImage(author);
-        
         els.forEach(el => { 
-            if(el) {
-                el.src = fallback; 
-                el.onerror = function() { this.src = fallback; };
-            }
+            if(el) { el.src = fallback; el.onerror = function() { this.src = fallback; }; }
         });
-        
         fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(author)}`).then(r=>r.json()).then(d=>{
             if(d.docs?.[0]?.key) {
                 const url = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg?default=false`;
@@ -433,17 +412,16 @@ function applyTheme(mode) {
     prevBtn.onclick = () => { if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } };
     nextBtn.onclick = () => { if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } };
 
-  async function openModal(book) {
+    async function openModal(book) {
         bookModal.style.display = 'flex'; LibraryDB.incrementView(book.id);
         document.getElementById('modal-book-id').innerText = book.id;
+        
         const modalBox = bookModal.querySelector('.modal-box');
         modalBox.classList.remove('dynamic-theme');
-        
         let hash = 0;
         for (let i = 0; i < book.title.length; i++) { hash = book.title.charCodeAt(i) + ((hash << 5) - hash); }
         const hue = Math.abs(hash) % 360; 
         const glowColor = `hsla(${hue}, 80%, 60%, 0.3)`; 
-        
         modalBox.style.setProperty('--dynamic-color', glowColor);
         modalBox.classList.add('dynamic-theme');
      
@@ -451,7 +429,6 @@ function applyTheme(mode) {
             const t = document.getElementById(`modal-title-${mode}`); if(t) t.innerText = book.title;
             const a = document.getElementById(`modal-author-${mode}`); if(a) a.innerText = book.author;
             const g = document.getElementById(`modal-genre-${mode}`); if(g) g.innerText = book.genre;
-            
             const cover = document.getElementById(`modal-book-cover-img-${mode}`); 
             if(cover) { 
                 cover.src = ''; cover.style.opacity = '0'; cover.parentElement.classList.add('skeleton'); 
@@ -474,7 +451,6 @@ function applyTheme(mode) {
         const handleShare = async () => { 
             const url = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
             const shareText = `I found "${book.title}" at the library! 📍 Here is the exact shelf map: ${url}`;
-            
             navigator.clipboard.writeText(shareText); 
             const toast = document.getElementById('toast-notification');
             if(toast) {
@@ -512,9 +488,7 @@ function applyTheme(mode) {
     function updateCarousel() {
         const aa = document.getElementById('mobile-action-area');
         if (currentImages && currentImages.length > 0) {
-            
             stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
-            
             carouselImg.src = currentImages[currentImageIndex];
             prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1";
             prevBtn.style.pointerEvents = currentImageIndex === 0 ? "none" : "auto";
@@ -527,26 +501,6 @@ function applyTheme(mode) {
             if (aa && document.body.classList.contains('is-mobile-device')) aa.style.display = 'flex';
         }
     }
-
- document.querySelectorAll('.filter-option input').forEach(box => {
-        box.onchange = (e) => {
-            const val = e.target.value;
-            if(val === 'All') {
-                selectedGenres.clear(); if(e.target.checked) selectedGenres.add('All');
-                document.querySelectorAll('.filter-option input').forEach(c => { if(c.value !== 'All') c.checked = false; });
-                document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active')); if(e.target.checked) document.querySelector('.menu-item[data-genre="All"]').classList.add('active');
-            } else {
-                if(e.target.checked) { selectedGenres.delete('All'); document.querySelector('.filter-option input[value="All"]').checked = false; document.querySelector('.menu-item[data-genre="All"]').classList.remove('active'); selectedGenres.add(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.add('active'); }); } 
-                else { selectedGenres.delete(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.remove('active'); }); }
-            }
-            if (searchInput.value.trim() === '') { 
-                hero.style.display = 'block'; hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0'; 
-                featuredContainer.style.display = 'block'; document.getElementById('results-area').innerHTML = ''; 
-            } else { 
-                performSearch(searchInput.value); 
-            }
-        };
-    });
 
     const recentDropdown = document.getElementById('recent-searches-dropdown');
     
@@ -644,20 +598,16 @@ function applyTheme(mode) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-
     function performSearch(term, forceShowAll = false) {
         let books = LibraryDB.getBooks(); term = term.toLowerCase().trim();
-        
         if (!forceShowAll && term === '' && (selectedGenres.size === 0 || selectedGenres.has('All'))) { 
             document.getElementById('results-area').innerHTML = ''; 
             return; 
         }
-
         let matches = books.filter(b => {
             const tm = b.title.toLowerCase().includes(term); 
             const am = b.author.toLowerCase().includes(term); 
             let gm = false;
-            
             if (selectedGenres.has('All') || selectedGenres.size === 0) gm = true;
             else { 
                 if (selectedGenres.has('Favorites') && favorites.includes(String(b.id))) gm = true; 
@@ -665,45 +615,36 @@ function applyTheme(mode) {
             }
             return (tm || am) && gm;
         });
-        
         matches.sort((a, b) => a.title.localeCompare(b.title));
         renderResults(matches);
     }
 
     document.getElementById('quick-bookmark-btn')?.addEventListener('click', () => {
         const btn = document.getElementById('quick-bookmark-btn');
-        
         if (selectedGenres.has('Favorites')) {
             searchInput.value = '';
             selectedGenres.clear();
             btn.style.color = '';
-            
             document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
                 if(b.classList) b.classList.remove('active'); 
                 else b.checked = false; 
             });
-            
             hero.style.display = 'block'; hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0';
             featuredContainer.style.display = 'block'; document.getElementById('results-area').innerHTML = '';
             switchSection('home');
-            
         } else {
             searchInput.value = '';
             selectedGenres.clear();
             selectedGenres.add('Favorites');
-            btn.style.color = 'var(--primary)'; // Highlight to show it is active
-            
+            btn.style.color = 'var(--primary)';
             document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
                 if(b.classList) b.classList.remove('active'); 
                 else b.checked = false; 
             });
-            
             hero.style.display = 'none'; 
             featuredContainer.style.display = 'none';
-            
             performSearch('');
             switchSection('home', true);
-            
             const results = document.getElementById('results-area');
             if (results.innerHTML.trim() === '') {
                 results.innerHTML = `
@@ -746,15 +687,24 @@ function applyTheme(mode) {
             resultsArea.insertAdjacentHTML('beforeend', exportHtml);
         }
 
+        const allBooks = LibraryDB.getBooks();
+        const maxViews = allBooks.reduce((max, b) => Math.max(max, b.views || 0), 0);
+
         const frag = document.createDocumentFragment(); const term = searchInput.value.trim(); const regex = new RegExp(`(${term})`, 'gi');
         books.forEach((book, i) => {
             const card = document.createElement('div'); card.className = 'book-card';
             const isFav = favorites.some(id => String(id) === String(book.id)); const coverId = `img-${book.id}`;
             const titleHtml = term ? book.title.replace(regex, '<span class="text-primary">$1</span>') : book.title;
 
+            let badgesHtml = '';
+            if (book.isNew) badgesHtml += '<div class="new-badge">NEW</div>';
+            if (book.views && book.views === maxViews && maxViews > 0) {
+                badgesHtml += '<div class="hot-badge"><i data-lucide="flame" style="width:12px;height:12px;fill:white;"></i> HOT</div>';
+            }
+
             card.innerHTML = `
                 <div class="cover-box skeleton">
-                    ${book.isNew ? '<div class="new-badge">NEW</div>' : ''}
+                    ${badgesHtml}
                     <img id="${coverId}" data-title="${book.title}" data-author="${book.author}" src="">
                     <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${book.id}')"><i data-lucide="bookmark"></i></button>
                 </div>
@@ -784,7 +734,6 @@ function applyTheme(mode) {
         e.stopPropagation(); 
         const btn = e.target.closest('.fav-btn');
         btn.classList.toggle('active'); 
-        
         const index = favorites.findIndex(id => String(id) === String(bookId));
         if (index === -1) favorites.push(String(bookId)); else favorites.splice(index, 1);
         localStorage.setItem('libnav_favs', JSON.stringify(favorites));
@@ -826,7 +775,7 @@ function applyTheme(mode) {
     
     let uptimeInterval = null;
     
-   const openStats = () => {
+    const openStats = () => {
         const books = LibraryDB.getBooks(); const ratings = LibraryDB.getRatings();
         const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0, author:"N/A"});
         const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None", author:"N/A"});
@@ -922,13 +871,11 @@ function applyTheme(mode) {
         const email = document.getElementById('fb-email').value;
         const message = document.getElementById('fb-message').value;
         const rating = document.querySelector('input[name="rating"]:checked')?.value || 5; 
-        
         btn.innerHTML = '<i data-lucide="loader-2"></i> Sending...'; renderIcons(); btn.disabled = true;
         try { 
             await LibraryDB.submitRating(parseInt(rating)); 
             const combinedMessage = `[User Rating: ${rating}/5 Stars]\n\n${message}`;
             const payload = { name: name, email: email, message: combinedMessage };
-            
             await fetch('/api/send-feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             showPopup("Success", "Feedback Sent via Email! Thank you.", null, false); 
             fForm.reset(); document.getElementById('feedback-modal').style.display = 'none';
@@ -958,7 +905,6 @@ function applyTheme(mode) {
     
     window.addEventListener('scroll', () => {
         const currentScrollY = window.scrollY;
-        
         if (currentScrollY > 100) { 
             if (currentScrollY > lastScrollY + 10) {
                 if(topNav) topNav.classList.add('header-hidden');
