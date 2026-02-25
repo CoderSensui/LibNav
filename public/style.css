@@ -492,3 +492,56 @@ body.light-mode .autocomplete-dropdown {
     50% { transform: translateY(-10px); }
     100% { transform: translateY(0px); }
 }
+
+/* --- LIQUID TRANSPARENT NAV BARS FIX --- */
+.app-header.top-nav, .bottom-nav {
+    background: rgba(19, 19, 20, 0.65) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+.bottom-nav { border-bottom: none !important; border-top: 1px solid rgba(255, 255, 255, 0.05) !important; }
+
+body.light-mode .app-header.top-nav, body.light-mode .bottom-nav {
+    background: rgba(255, 255, 255, 0.65) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* --- RESPONSIVE SPLIT STATS CARD --- */
+/* Mobile (Default): Stacked with Horizontal Line */
+.stats-split-card {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 25px 20px !important;
+    gap: 15px !important;
+}
+.split-stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    width: 100%;
+}
+.split-divider {
+    width: 60%;
+    height: 1px;
+    background: var(--border-color);
+    opacity: 0.6;
+}
+
+/* PC: Side-by-Side with Vertical Line */
+@media (min-width: 850px) {
+    .stats-split-card {
+        flex-direction: row !important;
+        justify-content: space-evenly !important;
+        gap: 0 !important;
+        padding: 20px 10px !important;
+    }
+    .split-divider {
+        width: 1px !important;
+        height: 65px !important;
+    }
+        }
