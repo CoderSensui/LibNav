@@ -397,6 +397,55 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 #fb-submit-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px -10px rgba(219, 39, 119, 0.8); filter: brightness(1.1); }
 #fb-submit-btn:active { transform: scale(0.98); }
 
+.top-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(18, 18, 18, 0.75); /* Semi-transparent */
+    backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+.bottom-nav {
+    background: rgba(18, 18, 18, 0.75);
+    backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.header-hidden { transform: translateY(-100%); }
+
+button:active, .book-card:active, .menu-item:active, .icon-btn:active, .nav-item:active {
+    transform: scale(0.95);
+    transition: transform 0.1s;
+}
+
+.skeleton {
+    position: relative; overflow: hidden;
+    background: #1e1e24;
+}
+.skeleton::after {
+    content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.05) 20%, rgba(255, 255, 255, 0.1) 60%, rgba(255, 255, 255, 0));
+    animation: shimmer 2s infinite;
+}
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+
+.cover-box .fav-btn {
+    opacity: 0; transform: scale(0.8);
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.book-card:hover .fav-btn { opacity: 1; transform: scale(1); }
+.book-card.show-actions .fav-btn { opacity: 1; transform: scale(1); }
+
+.fav-btn.active {
+    background: #dc2626 !important; color: white !important;
+    border-color: #dc2626 !important;
+    opacity: 1 !important; 
+}
+
+.modal-box.dynamic-theme {
+    box-shadow: 0 0 100px var(--dynamic-color, rgba(219, 39, 119, 0.2));
+    border: 1px solid var(--dynamic-color, var(--border-color));
+}
+
 @media (min-width: 850px) {
     .mobile-only, .mobile-only-share, .mobile-only-flex, .bottom-nav { display: none !important; }
     .desktop-nav, .desktop-only, .desktop-only-flex { display: flex !important; }
