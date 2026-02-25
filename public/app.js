@@ -374,7 +374,7 @@ function applyTheme(mode) {
     }
 
     function fetchCoverWithFallback(title, author, elementId, isImgTag) {
-        const cacheKey = `${title}-${author}`; // Unique cache key per exact book
+        const cacheKey = `${title}-${author}`; 
         if(coverCache[cacheKey]) { applyCover(coverCache[cacheKey], elementId, isImgTag); return; }
         
         fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1`).then(r=>r.json()).then(d => {
@@ -435,30 +435,17 @@ function applyTheme(mode) {
 
   async function openModal(book) {
         bookModal.style.display = 'flex'; LibraryDB.incrementView(book.id);
-        document.getElementById('modal-book-id').innerText = book.id; 
-        
+        document.getElementById('modal-book-id').innerText = book.id;
         const modalBox = bookModal.querySelector('.modal-box');
         modalBox.classList.remove('dynamic-theme');
-        modalBox.style.removeProperty('--dynamic-color');
         
-        const coverImgId = `img-${book.id}`; 
-        const gridImg = document.getElementById(coverImgId);
+        let hash = 0;
+        for (let i = 0; i < book.title.length; i++) { hash = book.title.charCodeAt(i) + ((hash << 5) - hash); }
+        const hue = Math.abs(hash) % 360; 
+        const glowColor = `hsla(${hue}, 80%, 60%, 0.3)`; 
         
-        if (gridImg) {
-            try {
-                const canvas = document.createElement('canvas');
-                canvas.width = 1; canvas.height = 1;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(gridImg, 0, 0, 1, 1);
-                const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-                const color = `rgba(${r}, ${g}, ${b}, 0.6)`;
-                
-                modalBox.style.setProperty('--dynamic-color', color);
-                modalBox.classList.add('dynamic-theme');
-            } catch (e) {
-                console.log("Could not extract color, using default.");
-            }
-        }
+        modalBox.style.setProperty('--dynamic-color', glowColor);
+        modalBox.classList.add('dynamic-theme');
      
         ['mob', 'pc'].forEach(mode => {
             const t = document.getElementById(`modal-title-${mode}`); if(t) t.innerText = book.title;
@@ -684,37 +671,58 @@ function applyTheme(mode) {
     }
 
     document.getElementById('quick-bookmark-btn')?.addEventListener('click', () => {
-        searchInput.value = '';
-        selectedGenres.clear();
-        selectedGenres.add('Favorites');
+        const btn = document.getElementById('quick-bookmark-btn');
         
-        document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
-            if(b.classList) b.classList.remove('active'); 
-            else b.checked = false; 
-        });
-
-        switchSection('home', true);
-        
-        const hero = document.getElementById('hero');
-        const feat = document.getElementById('featured-container');
-        if(hero) { hero.style.display = 'none'; hero.style.opacity = '0'; }
-        if(feat) { feat.style.display = 'none'; }
-        
-        performSearch('');
-        
-        const results = document.getElementById('results-area');
-        const currentFavs = JSON.parse(localStorage.getItem('libnav_favs')) || [];
-        
-        if (currentFavs.length === 0 || results.innerHTML.trim() === '') {
-            results.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon-wrap"><i data-lucide="bookmark"></i></div>
-                    <h3>No Bookmarks Yet</h3>
-                    <p>Tap the bookmark icon on any book to save it here.</p>
-                </div>`;
-            renderIcons();
+        if (selectedGenres.has('Favorites')) {
+            searchInput.value = '';
+            selectedGenres.clear();
+            btn.style.color = '';
+            
+            document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
+                if(b.classList) b.classList.remove('active'); 
+                else b.checked = false; 
+            });
+            
+            hero.style.display = 'block'; hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0';
+            featuredContainer.style.display = 'block'; document.getElementById('results-area').innerHTML = '';
+            switchSection('home');
+            
+        } else {
+            searchInput.value = '';
+            selectedGenres.clear();
+            selectedGenres.add('Favorites');
+            btn.style.color = 'var(--primary)'; // Highlight to show it is active
+            
+            document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
+                if(b.classList) b.classList.remove('active'); 
+                else b.checked = false; 
+            });
+            
+            hero.style.display = 'none'; 
+            featuredContainer.style.display = 'none';
+            
+            performSearch('');
+            switchSection('home', true);
+            
+            const results = document.getElementById('results-area');
+            if (results.innerHTML.trim() === '') {
+                results.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon-wrap"><i data-lucide="bookmark"></i></div>
+                        <h3>No Bookmarks Yet</h3>
+                        <p>Hold or Hover the bookmark icon on any book to save it here.</p>
+                    </div>`;
+                renderIcons();
+            }
         }
     });
+
+    setTimeout(() => {
+        document.querySelectorAll('.menu-item[data-genre="All"], .filter-option input[value="All"]').forEach(el => {
+            if(el.classList) el.classList.remove('active');
+            else el.checked = false;
+        });
+    }, 100);
 
     function renderResults(books) {
         resultsArea.innerHTML = '';
@@ -818,7 +826,7 @@ function applyTheme(mode) {
     
     let uptimeInterval = null;
     
-    const openStats = () => {
+   const openStats = () => {
         const books = LibraryDB.getBooks(); const ratings = LibraryDB.getRatings();
         const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0, author:"N/A"});
         const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None", author:"N/A"});
@@ -842,20 +850,20 @@ function applyTheme(mode) {
                 </div>
                 
                 <div class="bento-card">
-                    <div class="bento-icon" style="color: #eab308; background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.2);"><i data-lucide="star"></i></div>
+                    <div class="bento-icon"><i data-lucide="star"></i></div>
                     <div class="bento-title">Global Rating</div>
                     <div class="bento-value">${avg}</div>
                     <div class="bento-sub">${ratings.length} student reviews</div>
                 </div>
                 
                 <div class="bento-card">
-                    <div class="bento-icon" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.2);"><i data-lucide="bookmark"></i></div>
+                    <div class="bento-icon"><i data-lucide="bookmark"></i></div>
                     <div class="bento-title">Engagement</div>
                     <div class="bento-value">${favorites.length}</div>
                     <div class="bento-sub">Active bookmarks</div>
                 </div>
 
-                <div class="bento-card bento-span-2" style="background: linear-gradient(135deg, rgba(219,39,119,0.05) 0%, rgba(0,0,0,0) 100%);">
+                <div class="bento-card bento-span-2">
                     <div class="bento-tag">${mostViewed.views} Views</div>
                     <div class="bento-highlight">
                         <div class="bento-icon" style="background: var(--primary); color: white; border: none; box-shadow: 0 0 15px rgba(219,39,119,0.5);"><i data-lucide="flame"></i></div>
@@ -946,42 +954,35 @@ function applyTheme(mode) {
     } else micBtn.style.display = 'none';
 
     let lastScrollY = window.scrollY;
-    const topNav = document.querySelector('.top-nav') || document.getElementById('search-wrapper') || document.querySelector('.search-wrapper'); // Adjust selector based on your HTML structure
+    const topNav = document.querySelector('.search-wrapper') || document.querySelector('.top-nav'); 
     
     window.addEventListener('scroll', () => {
-        if (window.scrollY > 100) { 
-            if (window.scrollY > lastScrollY) {
+        const currentScrollY = window.scrollY;
+        
+        if (currentScrollY > 100) { 
+            if (currentScrollY > lastScrollY + 5) {
                 if(topNav) topNav.classList.add('header-hidden');
-            } else {
+            } else if (currentScrollY < lastScrollY - 5) {
                 if(topNav) topNav.classList.remove('header-hidden');
             }
         } else {
             if(topNav) topNav.classList.remove('header-hidden');
         }
-        lastScrollY = window.scrollY;
-    });
+        lastScrollY = currentScrollY;
+    }, { passive: true });
 
     let holdTimer;
-    const holdDuration = 600; 
     document.getElementById('results-area').addEventListener('touchstart', (e) => {
         const card = e.target.closest('.book-card');
         if (!card) return;
-        
         document.querySelectorAll('.book-card.show-actions').forEach(c => c.classList.remove('show-actions'));
-
         holdTimer = setTimeout(() => {
-            if(navigator.vibrate) navigator.vibrate(50); // Haptic feedback
+            if(navigator.vibrate) navigator.vibrate(50); 
             card.classList.add('show-actions');
-        }, holdDuration);
+        }, 500); 
     }, {passive: true});
-
-    document.getElementById('results-area').addEventListener('touchend', () => {
-        clearTimeout(holdTimer);
-    });
-    
-    document.getElementById('results-area').addEventListener('touchmove', () => {
-        clearTimeout(holdTimer); 
-    });
+    document.getElementById('results-area').addEventListener('touchend', () => clearTimeout(holdTimer));
+    document.getElementById('results-area').addEventListener('touchmove', () => clearTimeout(holdTimer));
 
     document.addEventListener('click', (e) => {
         if(!e.target.closest('.book-card')) {
