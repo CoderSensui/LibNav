@@ -241,7 +241,8 @@ body.light-mode .app-header { background: rgba(255,255,255,0.85); }
 .step-text strong { font-size: 1.2rem; color: var(--text-main); }
 .step-text span { color: var(--text-muted); line-height: 1.5;}
 
-.stats-layout { max-width: 850px !important; width: 95%; background: #0a0a0c; border: 1px solid rgba(219, 39, 119, 0.3); box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 20px rgba(219, 39, 119, 0.05); border-radius: 24px; padding: 30px !important; overflow: hidden; position: relative; }
+.stats-layout { max-width: 850px !important; width: 95%; background: #0a0a0c; border: 1px solid rgba(219, 39, 119, 0.3); box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 20px rgba(219, 39, 119, 0.05); border-radius: 24px; padding: 30px !important; overflow-y: auto; overflow-x: hidden; max-height: 85vh; position: relative; overscroll-behavior: contain; }
+.stats-layout::-webkit-scrollbar { display: none; }
 .stats-layout::before { content: ''; position: absolute; top: -50px; left: -50px; width: 200px; height: 200px; background: var(--primary); filter: blur(120px); opacity: 0.2; z-index: 0; pointer-events: none; }
 
 .stats-header-neon { position: relative; z-index: 1; text-align: center; margin-bottom: 30px; }
