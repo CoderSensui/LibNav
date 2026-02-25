@@ -822,6 +822,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="bento-title" style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 4px;">Trending Pick</div>
                             <h3 style="color: var(--text-main); font-size: 1.4rem; margin: 0 0 4px 0; line-height: 1.2;">${mostViewed.title}</h3>
                             <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">${mostViewed.author}</p>
+                            <span style="background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: bold; width: fit-content; text-transform: uppercase;">${mostViewed.genre || 'Unknown'}</span>
+                        
                         </div>
                     </div>
                 </div>
