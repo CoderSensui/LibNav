@@ -801,15 +801,17 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             
          <div class="stats-compact-grid">
-                <div class="bento-card compact-card">
-                    <div class="compact-stat-row">
-                        <div class="csr-icon yellow"><i data-lucide="star"></i></div>
-                        <div><strong>${avg}</strong> <span>Global Rating</span></div>
+                <div class="bento-card compact-card stats-split-card">
+                    <div class="split-stat-item">
+                        <div class="csr-icon yellow" style="margin: 0;"><i data-lucide="star"></i></div>
+                        <div><strong style="font-size: 1.6rem; color: var(--text-main); line-height: 1; display: block; margin-bottom: 3px;">${avg}</strong> <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Global Rating</span></div>
                     </div>
-                    <div class="compact-divider"></div>
-                    <div class="compact-stat-row">
-                        <div class="csr-icon pink"><i data-lucide="bookmark"></i></div>
-                        <div><strong>${favorites.length}</strong> <span>Bookmarks</span></div>
+                    
+                    <div class="split-divider"></div>
+                    
+                    <div class="split-stat-item">
+                        <div class="csr-icon pink" style="margin: 0;"><i data-lucide="bookmark"></i></div>
+                        <div><strong style="font-size: 1.6rem; color: var(--text-main); line-height: 1; display: block; margin-bottom: 3px;">${favorites.length}</strong> <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Bookmarks</span></div>
                     </div>
                 </div>
 
