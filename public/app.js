@@ -813,13 +813,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
-                <div class="bento-card" style="position: relative;">
-                    <div style="position: absolute; top: 15px; right: 15px; color: var(--primary); font-size: 0.75rem; font-weight: bold;">${mostViewed.views} V</div>
-                    <div class="bento-highlight" style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px;">
-                        <div class="bento-icon" style="min-width: 42px; width: 42px; height: 42px; background: var(--primary); color: white; border: none; box-shadow: 0 0 15px rgba(219,39,119,0.5); border-radius: 12px; display: flex; justify-content: center; align-items: center; margin: 0; flex-shrink: 0;"><i data-lucide="flame" style="width:20px; height:20px;"></i></div>
+                <div class="bento-card bento-span-2" style="position: relative;">
+                    <div style="position: absolute; top: 20px; right: 20px; background: var(--primary-light); color: var(--primary); padding: 6px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">${mostViewed.views} Views</div>
+                    <div class="bento-highlight" style="display: flex; flex-direction: row; align-items: center; gap: 18px;">
+                        <div class="bento-icon" style="min-width: 50px; width: 50px; height: 50px; background: var(--primary); color: white; border: none; box-shadow: 0 0 15px rgba(219,39,119,0.5); border-radius: 14px; display: flex; justify-content: center; align-items: center; margin: 0; flex-shrink: 0;"><i data-lucide="flame"></i></div>
                         <div class="bento-highlight-info" style="display: flex; flex-direction: column; text-align: left;">
-                            <div class="bento-title" style="color: var(--primary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 4px;">Trending</div>
-                            <h3 style="color: var(--text-main); font-size: 1.1rem; margin: 0; line-height: 1.2;">${mostViewed.title}</h3>
+                            <div class="bento-title" style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 4px;">Trending Pick</div>
+                            <h3 style="color: var(--text-main); font-size: 1.4rem; margin: 0 0 4px 0; line-height: 1.2;">${mostViewed.title}</h3>
+                            <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">${mostViewed.author}</p>
                         </div>
                     </div>
                 </div>
