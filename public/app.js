@@ -210,34 +210,34 @@ document.addEventListener('DOMContentLoaded', () => {
         if(overlay) overlay.style.display = 'none';
     });
 
+ // CATEGORY FILTER LOGIC (UPDATED: Does not trigger search instantly)
     document.querySelectorAll('.menu-item').forEach(btn => {
         btn.onclick = () => {
             const genre = btn.dataset.genre;
-            selectedGenres.clear();
-            document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
-                if(b.classList) b.classList.remove('active'); 
-                else b.checked = false; 
-            }); 
+            
+            // Just update the UI selection
+            document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            
+            // Sync with hidden checkbox
+            document.querySelectorAll('.filter-option input').forEach(c => c.checked = false);
             const checkbox = document.querySelector(`.filter-option input[value="${genre}"]`);
             if (checkbox) checkbox.checked = true;
+
+            // Update internal state
+            selectedGenres.clear();
             if(genre !== 'All') selectedGenres.add(genre);
+
+            // CLOSE SIDEBAR (Mobile)
+            if(window.innerWidth < 850) closeSidebar();
             
-            const hero = document.getElementById('hero');
-            const feat = document.getElementById('featured-container');
-            if(hero) { hero.style.display = 'none'; hero.style.opacity = '0'; }
-            if(feat) { feat.style.display = 'none'; }
-            
-            if (genre === 'All' && searchInput.value.trim() === '') {
-                performSearch('', true);
-            } else {
-                performSearch(searchInput.value);
-            }
-            if(window.innerWidth < 850) closeSidebar(); 
-            switchSection('home', true);
+            // DO NOT performSearch() here. User must type in search bar.
+            // Optional: You might want to focus the search input to encourage typing
+            searchInput.focus();
         };
     });
 
+    // DROPDOWN FILTER LOGIC (UPDATED: Does not trigger search instantly)
     document.querySelectorAll('.filter-option input').forEach(box => {
         box.onchange = (e) => {
             const val = e.target.value;
@@ -249,17 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(e.target.checked) { selectedGenres.delete('All'); document.querySelector('.filter-option input[value="All"]').checked = false; document.querySelector('.menu-item[data-genre="All"]').classList.remove('active'); selectedGenres.add(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.add('active'); }); } 
                 else { selectedGenres.delete(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.remove('active'); }); }
             }
-            
-            const hero = document.getElementById('hero');
-            const feat = document.getElementById('featured-container');
-            if(hero) { hero.style.display = 'none'; hero.style.opacity = '0'; }
-            if(feat) { feat.style.display = 'none'; }
-            
-            if ((selectedGenres.size === 0 || selectedGenres.has('All')) && searchInput.value.trim() === '') { 
-                performSearch('', true);
-            } else { 
-                performSearch(searchInput.value); 
-            }
+            // DO NOT performSearch() here.
         };
     });
     
@@ -420,12 +410,12 @@ document.addEventListener('DOMContentLoaded', () => {
     prevBtn.onclick = () => { if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } };
     nextBtn.onclick = () => { if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } };
 
-    async function openModal(book) {
+async function openModal(book) {
         bookModal.style.display = 'flex'; LibraryDB.incrementView(book.id);
         document.getElementById('modal-book-id').innerText = book.id;
-        
         const modalBox = bookModal.querySelector('.modal-box');
         modalBox.classList.remove('dynamic-theme');
+        
         let hash = 0;
         for (let i = 0; i < book.title.length; i++) { hash = book.title.charCodeAt(i) + ((hash << 5) - hash); }
         const hue = Math.abs(hash) % 360; 
@@ -433,19 +423,52 @@ document.addEventListener('DOMContentLoaded', () => {
         modalBox.style.setProperty('--dynamic-color', glowColor);
         modalBox.classList.add('dynamic-theme');
      
-        // POPULATE UNIFIED HEADER
-        document.getElementById('umh-title').innerText = book.title;
-        document.getElementById('umh-author-name').innerText = book.author;
-        document.getElementById('umh-genre').innerText = book.genre;
+        // --- NEW MOBILE UI INJECTION ---
+        const mobileContainer = document.querySelector('.book-info-card.mobile-only-flex');
+        if (mobileContainer) {
+            mobileContainer.innerHTML = `
+                <div class="mobile-unified-header">
+                    <div class="muh-book-side">
+                        <div class="muh-cover skeleton"><img id="mob-u-cover" src=""></div>
+                        <div class="muh-info">
+                            <h2>${book.title}</h2>
+                            <span class="book-badge" style="font-size:0.7rem;">${book.genre}</span>
+                        </div>
+                    </div>
+                    <div class="muh-divider"></div>
+                    <div class="muh-author-side">
+                        <div class="muh-author-img skeleton"><img id="mob-u-author" src=""></div>
+                        <span class="muh-author-name">${book.author}</span>
+                    </div>
+                </div>
+            `;
+            // Fetch images for new mobile elements
+            fetchCoverWithFallback(book.title, book.author, 'mob-u-cover', true);
+            
+            // Custom fetch for author to target the new ID
+            const authorImg = document.getElementById('mob-u-author');
+            const initials = generateInitialsImage(book.author);
+            authorImg.src = initials;
+            fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(book.author)}`).then(r=>r.json()).then(d=>{
+                if(d.docs?.[0]?.key) authorImg.src = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg?default=false`;
+            }).catch(()=>{});
+        }
+        // --- END MOBILE UI ---
+
+        // PC UI Logic (Keep existing)
+        document.getElementById('modal-title-pc').innerText = book.title;
+        document.getElementById('modal-author-pc').innerText = book.author;
+        document.getElementById('modal-genre-pc').innerText = book.genre;
         
-        const cover = document.getElementById('umh-book-cover');
-        if(cover) {
-            cover.src = ''; cover.style.opacity = '0'; cover.parentElement.classList.add('skeleton');
-            fetchCoverWithFallback(book.title, book.author, 'umh-book-cover', true);
+        const coverPC = document.getElementById('modal-book-cover-img-pc');
+        if(coverPC) { 
+            coverPC.src = ''; coverPC.parentElement.classList.add('skeleton'); 
+            fetchCoverWithFallback(book.title, book.author, 'modal-book-cover-img-pc', true); 
         }
         
-        fetchAuthorPic(book.author);
+        fetchAuthorPic(book.author); // Updates PC author pic
 
+        // QR Code Logic
         const qrContainer = document.getElementById('qrcode');
         if (qrContainer) {
             qrContainer.innerHTML = ''; 
@@ -472,6 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const topShare = document.getElementById('top-share-btn');
         if (topShare) topShare.onclick = handleShare;
 
+        // Related Shelf Logic
         const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 25);
         const relatedContainer = document.getElementById('related-shelf');
         if (relatedContainer) {
