@@ -160,28 +160,35 @@ body.light-mode .top-nav, body.light-mode .bottom-nav {
 .featured-card:hover .feat-img-wrap img, .featured-card.show-actions .feat-img-wrap img { filter: blur(4px) brightness(0.4); transform: scale(0.95); }
 .featured-card:hover .fav-btn, .featured-card.show-actions .fav-btn { opacity: 1 !important; transform: translate(-50%, -50%) scale(1) !important; }
 
-/* --- UNIFIED MODAL HEADER (The Fix) --- */
+/* --- UNIFIED MODAL HEADER (Side-by-Side Mobile Default) --- */
 .unified-modal-header {
-    display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; gap: 20px; margin-bottom: 30px;
+    display: flex; flex-direction: row; align-items: center; justify-content: space-between; text-align: left; width: 100%; gap: 10px; margin-bottom: 25px;
 }
-.umh-book-section, .umh-author-section { display: flex; flex-direction: column; align-items: center; gap: 15px; }
-.umh-cover-wrap { width: 140px; height: 210px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+.umh-book-section { display: flex; flex-direction: row; align-items: center; gap: 15px; flex: 1; }
+.umh-cover-wrap { width: 80px; height: 120px; border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border-color); flex-shrink: 0; }
 .umh-cover-wrap img { width: 100%; height: 100%; object-fit: cover; }
-.umh-book-info h2 { font-size: 1.6rem; margin-bottom: 5px; line-height: 1.2; }
-.umh-book-info .book-badge { margin: 0 auto; }
-.umh-divider { display: none; width: 2px; height: 100px; background: var(--border-color); }
-.umh-author-wrap { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid var(--surface); box-shadow: var(--shadow); }
+.umh-book-info { display: flex; flex-direction: column; align-items: flex-start; }
+.umh-book-info h2 { font-size: 1.1rem; margin-bottom: 6px; line-height: 1.2; font-weight: bold; color: var(--text-main); }
+.umh-book-info .book-badge { margin: 0; font-size: 0.7rem; padding: 4px 10px; }
+
+.umh-divider { display: block; width: 1px; height: 70px; background: var(--border-color); opacity: 0.6; flex-shrink: 0; }
+
+.umh-author-section { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 70px; flex-shrink: 0; text-align: center; overflow: hidden; }
+.umh-author-wrap { width: 50px; height: 50px; border-radius: 50%; overflow: hidden; border: 2px solid var(--surface); box-shadow: var(--shadow); }
 .umh-author-wrap img { width: 100%; height: 100%; object-fit: cover; }
-.umh-author-section h3 { color: var(--text-muted); font-size: 1.1rem; font-weight: normal; }
+.umh-author-section h3 { color: var(--text-muted); font-size: 0.75rem; font-weight: normal; line-height: 1.1; overflow-wrap: anywhere; margin: 0; }
 
 /* PC Layout for Header */
 @media (min-width: 850px) {
-    .unified-modal-header { flex-direction: row; justify-content: center; align-items: center; gap: 40px; text-align: left; }
-    .umh-book-section { flex-direction: row; gap: 25px; }
-    .umh-book-info { align-items: flex-start; text-align: left; }
-    .umh-book-info .book-badge { margin: 0; }
-    .umh-divider { display: block; }
-    .umh-author-section { flex-direction: column; gap: 10px; }
+    .unified-modal-header { justify-content: center; gap: 40px; margin-bottom: 30px; }
+    .umh-book-section { gap: 25px; flex: unset; }
+    .umh-cover-wrap { width: 140px; height: 210px; border-radius: 12px; }
+    .umh-book-info h2 { font-size: 1.6rem; margin-bottom: 10px; }
+    .umh-book-info .book-badge { font-size: 0.8rem; padding: 6px 14px; }
+    .umh-divider { height: 100px; width: 2px; opacity: 1; }
+    .umh-author-section { width: auto; gap: 10px; overflow: visible; }
+    .umh-author-wrap { width: 80px; height: 80px; border: 3px solid var(--surface); }
+    .umh-author-section h3 { font-size: 1.1rem; }
 }
 
 /* --- BUTTONS & INPUTS --- */
@@ -545,19 +552,3 @@ body.light-mode .app-header.top-nav, body.light-mode .bottom-nav {
         height: 65px !important;
     }
         }
-
-/* --- MOBILE MODAL UNIFIED HEADER (Side-by-Side) --- */
-.mobile-unified-header {
-    display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important;
-    width: 100% !important; padding: 10px 0 !important; gap: 15px !important; text-align: left !important;
-}
-.muh-book-side { display: flex; align-items: center; gap: 15px; flex: 1; }
-.muh-cover { width: 80px; height: 120px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); flex-shrink: 0; box-shadow: var(--shadow); }
-.muh-cover img { width: 100%; height: 100%; object-fit: cover; }
-.muh-info { display: flex; flex-direction: column; align-items: flex-start; }
-.muh-info h2 { font-size: 1.15rem; line-height: 1.2; margin-bottom: 6px; color: var(--text-main); font-weight: bold;}
-.muh-divider { width: 1px; height: 80px; background: var(--border-color); flex-shrink: 0; opacity: 0.6; }
-.muh-author-side { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 70px; flex-shrink: 0; text-align: center; overflow: hidden;}
-.muh-author-img { width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 2px solid var(--surface); box-shadow: var(--shadow); }
-.muh-author-img img { width: 100%; height: 100%; object-fit: cover; }
-.muh-author-name { font-size: 0.75rem; color: var(--text-muted); line-height: 1.1; display: block; overflow-wrap: anywhere;}
