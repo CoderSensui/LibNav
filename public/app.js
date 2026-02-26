@@ -273,7 +273,45 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAdminList(); 
         } else { showPopup("Error", "Incorrect Password", null, false); }
     };
-    
+    // --- ADMIN UI SCREEN SWITCHING ---
+    const adminMainView = document.getElementById('admin-main-view');
+    const adminFormView = document.getElementById('admin-form-view');
+    const adminBatchView = document.getElementById('admin-batch-view');
+
+    function resetAdminForm() {
+        document.getElementById('edit-book-id').value = ''; 
+        document.getElementById('admin-form-title').innerText = "Add New Book";
+        document.getElementById('new-title').value = ''; 
+        document.getElementById('new-author').value = '';
+        const newCheck = document.getElementById('new-arrival-check'); if(newCheck) newCheck.checked = false;
+        document.getElementById('add-book-btn').innerHTML = '<i data-lucide="upload-cloud"></i> Save to Cloud'; 
+        updateImageInputs(); 
+        renderIcons();
+    }
+
+    document.getElementById('open-add-view-btn').onclick = () => {
+        resetAdminForm();
+        adminMainView.style.display = 'none';
+        adminFormView.style.display = 'block';
+    };
+
+    document.getElementById('close-form-view-btn').onclick = () => {
+        adminFormView.style.display = 'none';
+        adminMainView.style.display = 'block';
+    };
+
+    document.getElementById('open-batch-view-btn').onclick = () => {
+        updateBatchImageInputs();
+        adminMainView.style.display = 'none';
+        adminBatchView.style.display = 'block';
+    };
+
+    document.getElementById('close-batch-view-btn').onclick = () => {
+        adminBatchView.style.display = 'none';
+        adminMainView.style.display = 'block';
+    };
+
+    // --- INPUT GENERATORS ---
     function updateImageInputs() {
         const container = document.getElementById('image-inputs-container');
         container.innerHTML = ''; 
@@ -288,6 +326,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.getElementById('step-count-select').onchange = updateImageInputs;
 
+    function updateBatchImageInputs() {
+        const container = document.getElementById('batch-image-inputs-container');
+        container.innerHTML = ''; 
+        const count = parseInt(document.getElementById('batch-step-count').value) || 2;
+        for (let i = 1; i <= count; i++) {
+            const input = document.createElement('input'); 
+            input.type = 'url';
+            input.className = 'input-field batch-step-url-input'; 
+            input.placeholder = (i === count) ? `Final Image URL (Leave blank for default)` : `Step ${i} Image URL (Leave blank for default)`;
+            container.appendChild(input);
+        }
+    }
+    document.getElementById('batch-step-count').onchange = updateBatchImageInputs;
+
+    // --- EDIT & SAVE SINGLE BOOK ---
     window.handleEdit = function(id) {
         const book = LibraryDB.getBooks().find(b => String(b.id) === String(id)); if (!book) return;
         document.getElementById('edit-book-id').value = book.id; 
@@ -299,15 +352,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputs = document.querySelectorAll('.step-url-input'); 
         book.images.forEach((img, i) => { if (inputs[i] && !img.includes('placehold.co')) inputs[i].value = img; });
         document.getElementById('add-book-btn').innerHTML = '<i data-lucide="save"></i> Update Book'; 
-        document.getElementById('cancel-edit-btn').style.display = "flex"; renderIcons();
-    };
-
-    document.getElementById('cancel-edit-btn').onclick = () => {
-        document.getElementById('edit-book-id').value = ''; document.getElementById('admin-form-title').innerText = "Add New Book";
-        document.getElementById('new-title').value = ''; document.getElementById('new-author').value = '';
-        const newCheck = document.getElementById('new-arrival-check'); if(newCheck) newCheck.checked = false;
-        document.getElementById('add-book-btn').innerHTML = '<i data-lucide="upload-cloud"></i> Add to Cloud'; 
-        document.getElementById('cancel-edit-btn').style.display = "none"; updateImageInputs(); renderIcons();
+        
+        adminMainView.style.display = 'none';
+        adminFormView.style.display = 'block';
+        renderIcons();
     };
 
     document.getElementById('add-book-btn').onclick = async () => {
@@ -321,7 +369,31 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             await LibraryDB.addBook({ id: Date.now(), title: title, author: author, genre: genre, images: imageUrls, views: 0, isNew: isNew }); showPopup("Success", "Book Added!", null, false);
         }
-        document.getElementById('cancel-edit-btn').click(); renderAdminList(); performSearch(searchInput.value);
+        document.getElementById('close-form-view-btn').click(); renderAdminList(); performSearch(searchInput.value);
+    };
+
+    // --- BATCH UPDATE CATEGORY ---
+    document.getElementById('run-batch-btn').onclick = () => {
+        const genre = document.getElementById('batch-genre').value;
+        showPopup("Warning", `Overwrite map images for ALL books in "${genre}"?`, async () => {
+            const imageUrls = Array.from(document.querySelectorAll('.batch-step-url-input')).map((input, i) => input.value.trim() || `https://placehold.co/600x400/121212/db2777?text=${genre}+Step+${i+1}`);
+            const books = LibraryDB.getBooks();
+            let count = 0;
+            books.forEach(b => {
+                if (b.genre === genre) {
+                    b.images = imageUrls;
+                    count++;
+                }
+            });
+            if (count > 0) {
+                await LibraryDB.saveToCloud();
+                showPopup("Success", `Updated maps for ${count} books in ${genre}!`, null, false);
+                document.getElementById('close-batch-view-btn').click();
+                renderAdminList();
+            } else {
+                showPopup("Notice", `No books found in ${genre}.`, null, false);
+            }
+        }, true);
     };
 
     function renderAdminList() {
