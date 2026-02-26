@@ -112,5 +112,34 @@ const LibraryDB = {
     },
     setMaintenance: async function(status) {
         try { await fetch(`${this.dbUrl}maintenance.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(status) }); return true; } catch(e) { return false; }
-    }
+    },
+
+    document.getElementById('admin-auth-btn').onclick = async () => {
+        const btn = document.getElementById('admin-auth-btn');
+        const passInput = document.getElementById('admin-password').value;
+        
+        // Show loading state while checking database
+        btn.innerHTML = 'Verifying...';
+        btn.disabled = true;
+
+        // Check Firebase
+        const isValid = await LibraryDB.verifyAdminPassword(passInput);
+
+        if (isValid) { 
+            // Save admin VIP token
+            localStorage.setItem('libnav_admin_token', 'VIP_GRANTED');
+            
+            document.getElementById('admin-login-screen').style.display = 'none'; 
+            document.getElementById('admin-dashboard').style.display = 'block'; 
+            document.getElementById('admin-password').value = ''; // clear password field
+            updateImageInputs(); 
+            renderAdminList(); 
+        } else { 
+            showPopup("Access Denied", "Incorrect Security Key.", null, false); 
+        }
+        
+        // Reset button
+        btn.innerHTML = 'Login';
+        btn.disabled = false;
+    };
 };
