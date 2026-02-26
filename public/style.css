@@ -604,8 +604,8 @@ body.light-mode .app-header.top-nav, body.light-mode .bottom-nav {
 
 .zoom-badge {
     position: absolute; 
-    bottom: 10px; 
-    right: 0px; /* Safely off the edge */
+    bottom: 5px; 
+    right: 2px; /* Safely off the edge */
     background: rgba(18, 18, 18, 0.85); color: white; border: none;
     width: 40px; height: 40px; border-radius: 50%;
     display: flex; justify-content: center; align-items: center;
