@@ -597,21 +597,24 @@ body.light-mode .app-header.top-nav, body.light-mode .bottom-nav {
 
 /* Zoom Button */
 .zoom-badge {
-    position: absolute; bottom: 10px; right: 10px;
-    background: rgba(0,0,0,0.6); color: white; border: none;
-    width: 35px; height: 35px; border-radius: 50%;
+    position: absolute; 
+    top: 15px; /* FIXED: Moved to top to avoid cramping with dots */
+    right: 15px; /* FIXED: Moved slightly inwards */
+    background: rgba(18, 18, 18, 0.85); /* FIXED: Darker bg for visibility */
+    color: white; border: none;
+    width: 40px; height: 40px; border-radius: 50%;
     display: flex; justify-content: center; align-items: center;
-    backdrop-filter: blur(4px); cursor: pointer; z-index: 20;
-    transition: 0.2s;
+    backdrop-filter: blur(6px); cursor: pointer; z-index: 20;
+    transition: 0.2s; border: 1px solid rgba(255,255,255,0.1);
 }
-.zoom-badge:active { transform: scale(0.9); background: var(--primary); }
-.zoom-badge svg { width: 18px; height: 18px; }
+.zoom-badge:active { transform: scale(0.9); background: var(--primary); border-color: var(--primary); }
+.zoom-badge svg { width: 20px; height: 20px; }
 
 /* DOTS Indicator (••••) */
 .carousel-dots {
     position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
     display: flex; gap: 6px; z-index: 20;
-    background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 20px;
+    background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 20px;
     backdrop-filter: blur(2px);
 }
 .dot {
