@@ -579,38 +579,48 @@ body.light-mode .app-header.top-nav, body.light-mode .bottom-nav {
     }
 }
 
-/* --- NEW FLOATING CAROUSEL & CONTROLS --- */
+/* --- NEW FLOATING CAROUSEL STYLES --- */
 .map-carousel { 
     width: 100% !important; 
-    height: auto !important; /* Let image dictate height */
-    min-height: 250px;
-    background: transparent !important; /* No gray box */
-    border: none !important; 
+    height: auto !important; min-height: 250px;
+    background: transparent !important; border: none !important; 
     position: relative !important; 
     display: flex !important; justify-content: center; align-items: center; 
     margin-bottom: 15px !important; margin-top: 10px !important;
     overflow: hidden;
-    cursor: zoom-in;
 }
 .map-carousel img { 
-    width: 100% !important; 
-    height: 100% !important; 
-    object-fit: contain !important; /* Never crop the map */
-    border-radius: 12px;
-    box-shadow: var(--shadow);
+    width: 100% !important; height: 100% !important; 
+    object-fit: contain !important; 
+    border-radius: 12px; box-shadow: var(--shadow);
 }
 
-/* Zoom Badge */
+/* Zoom Button */
 .zoom-badge {
     position: absolute; bottom: 10px; right: 10px;
-    background: rgba(0,0,0,0.6); color: white;
-    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(0,0,0,0.6); color: white; border: none;
+    width: 35px; height: 35px; border-radius: 50%;
     display: flex; justify-content: center; align-items: center;
-    backdrop-filter: blur(4px); pointer-events: none; opacity: 0.7;
+    backdrop-filter: blur(4px); cursor: pointer; z-index: 20;
+    transition: 0.2s;
 }
-.zoom-badge svg { width: 16px; height: 16px; }
+.zoom-badge:active { transform: scale(0.9); background: var(--primary); }
+.zoom-badge svg { width: 18px; height: 18px; }
 
-/* PC Controls Bar (Left | Pill | Right) */
+/* DOTS Indicator (••••) */
+.carousel-dots {
+    position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px; z-index: 20;
+    background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 20px;
+    backdrop-filter: blur(2px);
+}
+.dot {
+    width: 8px; height: 8px; background: rgba(255,255,255,0.5);
+    border-radius: 50%; transition: 0.3s;
+}
+.dot.active { background: var(--primary); transform: scale(1.2); }
+
+/* PC Controls */
 .carousel-controls {
     display: flex; align-items: center; justify-content: center; gap: 15px;
     width: 100%; margin-bottom: 15px;
@@ -621,7 +631,6 @@ body.light-mode .app-header.top-nav, body.light-mode .bottom-nav {
     color: var(--text-main); display: flex; justify-content: center; align-items: center;
     cursor: pointer; transition: 0.2s;
 }
-.nav-control-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
 .step-pill {
     background: var(--surface-lighter); color: var(--text-main);
     padding: 8px 20px; border-radius: 20px; font-weight: bold;
@@ -629,12 +638,12 @@ body.light-mode .app-header.top-nav, body.light-mode .bottom-nav {
     min-width: 100px; text-align: center;
 }
 
-/* Mobile Tweaks */
+/* Mobile Adjustments */
 @media (max-width: 849px) {
-    .carousel-controls { display: none !important; } /* Hide buttons on mobile */
+    .carousel-controls { display: none !important; } /* Hide PC controls */
     .map-carousel { min-height: 300px; }
-    /* Fix overlap issue by adding padding to modal top */
-    .modal-box.book-layout { padding-top: 70px !important; }
+    /* Hide text step counter on mobile since we have dots */
+    #step-counter { display: none; }
 }
 
 /* Swipe Hint Animation */
@@ -643,7 +652,7 @@ body.light-mode .app-header.top-nav, body.light-mode .bottom-nav {
     background: rgba(0, 0, 0, 0.7); color: white;
     padding: 10px 20px; border-radius: 30px;
     display: flex; align-items: center; gap: 10px;
-    z-index: 20; pointer-events: none;
+    z-index: 25; pointer-events: none;
     animation: swipeFade 2.5s ease-in-out forwards;
 }
 @keyframes swipeFade {
