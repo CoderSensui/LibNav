@@ -486,14 +486,16 @@ document.addEventListener('DOMContentLoaded', () => {
         else { el.style.backgroundImage = `url(${url})`; }
     }
 
-    window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => String(x.id) === String(id)); if(b) openModal(b); };
+    
+window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => String(x.id) === String(id)); if(b) openModal(b); };
 
-    // --- MAP CAROUSEL LOGIC (SWIPE & ZOOM) ---
+    // --- CAROUSEL LOGIC (SWIPE, ZOOM, DOTS) ---
     const prevBtn = document.getElementById('prev-img-btn');
     const nextBtn = document.getElementById('next-img-btn');
     const carouselWrapper = document.getElementById('carousel-wrapper');
     const zoomModal = document.getElementById('zoom-modal');
     const zoomedImage = document.getElementById('zoomed-image');
+    const zoomTrigger = document.getElementById('zoom-trigger-btn');
 
     // PC Button Click
     if(prevBtn) prevBtn.onclick = () => { if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } };
@@ -509,27 +511,26 @@ document.addEventListener('DOMContentLoaded', () => {
             touchEndX = e.changedTouches[0].screenX;
             handleSwipe();
         }, {passive: true});
-        
-        // Zoom Trigger (Clicking image)
-        carouselWrapper.addEventListener('click', () => {
-            if(currentImages.length > 0) {
-                zoomedImage.src = currentImages[currentImageIndex];
-                zoomModal.style.display = 'flex';
-            }
-        });
     }
 
     function handleSwipe() {
         const threshold = 50; 
         if (touchEndX < touchStartX - threshold) {
-            if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } // Swipe Left -> Next
+            if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } 
         }
         if (touchEndX > touchStartX + threshold) {
-            if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } // Swipe Right -> Prev
+            if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } 
         }
     }
 
-    // Close Zoom
+    // Zoom Logic
+    if(zoomTrigger) zoomTrigger.onclick = (e) => {
+        e.stopPropagation();
+        if(currentImages.length > 0) {
+            zoomedImage.src = currentImages[currentImageIndex];
+            zoomModal.style.display = 'flex';
+        }
+    };
     document.getElementById('close-zoom-btn').onclick = () => zoomModal.style.display = 'none';
     zoomModal.onclick = (e) => { if(e.target === zoomModal || e.target === zoomedImage) zoomModal.style.display = 'none'; };
 
@@ -556,34 +557,24 @@ document.addEventListener('DOMContentLoaded', () => {
             cover.src = ''; cover.style.opacity = '0'; cover.parentElement.classList.add('skeleton');
             fetchCoverWithFallback(book.title, book.author, 'umh-book-cover', true);
         }
-        
         fetchAuthorPic(book.author);
 
+        // QR Code & Share
         const qrContainer = document.getElementById('qrcode');
         if (qrContainer) {
             qrContainer.innerHTML = ''; 
             const dl = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
             try { new QRCode(qrContainer, { text: dl, width: 140, height: 140, colorDark : "#121212", colorLight : "#ffffff" }); } catch(err) {}
         }
-        
         const showQrBtn = document.getElementById('show-qr-btn');
         if(showQrBtn) showQrBtn.onclick = () => { qrModal.style.display = 'flex'; };
-
-        const handleShare = async () => { 
-            const url = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
-            const shareText = `I found "${book.title}" at the library! 📍 Here is the exact shelf map: ${url}`;
-            navigator.clipboard.writeText(shareText); 
-            const toast = document.getElementById('toast-notification');
-            if(toast) {
-                toast.innerHTML = '<i data-lucide="check-circle"></i> Link Copied!';
-                toast.classList.add('show');
-                renderIcons();
-                setTimeout(() => toast.classList.remove('show'), 3000);
-            }
-        };
-        
         const topShare = document.getElementById('top-share-btn');
-        if (topShare) topShare.onclick = handleShare;
+        if (topShare) topShare.onclick = () => {
+             const url = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
+             navigator.clipboard.writeText(`Check out "${book.title}" on LibNav: ${url}`); 
+             const toast = document.getElementById('toast-notification');
+             toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000);
+        };
 
         // Related Shelf
         const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 25);
@@ -615,26 +606,40 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (hint) {
             hint.style.display = 'none';
         }
-
         renderIcons();
     }
     
     function updateCarousel() {
         const aa = document.getElementById('mobile-action-area');
+        const dotsContainer = document.getElementById('carousel-dots');
+        
         if (currentImages && currentImages.length > 0) {
-            stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
+            // Update Image
             carouselImg.src = currentImages[currentImageIndex];
-            prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1";
-            prevBtn.style.pointerEvents = currentImageIndex === 0 ? "none" : "auto";
-            nextBtn.style.opacity = currentImageIndex === currentImages.length - 1 ? "0.3" : "1";
-            nextBtn.style.pointerEvents = currentImageIndex === currentImages.length - 1 ? "none" : "auto";
             carouselImg.style.display = 'block';
+            
+            // Update PC Controls
+            if(stepCounter) stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
+            if(prevBtn) { prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1"; prevBtn.style.pointerEvents = currentImageIndex === 0 ? "none" : "auto"; }
+            if(nextBtn) { nextBtn.style.opacity = currentImageIndex === currentImages.length - 1 ? "0.3" : "1"; nextBtn.style.pointerEvents = currentImageIndex === currentImages.length - 1 ? "none" : "auto"; }
+            
+            // Update Dots (Mobile Indicator)
+            if (dotsContainer) {
+                dotsContainer.innerHTML = currentImages.map((_, i) => 
+                    `<span class="dot ${i === currentImageIndex ? 'active' : ''}"></span>`
+                ).join('');
+            }
+
+            // Show "I Found It" button on last step
             if (aa) aa.style.display = (currentImageIndex === currentImages.length - 1 && document.body.classList.contains('is-mobile-device')) ? 'flex' : 'none';
         } else { 
-            carouselImg.style.display = 'none'; stepCounter.innerText = "No map available"; 
+            carouselImg.style.display = 'none'; 
+            if(stepCounter) stepCounter.innerText = "No map available"; 
+            if(dotsContainer) dotsContainer.innerHTML = '';
             if (aa && document.body.classList.contains('is-mobile-device')) aa.style.display = 'flex';
         }
     }
+    
 
     const recentDropdown = document.getElementById('recent-searches-dropdown');
     
@@ -1108,7 +1113,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('offline-banner').style.display = 'flex';
     }
 
-    renderIcons();
-        setTimeout(renderIcons, 500);
+    // Force icons to render immediately (and repeatedly) to fix button click issues
+    renderIcons(); 
+    setTimeout(renderIcons, 200); 
+    setTimeout(renderIcons, 500); 
+    setTimeout(renderIcons, 1000);
+
     init();
 });
