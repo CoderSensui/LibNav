@@ -256,8 +256,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     
-    document.getElementById('admin-auth-btn').onclick = () => {
+ document.getElementById('admin-auth-btn').onclick = () => {
         if (document.getElementById('admin-password').value === 'admin123') { 
+            // NEW: Give the admin a VIP token so they bypass maintenance!
+            localStorage.setItem('libnav_admin_token', 'VIP_GRANTED');
+            
             document.getElementById('admin-login-screen').style.display = 'none'; 
             document.getElementById('admin-dashboard').style.display = 'block'; 
             updateImageInputs(); 
@@ -1179,6 +1182,107 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             }
         }
     }, 2000); // Check 2 seconds after load
+
+    // --- MAINTENANCE MODE LOGIC ---
+    document.getElementById('toggle-maintenance-btn').onclick = async () => {
+        const currentMaint = await LibraryDB.getMaintenance();
+        const newState = !currentMaint;
+        await LibraryDB.setMaintenance(newState);
+        showPopup("System Control", `Maintenance Mode is now ${newState ? 'ON' : 'OFF'}. Only Admins can view the site.`, null, false);
+    };
+
+    // --- ADMIN BROADCAST CONTROLS (Updated with Theme) ---
+    document.getElementById('open-broadcast-view-btn').onclick = () => document.getElementById('admin-broadcast-view').style.display = 'flex';
+    document.getElementById('close-broadcast-admin-btn').onclick = () => document.getElementById('admin-broadcast-view').style.display = 'none';
+    
+    document.getElementById('send-broadcast-btn').onclick = async () => {
+        const t = document.getElementById('bc-title').value.trim();
+        const m = document.getElementById('bc-msg').value.trim();
+        const theme = document.getElementById('bc-theme').value; // Get the theme
+        if(!t || !m) return showPopup("Error", "Fill out both fields.", null, false);
+        
+        const bcObj = { id: 'bc_' + Date.now(), title: t, message: m, theme: theme };
+        await LibraryDB.setBroadcast(bcObj);
+        showPopup("Success", "Broadcast sent to all users!", null, false);
+        document.getElementById('admin-broadcast-view').style.display = 'none';
+    };
+
+    document.getElementById('clear-broadcast-btn').onclick = async () => {
+        await LibraryDB.setBroadcast(null);
+        showPopup("Cleared", "Active broadcast removed.", null, false);
+        document.getElementById('admin-broadcast-view').style.display = 'none';
+    };
+
+    // --- ON LOAD CHECKER (Maintenance & Broadcasts) ---
+    setTimeout(async () => {
+        // 1. Check Maintenance
+        const isMaint = await LibraryDB.getMaintenance();
+        const isVIP = localStorage.getItem('libnav_admin_token') === 'VIP_GRANTED';
+        
+        if (isMaint && !isVIP) {
+            document.getElementById('maintenance-overlay').style.display = 'flex';
+            return; // Stop loading popups if in maintenance
+        }
+
+        // 2. Check User Broadcasts
+        const activeBc = await LibraryDB.getBroadcast();
+        if (activeBc && activeBc.id) {
+            const seenBc = localStorage.getItem('libnav_seen_broadcast');
+            if (seenBc !== activeBc.id) {
+                const ubModal = document.getElementById('user-broadcast-modal');
+                const box = ubModal.querySelector('.modal-box');
+                const iconWrap = ubModal.querySelector('.welcome-icon-wrap');
+                
+                // Apply Theme
+                box.className = `modal-box broadcast-layout theme-${activeBc.theme || 'info'}`;
+                let iconStr = 'bell-ring';
+                if(activeBc.theme === 'success') iconStr = 'check-circle';
+                if(activeBc.theme === 'warning') iconStr = 'alert-triangle';
+                if(activeBc.theme === 'alert') iconStr = 'shield-alert';
+                iconWrap.innerHTML = `<i data-lucide="${iconStr}"></i>`;
+                renderIcons();
+
+                document.getElementById('ub-title').innerText = activeBc.title;
+                document.getElementById('ub-msg').innerText = activeBc.message;
+                ubModal.style.display = 'flex';
+                
+                document.getElementById('ub-got-it-btn').onclick = () => {
+                    localStorage.setItem('libnav_seen_broadcast', activeBc.id);
+                    ubModal.style.display = 'none';
+                };
+            }
+        }
+    }, 1500); // 1.5 second delay on load
+
+    // --- TRUE PINCH-TO-ZOOM FIX ---
+    const mapContainer = document.getElementById('carousel-wrapper');
+    let currentScale = 1; let initialDistance = 0;
+    
+    if (mapContainer) {
+        mapContainer.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault(); // SUPER IMPORTANT: Stops the whole web page from scrolling!
+                initialDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+            }
+        }, {passive: false}); // passive: false allows e.preventDefault() to work
+
+        mapContainer.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault(); // Prevents swipe-to-refresh and zooming the whole UI
+                const currentDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                const scaleChange = currentDistance / initialDistance;
+                currentScale = Math.min(Math.max(1, currentScale * scaleChange), 3.5); // Max zoom 3.5x
+                carouselImg.style.transform = `scale(${currentScale})`;
+                initialDistance = currentDistance;
+            }
+        }, {passive: false});
+    }
+
+    // Reset zoom when swiping or pressing buttons
+    const resetZoom = () => { currentScale = 1; carouselImg.style.transform = `scale(1)`; };
+    if(prevBtn) prevBtn.addEventListener('click', resetZoom);
+    if(nextBtn) nextBtn.addEventListener('click', resetZoom);
+    if(mapContainer) mapContainer.addEventListener('touchend', (e) => { if(e.touches.length === 0) resetZoom(); }, {passive: true});
     
     init();
 });
