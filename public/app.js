@@ -255,10 +255,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
     
-    
- document.getElementById('admin-auth-btn').onclick = () => {
+    document.getElementById('admin-auth-btn').onclick = () => {
         if (document.getElementById('admin-password').value === 'admin123') { 
-            // NEW: Give the admin a VIP token so they bypass maintenance!
+            // Save admin VIP token
             localStorage.setItem('libnav_admin_token', 'VIP_GRANTED');
             
             document.getElementById('admin-login-screen').style.display = 'none'; 
@@ -480,7 +479,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
 window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => String(x.id) === String(id)); if(b) openModal(b); };
 
-    // --- CAROUSEL LOGIC (SWIPE, ZOOM, DOTS) ---
     const prevBtn = document.getElementById('prev-img-btn');
     const nextBtn = document.getElementById('next-img-btn');
     const carouselWrapper = document.getElementById('carousel-wrapper');
@@ -512,7 +510,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
     }
 
-    // --- ZOOM LOGIC FIXED ---
     if(zoomTrigger) {
         zoomTrigger.onclick = (e) => {
             e.stopPropagation();
@@ -589,7 +586,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         if(hint && window.innerWidth < 850) {
             hint.style.display = 'flex';
             hint.style.animation = 'none';
-            hint.offsetHeight; /* Trigger reflow */
+            hint.offsetHeight; 
             hint.style.animation = 'swipeFade 2.5s ease-in-out forwards';
         } else if (hint) {
             hint.style.display = 'none';
@@ -672,9 +669,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
     });
 
-    searchInput.addEventListener('change', () => {
-        saveRecentSearch(searchInput.value);
-    });
+    searchInput.addEventListener('change', () => saveRecentSearch(searchInput.value));
 
     searchInput.addEventListener('input', (e) => {
         const t = e.target.value.toLowerCase().trim();
@@ -717,9 +712,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             else bttBtn.classList.remove('visible');
         }
     });
-    bttBtn?.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+    bttBtn?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
     function performSearch(term, forceShowAll = false) {
         let books = LibraryDB.getBooks(); term = term.toLowerCase().trim();
@@ -885,8 +878,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
     };
 
-    document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; if(!e.target.closest('.search-wrapper') && !e.target.closest('#filter-toggle')) filterMenu.style.display='none'; };
-    
     async function fetchScreensaverFact() {
         const factEl = document.getElementById('screensaver-fact');
         if(!factEl) return;
@@ -1005,13 +996,10 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         if(uptimeInterval) clearInterval(uptimeInterval); updateUptime(); uptimeInterval = setInterval(updateUptime, 1000);
     };
     
-    // --- FIXED STATS & FEEDBACK LISTENERS ---
-    const statsBtn = document.getElementById('section-stats-btn');
-    if(statsBtn) statsBtn.onclick = openStats;
+    document.getElementById('section-stats-btn')?.addEventListener('click', openStats);
 
-    const feedbackBtn = document.getElementById('section-feedback-btn');
     const openFeedback = () => { document.getElementById('feedback-modal').style.display = 'flex'; };
-    if(feedbackBtn) feedbackBtn.onclick = openFeedback;
+    document.getElementById('section-feedback-btn')?.addEventListener('click', openFeedback);
 
     const fForm = document.getElementById('feedback-form');
     if(fForm) fForm.onsubmit = async (e) => {
@@ -1087,202 +1075,164 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
     });
 
-    window.addEventListener('online', () => {
-        document.getElementById('offline-banner').style.display = 'none';
-    });
-    window.addEventListener('offline', () => {
-        document.getElementById('offline-banner').style.display = 'flex';
-    });
-    if (!navigator.onLine) {
-        document.getElementById('offline-banner').style.display = 'flex';
-    }
+    window.addEventListener('online', () => document.getElementById('offline-banner').style.display = 'none');
+    window.addEventListener('offline', () => document.getElementById('offline-banner').style.display = 'flex');
+    if (!navigator.onLine) document.getElementById('offline-banner').style.display = 'flex';
 
     renderIcons(); 
     setTimeout(renderIcons, 200); 
     setTimeout(renderIcons, 500); 
     setTimeout(renderIcons, 1000);
 
-    // --- PINCH TO ZOOM LOGIC ---
-    let currentScale = 1; let initialDistance = 0;
-    
-    carouselImg.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2) {
-            initialDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-        }
-    }, {passive: true});
-
-    carouselImg.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2) {
-            e.preventDefault(); // Prevents the whole page from scrolling
-            const currentDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-            const scaleChange = currentDistance / initialDistance;
-            currentScale = Math.min(Math.max(1, currentScale * scaleChange), 3.5); // Max zoom 3.5x
-            carouselImg.style.transform = `scale(${currentScale})`;
-            initialDistance = currentDistance;
-        }
-    }, {passive: false});
-
-    // Reset zoom when swiping to the next image
-    const resetZoom = () => { currentScale = 1; carouselImg.style.transform = `scale(1)`; };
-    if(prevBtn) prevBtn.addEventListener('click', resetZoom);
-    if(nextBtn) nextBtn.addEventListener('click', resetZoom);
-    if(carouselWrapper) carouselWrapper.addEventListener('touchend', resetZoom, {passive: true});
-
-    // --- ONBOARDING POPUP LOGIC ---
-    const welcomeModal = document.getElementById('welcome-modal');
-    if (!localStorage.getItem('libnav_onboarded')) {
-        setTimeout(() => { welcomeModal.style.display = 'flex'; }, 1000);
+    // --- CRASH-PROOF ADMIN & BROADCAST CONTROLS ---
+    const toggleMaintBtn = document.getElementById('toggle-maintenance-btn');
+    if (toggleMaintBtn) {
+        toggleMaintBtn.onclick = async () => {
+            if (typeof LibraryDB.getMaintenance !== 'function') return showPopup("Error", "Database update missing.", null, false);
+            const currentMaint = await LibraryDB.getMaintenance();
+            const newState = !currentMaint;
+            await LibraryDB.setMaintenance(newState);
+            showPopup("System Control", `Maintenance Mode is now ${newState ? 'ON' : 'OFF'}. Only Admins can view the site.`, null, false);
+        };
     }
-    document.getElementById('start-libnav-btn').onclick = () => {
-        if (document.getElementById('never-show-welcome').checked) {
-            localStorage.setItem('libnav_onboarded', 'true');
-        }
-        welcomeModal.style.display = 'none';
-    };
 
-    // --- ADMIN BROADCAST CONTROLS ---
-    document.getElementById('open-broadcast-view-btn').onclick = () => {
-        document.getElementById('admin-broadcast-view').style.display = 'flex';
-    };
-    document.getElementById('close-broadcast-admin-btn').onclick = () => {
-        document.getElementById('admin-broadcast-view').style.display = 'none';
-    };
+    const openBcBtn = document.getElementById('open-broadcast-view-btn');
+    const closeBcBtn = document.getElementById('close-broadcast-admin-btn');
+    const sendBcBtn = document.getElementById('send-broadcast-btn');
+    const clearBcBtn = document.getElementById('clear-broadcast-btn');
+    const adminBcView = document.getElementById('admin-broadcast-view');
+
+    if (openBcBtn && adminBcView) openBcBtn.onclick = () => adminBcView.style.display = 'flex';
+    if (closeBcBtn && adminBcView) closeBcBtn.onclick = () => adminBcView.style.display = 'none';
     
-    document.getElementById('send-broadcast-btn').onclick = async () => {
-        const t = document.getElementById('bc-title').value.trim();
-        const m = document.getElementById('bc-msg').value.trim();
-        if(!t || !m) return showPopup("Error", "Fill out both fields.", null, false);
-        
-        const bcObj = { id: 'bc_' + Date.now(), title: t, message: m };
-        await LibraryDB.setBroadcast(bcObj);
-        showPopup("Success", "Broadcast sent to all users!", null, false);
-        document.getElementById('admin-broadcast-view').style.display = 'none';
-    };
+    if (sendBcBtn) {
+        sendBcBtn.onclick = async () => {
+            const t = document.getElementById('bc-title')?.value.trim();
+            const m = document.getElementById('bc-msg')?.value.trim();
+            const theme = document.getElementById('bc-theme')?.value; 
+            if(!t || !m) return showPopup("Error", "Fill out both fields.", null, false);
+            if (typeof LibraryDB.setBroadcast !== 'function') return showPopup("Error", "Database update missing.", null, false);
+            
+            const bcObj = { id: 'bc_' + Date.now(), title: t, message: m, theme: theme };
+            await LibraryDB.setBroadcast(bcObj);
+            showPopup("Success", "Broadcast sent to all users!", null, false);
+            if (adminBcView) adminBcView.style.display = 'none';
+        };
+    }
 
-    document.getElementById('clear-broadcast-btn').onclick = async () => {
-        await LibraryDB.setBroadcast(null);
-        showPopup("Cleared", "Active broadcast removed.", null, false);
-        document.getElementById('admin-broadcast-view').style.display = 'none';
-    };
-
-    // --- USER BROADCAST LISTENER ---
-    setTimeout(async () => {
-        const activeBc = await LibraryDB.getBroadcast();
-        if (activeBc && activeBc.id) {
-            const seenBc = localStorage.getItem('libnav_seen_broadcast');
-            if (seenBc !== activeBc.id) {
-                document.getElementById('ub-title').innerText = activeBc.title;
-                document.getElementById('ub-msg').innerText = activeBc.message;
-                document.getElementById('user-broadcast-modal').style.display = 'flex';
-                
-                document.getElementById('ub-got-it-btn').onclick = () => {
-                    localStorage.setItem('libnav_seen_broadcast', activeBc.id);
-                    document.getElementById('user-broadcast-modal').style.display = 'none';
-                };
-            }
-        }
-    }, 2000); // Check 2 seconds after load
-
-    // --- MAINTENANCE MODE LOGIC ---
-    document.getElementById('toggle-maintenance-btn').onclick = async () => {
-        const currentMaint = await LibraryDB.getMaintenance();
-        const newState = !currentMaint;
-        await LibraryDB.setMaintenance(newState);
-        showPopup("System Control", `Maintenance Mode is now ${newState ? 'ON' : 'OFF'}. Only Admins can view the site.`, null, false);
-    };
-
-    // --- ADMIN BROADCAST CONTROLS (Updated with Theme) ---
-    document.getElementById('open-broadcast-view-btn').onclick = () => document.getElementById('admin-broadcast-view').style.display = 'flex';
-    document.getElementById('close-broadcast-admin-btn').onclick = () => document.getElementById('admin-broadcast-view').style.display = 'none';
-    
-    document.getElementById('send-broadcast-btn').onclick = async () => {
-        const t = document.getElementById('bc-title').value.trim();
-        const m = document.getElementById('bc-msg').value.trim();
-        const theme = document.getElementById('bc-theme').value; // Get the theme
-        if(!t || !m) return showPopup("Error", "Fill out both fields.", null, false);
-        
-        const bcObj = { id: 'bc_' + Date.now(), title: t, message: m, theme: theme };
-        await LibraryDB.setBroadcast(bcObj);
-        showPopup("Success", "Broadcast sent to all users!", null, false);
-        document.getElementById('admin-broadcast-view').style.display = 'none';
-    };
-
-    document.getElementById('clear-broadcast-btn').onclick = async () => {
-        await LibraryDB.setBroadcast(null);
-        showPopup("Cleared", "Active broadcast removed.", null, false);
-        document.getElementById('admin-broadcast-view').style.display = 'none';
-    };
+    if (clearBcBtn) {
+        clearBcBtn.onclick = async () => {
+            if (typeof LibraryDB.setBroadcast !== 'function') return;
+            await LibraryDB.setBroadcast(null);
+            showPopup("Cleared", "Active broadcast removed.", null, false);
+            if (adminBcView) adminBcView.style.display = 'none';
+        };
+    }
 
     // --- ON LOAD CHECKER (Maintenance & Broadcasts) ---
     setTimeout(async () => {
-        // 1. Check Maintenance
-        const isMaint = await LibraryDB.getMaintenance();
-        const isVIP = localStorage.getItem('libnav_admin_token') === 'VIP_GRANTED';
-        
-        if (isMaint && !isVIP) {
-            document.getElementById('maintenance-overlay').style.display = 'flex';
-            return; // Stop loading popups if in maintenance
-        }
-
-        // 2. Check User Broadcasts
-        const activeBc = await LibraryDB.getBroadcast();
-        if (activeBc && activeBc.id) {
-            const seenBc = localStorage.getItem('libnav_seen_broadcast');
-            if (seenBc !== activeBc.id) {
-                const ubModal = document.getElementById('user-broadcast-modal');
-                const box = ubModal.querySelector('.modal-box');
-                const iconWrap = ubModal.querySelector('.welcome-icon-wrap');
-                
-                // Apply Theme
-                box.className = `modal-box broadcast-layout theme-${activeBc.theme || 'info'}`;
-                let iconStr = 'bell-ring';
-                if(activeBc.theme === 'success') iconStr = 'check-circle';
-                if(activeBc.theme === 'warning') iconStr = 'alert-triangle';
-                if(activeBc.theme === 'alert') iconStr = 'shield-alert';
-                iconWrap.innerHTML = `<i data-lucide="${iconStr}"></i>`;
-                renderIcons();
-
-                document.getElementById('ub-title').innerText = activeBc.title;
-                document.getElementById('ub-msg').innerText = activeBc.message;
-                ubModal.style.display = 'flex';
-                
-                document.getElementById('ub-got-it-btn').onclick = () => {
-                    localStorage.setItem('libnav_seen_broadcast', activeBc.id);
-                    ubModal.style.display = 'none';
-                };
+        // 1. Check Maintenance safely
+        if (typeof LibraryDB.getMaintenance === 'function') {
+            const isMaint = await LibraryDB.getMaintenance();
+            const isVIP = localStorage.getItem('libnav_admin_token') === 'VIP_GRANTED';
+            
+            if (isMaint && !isVIP) {
+                const maintOverlay = document.getElementById('maintenance-overlay');
+                if (maintOverlay) maintOverlay.style.display = 'flex';
+                return; // Stop loading other popups if in maintenance
             }
         }
-    }, 1500); // 1.5 second delay on load
+
+        // 2. Check User Broadcasts safely
+        if (typeof LibraryDB.getBroadcast === 'function') {
+            const activeBc = await LibraryDB.getBroadcast();
+            if (activeBc && activeBc.id) {
+                const seenBc = localStorage.getItem('libnav_seen_broadcast');
+                if (seenBc !== activeBc.id) {
+                    const ubModal = document.getElementById('user-broadcast-modal');
+                    if (ubModal) {
+                        const box = ubModal.querySelector('.modal-box');
+                        const iconWrap = ubModal.querySelector('.welcome-icon-wrap');
+                        
+                        box.className = `modal-box broadcast-layout theme-${activeBc.theme || 'info'}`;
+                        let iconStr = 'bell-ring';
+                        if(activeBc.theme === 'success') iconStr = 'check-circle';
+                        if(activeBc.theme === 'warning') iconStr = 'alert-triangle';
+                        if(activeBc.theme === 'alert') iconStr = 'shield-alert';
+                        iconWrap.innerHTML = `<i data-lucide="${iconStr}"></i>`;
+                        if(typeof lucide !== 'undefined') lucide.createIcons();
+
+                        const titleEl = document.getElementById('ub-title');
+                        const msgEl = document.getElementById('ub-msg');
+                        if (titleEl) titleEl.innerText = activeBc.title;
+                        if (msgEl) msgEl.innerText = activeBc.message;
+                        
+                        ubModal.style.display = 'flex';
+                        
+                        const gotItBtn = document.getElementById('ub-got-it-btn');
+                        if (gotItBtn) {
+                            gotItBtn.onclick = () => {
+                                localStorage.setItem('libnav_seen_broadcast', activeBc.id);
+                                ubModal.style.display = 'none';
+                            };
+                        }
+                    }
+                }
+            }
+        }
+    }, 1500); 
 
     // --- TRUE PINCH-TO-ZOOM FIX ---
     const mapContainer = document.getElementById('carousel-wrapper');
-    let currentScale = 1; let initialDistance = 0;
+    let mapScale = 1; let initialDist = 0; // Renamed variables to prevent duplicate errors forever
     
     if (mapContainer) {
         mapContainer.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
-                e.preventDefault(); // SUPER IMPORTANT: Stops the whole web page from scrolling!
-                initialDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                e.preventDefault(); 
+                initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
             }
-        }, {passive: false}); // passive: false allows e.preventDefault() to work
+        }, {passive: false}); 
 
         mapContainer.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2) {
-                e.preventDefault(); // Prevents swipe-to-refresh and zooming the whole UI
-                const currentDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                const scaleChange = currentDistance / initialDistance;
-                currentScale = Math.min(Math.max(1, currentScale * scaleChange), 3.5); // Max zoom 3.5x
-                carouselImg.style.transform = `scale(${currentScale})`;
-                initialDistance = currentDistance;
+                e.preventDefault(); 
+                const currentDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                const scaleChange = currentDist / initialDist;
+                mapScale = Math.min(Math.max(1, mapScale * scaleChange), 3.5); 
+                const cImg = document.getElementById('carousel-img');
+                if(cImg) cImg.style.transform = `scale(${mapScale})`;
+                initialDist = currentDist;
             }
         }, {passive: false});
     }
 
-    // Reset zoom when swiping or pressing buttons
-    const resetZoom = () => { currentScale = 1; carouselImg.style.transform = `scale(1)`; };
-    if(prevBtn) prevBtn.addEventListener('click', resetZoom);
-    if(nextBtn) nextBtn.addEventListener('click', resetZoom);
-    if(mapContainer) mapContainer.addEventListener('touchend', (e) => { if(e.touches.length === 0) resetZoom(); }, {passive: true});
-    
+    const resetMapZoom = () => { 
+        mapScale = 1; 
+        const cImg = document.getElementById('carousel-img');
+        if(cImg) cImg.style.transform = `scale(1)`; 
+    };
+    const pBtn = document.getElementById('prev-img-btn');
+    const nBtn = document.getElementById('next-img-btn');
+    if(pBtn) pBtn.addEventListener('click', resetMapZoom);
+    if(nBtn) nBtn.addEventListener('click', resetMapZoom);
+    if(mapContainer) mapContainer.addEventListener('touchend', (e) => { if(e.touches.length === 0) resetMapZoom(); }, {passive: true});
+
+    // --- ONBOARDING POPUP LOGIC ---
+    const welcomeModal = document.getElementById('welcome-modal');
+    const startLibnavBtn = document.getElementById('start-libnav-btn');
+    if (welcomeModal && !localStorage.getItem('libnav_onboarded')) {
+        setTimeout(() => { welcomeModal.style.display = 'flex'; }, 1000);
+    }
+    if (startLibnavBtn) {
+        startLibnavBtn.onclick = () => {
+            const neverShowCheck = document.getElementById('never-show-welcome');
+            if (neverShowCheck && neverShowCheck.checked) {
+                localStorage.setItem('libnav_onboarded', 'true');
+            }
+            if(welcomeModal) welcomeModal.style.display = 'none';
+        };
+    }
+
     init();
 });
