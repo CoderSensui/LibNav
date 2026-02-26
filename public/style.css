@@ -693,23 +693,56 @@ body.light-mode .app-header.top-nav, body.light-mode .bottom-nav {
 input:checked + .slider { background-color: var(--warning); }
 input:checked + .slider:before { transform: translateX(26px); }
 
-/* --- MAINTENANCE PAGE UI FIXES --- */
+/* --- MAINTENANCE OVERLAY UPGRADE --- */
 #maintenance-overlay {
-    position: fixed; inset: 0; background: var(--bg-main); z-index: 9999999;
-    display: none; flex-direction: column; justify-content: center; align-items: center;
+    position: fixed; inset: 0; 
+    background: radial-gradient(circle at center, #1e1e20 0%, #131314 100%); 
+    z-index: 9999999; display: none; flex-direction: column; justify-content: center; align-items: center;
     text-align: center; padding: 20px; box-sizing: border-box;
 }
-.maint-gif-wrapper {
-    width: 100%; max-width: 250px; margin-bottom: 30px;
+.maint-icon-container {
+    position: relative; width: 130px; height: 130px; margin-bottom: 30px;
+    display: flex; justify-content: center; align-items: center;
+    background: var(--primary-light); border-radius: 50%;
+    box-shadow: 0 0 60px rgba(219,39,119,0.25); border: 2px solid rgba(219,39,119,0.3);
 }
+.maint-cog { stroke: var(--primary); }
+.main-cog { width: 70px; height: 70px; animation: spin 4s linear infinite; }
+.sub-cog { width: 40px; height: 40px; position: absolute; bottom: 15px; right: 15px; animation: spin-reverse 3s linear infinite; background: var(--bg-main); border-radius: 50%; padding: 2px;}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
+
 #maintenance-overlay h1 {
-    font-family: var(--font-head); font-size: 3rem; color: var(--primary);
-    margin-bottom: 15px; line-height: 1.2; letter-spacing: -1px;
+    font-family: var(--font-head); font-size: 3.5rem; color: var(--text-main);
+    margin-bottom: 15px; line-height: 1.2; letter-spacing: -1px; text-shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
+#maintenance-overlay h1 span { color: var(--primary); }
 #maintenance-overlay p {
-    color: var(--text-muted); font-size: 1.1rem; max-width: 380px;
+    color: var(--text-muted); font-size: 1.15rem; max-width: 420px;
     line-height: 1.6; margin-bottom: 40px;
-}.maint-icon { width: 140px; height: 140px; margin-bottom: 20px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary); animation: float 3s ease-in-out infinite; box-shadow: 0 0 40px rgba(219,39,119,0.3);}
+}
+
+/* --- EASTER EGG UPGRADE --- */
+#shush-overlay {
+    position: fixed; inset: 0; background: rgba(13, 13, 15, 0.95); backdrop-filter: blur(10px);
+    z-index: 100000; display: none; flex-direction: column; justify-content: center; align-items: center; 
+    color: white; animation: fadeIn 0.3s ease-out;
+}
+.easter-egg-frame {
+    width: 250px; height: 250px; border-radius: 50%; overflow: hidden;
+    border: 8px solid var(--primary); box-shadow: 0 0 80px rgba(219, 39, 119, 0.5);
+    margin-bottom: 40px; display: flex; justify-content: center; align-items: center;
+    background: #fff; position: relative;
+}
+/* This tricks the embed into filling the circle perfectly */
+.easter-egg-frame .tenor-gif-embed { width: 120% !important; height: 120% !important; pointer-events: none; margin-top:-10px;}
+
+#shush-text {
+    font-family: 'Gloria Hallelujah', cursive; font-size: 5rem; color: var(--primary);
+    text-shadow: 0 0 40px rgba(219, 39, 119, 0.8); margin: 0; letter-spacing: 5px;
+    animation: pulse 1.5s infinite;
+}
 
 .welcome-layout, .broadcast-layout { text-align: center; max-width: 450px !important; padding: 40px 30px !important; }
 .welcome-layout h2, .broadcast-layout h2 { color: var(--text-main); font-family: var(--font-head); font-size: 2rem; margin-bottom: 15px; }
