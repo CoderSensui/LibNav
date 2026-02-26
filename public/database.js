@@ -114,32 +114,25 @@ const LibraryDB = {
         try { await fetch(`${this.dbUrl}maintenance.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(status) }); return true; } catch(e) { return false; }
     },
 
-    document.getElementById('admin-auth-btn').onclick = async () => {
-        const btn = document.getElementById('admin-auth-btn');
-        const passInput = document.getElementById('admin-password').value;
-        
-        // Show loading state while checking database
-        btn.innerHTML = 'Verifying...';
-        btn.disabled = true;
-
-        // Check Firebase
-        const isValid = await LibraryDB.verifyAdminPassword(passInput);
-
-        if (isValid) { 
-            // Save admin VIP token
-            localStorage.setItem('libnav_admin_token', 'VIP_GRANTED');
+   // --- NEW ADMIN SECURITY FUNCTION ---
+    verifyAdminPassword: async function(inputPass) {
+        try {
+            const res = await fetch(`${this.dbUrl}admin_password.json`);
+            const realPass = await res.json();
             
-            document.getElementById('admin-login-screen').style.display = 'none'; 
-            document.getElementById('admin-dashboard').style.display = 'block'; 
-            document.getElementById('admin-password').value = ''; // clear password field
-            updateImageInputs(); 
-            renderAdminList(); 
-        } else { 
-            showPopup("Access Denied", "Incorrect Security Key.", null, false); 
+            // If no password is in the database yet, set it to the default
+            if (!realPass) {
+                await fetch(`${this.dbUrl}admin_password.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify("admin123")
+                });
+                return inputPass === "admin123";
+            }
+            
+            return inputPass === realPass;
+        } catch(e) {
+            console.error("Auth check failed", e);
+            return inputPass === "admin123"; // Fallback backup
         }
-        
-        // Reset button
-        btn.innerHTML = 'Login';
-        btn.disabled = false;
-    };
+    }
 };
