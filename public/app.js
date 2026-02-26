@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (shush) {
                 shush.style.display = 'flex';
                 if (navigator.vibrate) navigator.vibrate([100, 50, 200]); 
-                setTimeout(() => { shush.style.display = 'none'; }, 3000);
+                setTimeout(() => { shush.style.display = 'none'; }, 2000);
             }
             logoTapCount = 0;
         } else {
