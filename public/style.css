@@ -665,7 +665,33 @@ body.light-mode .app-header.top-nav, body.light-mode .bottom-nav {
 }
 
 /* --- NEW MODALS & PINCH ZOOM --- */
-.map-carousel img { touch-action: none; transform-origin: center; transition: transform 0.1s ease-out; }
+/* --- PINCH ZOOM FIXES --- */
+/* The key to mobile zoom is telling the browser NOT to scroll here */
+.map-carousel { touch-action: none !important; overflow: hidden; } 
+.map-carousel img { touch-action: none !important; transform-origin: center; transition: transform 0.1s ease-out; will-change: transform; }
+
+/* --- BROADCAST THEMES --- */
+.broadcast-layout.theme-info { border-color: #3b82f6 !important; }
+.broadcast-layout.theme-info .welcome-icon-wrap { background: #3b82f6 !important; color: white !important; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3) !important; }
+
+.broadcast-layout.theme-success { border-color: var(--success) !important; }
+.broadcast-layout.theme-success .welcome-icon-wrap { background: var(--success) !important; color: white !important; box-shadow: 0 0 30px rgba(16, 185, 129, 0.3) !important; }
+
+.broadcast-layout.theme-warning { border-color: var(--warning) !important; }
+.broadcast-layout.theme-warning .welcome-icon-wrap { background: var(--warning) !important; color: white !important; box-shadow: 0 0 30px rgba(245, 158, 11, 0.3) !important; }
+
+.broadcast-layout.theme-alert { border-color: #ef4444 !important; }
+.broadcast-layout.theme-alert .welcome-icon-wrap { background: #ef4444 !important; color: white !important; box-shadow: 0 0 30px rgba(239, 68, 68, 0.3) !important; }
+
+/* --- MAINTENANCE OVERLAY (Not Boring!) --- */
+#maintenance-overlay { 
+    position: fixed; inset: 0; background: var(--bg-main); z-index: 9999999; 
+    display: none; flex-direction: column; justify-content: center; align-items: center; 
+    text-align: center; padding: 20px;
+}
+.maint-icon { width: 140px; height: 140px; margin-bottom: 20px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary); animation: float 3s ease-in-out infinite; box-shadow: 0 0 40px rgba(219,39,119,0.3);}
+#maintenance-overlay h1 { font-family: var(--font-head); font-size: 3rem; color: var(--primary); margin-bottom: 10px; line-height: 1.1; }
+#maintenance-overlay p { color: var(--text-muted); font-size: 1.1rem; max-width: 400px; line-height: 1.5; margin-bottom: 30px;}
 
 .welcome-layout, .broadcast-layout { text-align: center; max-width: 450px !important; padding: 40px 30px !important; }
 .welcome-layout h2, .broadcast-layout h2 { color: var(--text-main); font-family: var(--font-head); font-size: 2rem; margin-bottom: 15px; }
