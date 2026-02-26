@@ -264,11 +264,12 @@
           <div id="admin-dashboard" style="display:none;">
                 
                 <div id="admin-main-view">
-                   <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 25px;">
+                   <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                         <button id="open-add-view-btn" class="btn-primary" style="padding: 15px; font-size: 0.9rem;"><i data-lucide="plus-circle"></i> Add</button>
                         <button id="open-batch-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.9rem;"><i data-lucide="layers"></i> Batch</button>
                         <button id="open-broadcast-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.9rem; background: var(--primary-light); color: var(--primary); border: none;"><i data-lucide="radio"></i> Broadcast</button>
                     </div>
+                    <button id="toggle-maintenance-btn" class="btn-outline-warning full-width" style="margin-bottom: 25px;"><i data-lucide="construction"></i> Toggle Maintenance Mode</button>
                     
                     <h3 class="sub-title warning"><i data-lucide="database"></i> System Data</h3>
                     <div class="input-with-icon" style="margin-bottom: 15px;">
@@ -425,7 +426,15 @@
         <div class="modal-box">
             <button id="close-broadcast-admin-btn" class="close-btn"><i data-lucide="x"></i></button>
             <h3 class="sub-title"><i data-lucide="radio"></i> System Broadcast</h3>
-            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:15px;">Push an alert to all users instantly.</p>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:15px;">Push an alert to all users instantly.</p>
+            
+            <select id="bc-theme" class="input-field" style="margin-bottom: 15px; font-weight: bold;">
+                <option value="info">🔵 Info (Blue)</option>
+                <option value="success">🟢 Success (Green)</option>
+                <option value="warning">🟠 Warning (Orange)</option>
+                <option value="alert">🔴 Urgent Alert (Red)</option>
+            </select>
+            
             <input type="text" id="bc-title" class="input-field" placeholder="Broadcast Title (e.g., Update!)">
             <textarea id="bc-msg" class="input-field" rows="4" placeholder="Type your announcement here..."></textarea>
             <button id="send-broadcast-btn" class="btn-success full-width"><i data-lucide="send"></i> Send to All Users</button>
@@ -457,6 +466,16 @@
             <button id="ub-got-it-btn" class="btn-primary full-width">I Understand</button>
         </div>
         </div>
+
+    <div id="maintenance-overlay">
+        <img src="https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif" class="maint-icon">
+        <h1>We're Upgrading!</h1>
+        <p>LibNav is currently closed for some quick system upgrades to make your library experience even better.</p>
+        <div class="tip-box" style="text-align: left; max-width: 350px;">
+            <div class="tip-header"><i data-lucide="clock"></i> Check Back Soon</div>
+            <p style="color:var(--text-muted); font-size:0.9rem;">Our minions are working as fast as they can. Grab a coffee and refresh the page in a few minutes!</p>
+        </div>
+    </div>
     
     <script src="database.js"></script>
     <script src="app.js"></script>
