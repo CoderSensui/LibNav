@@ -210,7 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if(overlay) overlay.style.display = 'none';
     });
 
-// CATEGORY FILTER LOGIC (SIDEBAR - Shows Instantly)
     document.querySelectorAll('.menu-item').forEach(btn => {
         btn.onclick = () => {
             const genre = btn.dataset.genre;
@@ -232,7 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if(hero) { hero.style.display = 'none'; hero.style.opacity = '0'; }
             if(feat) { feat.style.display = 'none'; }
             
-            // Sidebar ALWAYS performs the search instantly
             if (genre === 'All' && searchInput.value.trim() === '') {
                 performSearch('', true);
             } else {
@@ -244,7 +242,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // DROPDOWN FILTER LOGIC (SEARCH BAR - Waits for input)
     document.querySelectorAll('.filter-option input').forEach(box => {
         box.onchange = (e) => {
             const val = e.target.value;
@@ -256,8 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(e.target.checked) { selectedGenres.delete('All'); document.querySelector('.filter-option input[value="All"]').checked = false; document.querySelector('.menu-item[data-genre="All"]').classList.remove('active'); selectedGenres.add(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.add('active'); }); } 
                 else { selectedGenres.delete(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.remove('active'); }); }
             }
-            
-            // Dropdown ONLY performs search if there's an active query. Otherwise, wait.
             if (searchInput.value.trim() !== '') { 
                 performSearch(searchInput.value); 
             }
@@ -273,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAdminList(); 
         } else { showPopup("Error", "Incorrect Password", null, false); }
     };
-    // --- ADMIN UI SCREEN SWITCHING ---
+    
     const adminMainView = document.getElementById('admin-main-view');
     const adminFormView = document.getElementById('admin-form-view');
     const adminBatchView = document.getElementById('admin-batch-view');
@@ -311,7 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
         adminMainView.style.display = 'block';
     };
 
-    // --- INPUT GENERATORS ---
     function updateImageInputs() {
         const container = document.getElementById('image-inputs-container');
         container.innerHTML = ''; 
@@ -340,7 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.getElementById('batch-step-count').onchange = updateBatchImageInputs;
 
-    // --- EDIT & SAVE SINGLE BOOK ---
     window.handleEdit = function(id) {
         const book = LibraryDB.getBooks().find(b => String(b.id) === String(id)); if (!book) return;
         document.getElementById('edit-book-id').value = book.id; 
@@ -372,7 +365,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('close-form-view-btn').click(); renderAdminList(); performSearch(searchInput.value);
     };
 
-    // --- BATCH UPDATE CATEGORY ---
     document.getElementById('run-batch-btn').onclick = () => {
         const genre = document.getElementById('batch-genre').value;
         showPopup("Warning", `Overwrite map images for ALL books in "${genre}"?`, async () => {
@@ -497,11 +489,9 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     const zoomedImage = document.getElementById('zoomed-image');
     const zoomTrigger = document.getElementById('zoom-trigger-btn');
 
-    // PC Button Click
     if(prevBtn) prevBtn.onclick = () => { if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } };
     if(nextBtn) nextBtn.onclick = () => { if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } };
 
-    // Mobile Swipe Logic
     let touchStartX = 0;
     let touchEndX = 0;
 
@@ -523,14 +513,17 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
     }
 
-    // Zoom Logic
-    if(zoomTrigger) zoomTrigger.onclick = (e) => {
-        e.stopPropagation();
-        if(currentImages.length > 0) {
-            zoomedImage.src = currentImages[currentImageIndex];
-            zoomModal.style.display = 'flex';
-        }
-    };
+    // --- ZOOM LOGIC FIXED ---
+    if(zoomTrigger) {
+        zoomTrigger.onclick = (e) => {
+            e.stopPropagation();
+            if(currentImages && currentImages.length > 0) {
+                zoomedImage.src = currentImages[currentImageIndex];
+                zoomModal.style.display = 'flex';
+            }
+        };
+    }
+    
     document.getElementById('close-zoom-btn').onclick = () => zoomModal.style.display = 'none';
     zoomModal.onclick = (e) => { if(e.target === zoomModal || e.target === zoomedImage) zoomModal.style.display = 'none'; };
 
@@ -547,7 +540,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         modalBox.style.setProperty('--dynamic-color', glowColor);
         modalBox.classList.add('dynamic-theme');
      
-        // POPULATE UNIFIED HEADER
         document.getElementById('umh-title').innerText = book.title;
         document.getElementById('umh-author-name').innerText = book.author;
         document.getElementById('umh-genre').innerText = book.genre;
@@ -559,7 +551,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
         fetchAuthorPic(book.author);
 
-        // QR Code & Share
         const qrContainer = document.getElementById('qrcode');
         if (qrContainer) {
             qrContainer.innerHTML = ''; 
@@ -576,7 +567,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
              toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000);
         };
 
-        // Related Shelf
         const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 25);
         const relatedContainer = document.getElementById('related-shelf');
         if (relatedContainer) {
@@ -596,7 +586,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         currentGenre = book.genre; 
         updateCarousel(); 
         
-        // Show Swipe Hint on Mobile (First step only)
         const hint = document.getElementById('swipe-hint');
         if(hint && window.innerWidth < 850) {
             hint.style.display = 'flex';
@@ -614,23 +603,19 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const dotsContainer = document.getElementById('carousel-dots');
         
         if (currentImages && currentImages.length > 0) {
-            // Update Image
             carouselImg.src = currentImages[currentImageIndex];
             carouselImg.style.display = 'block';
             
-            // Update PC Controls
             if(stepCounter) stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
             if(prevBtn) { prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1"; prevBtn.style.pointerEvents = currentImageIndex === 0 ? "none" : "auto"; }
             if(nextBtn) { nextBtn.style.opacity = currentImageIndex === currentImages.length - 1 ? "0.3" : "1"; nextBtn.style.pointerEvents = currentImageIndex === currentImages.length - 1 ? "none" : "auto"; }
             
-            // Update Dots (Mobile Indicator)
             if (dotsContainer) {
                 dotsContainer.innerHTML = currentImages.map((_, i) => 
                     `<span class="dot ${i === currentImageIndex ? 'active' : ''}"></span>`
                 ).join('');
             }
 
-            // Show "I Found It" button on last step
             if (aa) aa.style.display = (currentImageIndex === currentImages.length - 1 && document.body.classList.contains('is-mobile-device')) ? 'flex' : 'none';
         } else { 
             carouselImg.style.display = 'none'; 
@@ -828,7 +813,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
         const allBooks = LibraryDB.getBooks();
         const maxViews = allBooks.reduce((max, b) => Math.max(max, b.views || 0), 0);
-        // Find the FIRST book that matches maxViews to avoid duplicates if tied
         const trendingBookId = maxViews > 0 ? allBooks.find(b => b.views === maxViews)?.id : null;
 
         const frag = document.createDocumentFragment(); const term = searchInput.value.trim(); const regex = new RegExp(`(${term})`, 'gi');
@@ -839,7 +823,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
             let badgesHtml = '';
             if (book.isNew) badgesHtml += '<div class="new-badge">NEW</div>';
-            // Only add HOT badge if it matches the unique trending ID
             if (book.id === trendingBookId) {
                 badgesHtml += '<div class="hot-badge"><i data-lucide="flame" style="width:12px;height:12px;fill:white;"></i> HOT</div>';
             }
@@ -886,12 +869,10 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         
         localStorage.setItem('libnav_favs', JSON.stringify(favorites));
 
-        // Instantly remove book from screen if user is currently in the "Bookmarks" view
         if (selectedGenres.has('Favorites') && index !== -1) {
             const card = btn.closest('.book-card');
             if (card) card.remove();
             
-            // If all bookmarks are removed, show the empty state screen instantly
             if (favorites.length === 0) {
                 const resultsArea = document.getElementById('results-area');
                 resultsArea.innerHTML = `
@@ -941,11 +922,14 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     
     let uptimeInterval = null;
     const openStats = () => {
-        const books = LibraryDB.getBooks(); const ratings = LibraryDB.getRatings();
+        const books = LibraryDB.getBooks(); 
+        const ratings = LibraryDB.getRatings() || [];
+        
         const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0, author:"N/A"});
         const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None", author:"N/A"});
         const genres = {}; books.forEach(b=>genres[b.genre]=(genres[b.genre]||0)+1);
-        const avg = ratings.length ? `${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)}` : "0.0";
+        
+        const avg = ratings.length > 0 ? `${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)}` : "0.0";
         
         document.getElementById('stats-modal').firstElementChild.classList.add('stats-layout');
 
@@ -970,13 +954,13 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                     </div>
                 </div>
                 
-               <div class="bento-card" style="position: relative;">     <div style="position: absolute; top: 20px; right: 20px; background: var(--primary-light); color: var(--primary); padding: 6px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">${mostViewed.views} Views</div>
+               <div class="bento-card" style="position: relative;">     <div style="position: absolute; top: 20px; right: 20px; background: var(--primary-light); color: var(--primary); padding: 6px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">${mostViewed.views || 0} Views</div>
                     <div class="bento-highlight" style="display: flex; flex-direction: row; align-items: center; gap: 18px;">
                         <div class="bento-icon" style="min-width: 50px; width: 50px; height: 50px; background: var(--primary); color: white; border: none; box-shadow: 0 0 15px rgba(219,39,119,0.5); border-radius: 14px; display: flex; justify-content: center; align-items: center; margin: 0; flex-shrink: 0;"><i data-lucide="flame"></i></div>
                         <div class="bento-highlight-info" style="display: flex; flex-direction: column; text-align: left;">
                             <div class="bento-title" style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 4px;">Trending Pick</div>
-                            <h3 style="color: var(--text-main); font-size: 1.4rem; margin: 0 0 4px 0; line-height: 1.2;">${mostViewed.title}</h3>
-                            <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">${mostViewed.author}</p>
+                            <h3 style="color: var(--text-main); font-size: 1.4rem; margin: 0 0 4px 0; line-height: 1.2;">${mostViewed.title || 'No Data'}</h3>
+                            <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">${mostViewed.author || ''}</p>
                             <span style="background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: bold; width: fit-content; text-transform: uppercase;">${mostViewed.genre || 'Unknown'}</span>
                         
                         </div>
@@ -988,8 +972,8 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                         <div class="bento-icon" style="min-width: 50px; width: 50px; height: 50px; background: var(--surface-lighter); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 14px; display: flex; justify-content: center; align-items: center; margin: 0; flex-shrink: 0;"><i data-lucide="sparkles"></i></div>
                         <div class="bento-highlight-info" style="display: flex; flex-direction: column; text-align: left;">
                             <div class="bento-title" style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 4px;">Latest Arrival</div>
-                            <h3 style="color: var(--text-main); font-size: 1.4rem; margin: 0 0 4px 0; line-height: 1.2;">${newest.title}</h3>
-                            <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">${newest.author}</p>
+                            <h3 style="color: var(--text-main); font-size: 1.4rem; margin: 0 0 4px 0; line-height: 1.2;">${newest.title || 'No Data'}</h3>
+                            <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">${newest.author || ''}</p>
                         </div>
                     </div>
                 </div>
@@ -1022,10 +1006,13 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         if(uptimeInterval) clearInterval(uptimeInterval); updateUptime(); uptimeInterval = setInterval(updateUptime, 1000);
     };
     
-    document.getElementById('section-stats-btn')?.addEventListener('click', openStats);
+    // --- FIXED STATS & FEEDBACK LISTENERS ---
+    const statsBtn = document.getElementById('section-stats-btn');
+    if(statsBtn) statsBtn.onclick = openStats;
 
+    const feedbackBtn = document.getElementById('section-feedback-btn');
     const openFeedback = () => { document.getElementById('feedback-modal').style.display = 'flex'; };
-    document.getElementById('section-feedback-btn')?.addEventListener('click', openFeedback);
+    if(feedbackBtn) feedbackBtn.onclick = openFeedback;
 
     const fForm = document.getElementById('feedback-form');
     if(fForm) fForm.onsubmit = async (e) => {
@@ -1101,19 +1088,16 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
     });
 
-    // Offline Detection Logic
     window.addEventListener('online', () => {
         document.getElementById('offline-banner').style.display = 'none';
     });
     window.addEventListener('offline', () => {
         document.getElementById('offline-banner').style.display = 'flex';
     });
-    // Check initial state
     if (!navigator.onLine) {
         document.getElementById('offline-banner').style.display = 'flex';
     }
 
-    // Force icons to render immediately (and repeatedly) to fix button click issues
     renderIcons(); 
     setTimeout(renderIcons, 200); 
     setTimeout(renderIcons, 500); 
