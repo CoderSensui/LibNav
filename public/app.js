@@ -1084,18 +1084,35 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     setTimeout(renderIcons, 500); 
     setTimeout(renderIcons, 1000);
 
-    // --- CRASH-PROOF ADMIN & BROADCAST CONTROLS ---
-    const toggleMaintBtn = document.getElementById('toggle-maintenance-btn');
-    if (toggleMaintBtn) {
-        toggleMaintBtn.onclick = async () => {
-            if (typeof LibraryDB.getMaintenance !== 'function') return showPopup("Error", "Database update missing.", null, false);
-            const currentMaint = await LibraryDB.getMaintenance();
-            const newState = !currentMaint;
+   // --- ADMIN MAINTENANCE MODAL LOGIC ---
+    const openMaintBtn = document.getElementById('open-maint-view-btn');
+    const closeMaintBtn = document.getElementById('close-maint-modal-btn');
+    const maintModal = document.getElementById('admin-maint-modal');
+    const maintSwitch = document.getElementById('maint-toggle-switch');
+    const saveMaintBtn = document.getElementById('save-maint-btn');
+
+    if (openMaintBtn && maintModal) {
+        openMaintBtn.onclick = async () => {
+            maintModal.style.display = 'flex';
+            if (typeof LibraryDB.getMaintenance === 'function') {
+                const currentMaint = await LibraryDB.getMaintenance();
+                if(maintSwitch) maintSwitch.checked = currentMaint;
+            }
+        };
+    }
+    if (closeMaintBtn && maintModal) closeMaintBtn.onclick = () => maintModal.style.display = 'none';
+
+    if (saveMaintBtn) {
+        saveMaintBtn.onclick = async () => {
+            if (typeof LibraryDB.setMaintenance !== 'function') return showPopup("Error", "Database update missing.", null, false);
+            const newState = maintSwitch ? maintSwitch.checked : false;
             await LibraryDB.setMaintenance(newState);
-            showPopup("System Control", `Maintenance Mode is now ${newState ? 'ON' : 'OFF'}. Only Admins can view the site.`, null, false);
+            showPopup("System Control", `Maintenance Mode is now ${newState ? 'ON' : 'OFF'}.`, null, false);
+            if (maintModal) maintModal.style.display = 'none';
         };
     }
 
+    // --- ADMIN BROADCAST CONTROLS ---
     const openBcBtn = document.getElementById('open-broadcast-view-btn');
     const closeBcBtn = document.getElementById('close-broadcast-admin-btn');
     const sendBcBtn = document.getElementById('send-broadcast-btn');
@@ -1131,19 +1148,16 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     // --- ON LOAD CHECKER (Maintenance & Broadcasts) ---
     setTimeout(async () => {
-        // 1. Check Maintenance safely
         if (typeof LibraryDB.getMaintenance === 'function') {
             const isMaint = await LibraryDB.getMaintenance();
             const isVIP = localStorage.getItem('libnav_admin_token') === 'VIP_GRANTED';
-            
             if (isMaint && !isVIP) {
                 const maintOverlay = document.getElementById('maintenance-overlay');
                 if (maintOverlay) maintOverlay.style.display = 'flex';
-                return; // Stop loading other popups if in maintenance
+                return; 
             }
         }
 
-        // 2. Check User Broadcasts safely
         if (typeof LibraryDB.getBroadcast === 'function') {
             const activeBc = await LibraryDB.getBroadcast();
             if (activeBc && activeBc.id) {
@@ -1153,7 +1167,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                     if (ubModal) {
                         const box = ubModal.querySelector('.modal-box');
                         const iconWrap = ubModal.querySelector('.welcome-icon-wrap');
-                        
                         box.className = `modal-box broadcast-layout theme-${activeBc.theme || 'info'}`;
                         let iconStr = 'bell-ring';
                         if(activeBc.theme === 'success') iconStr = 'check-circle';
@@ -1161,14 +1174,11 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                         if(activeBc.theme === 'alert') iconStr = 'shield-alert';
                         iconWrap.innerHTML = `<i data-lucide="${iconStr}"></i>`;
                         if(typeof lucide !== 'undefined') lucide.createIcons();
-
                         const titleEl = document.getElementById('ub-title');
                         const msgEl = document.getElementById('ub-msg');
                         if (titleEl) titleEl.innerText = activeBc.title;
                         if (msgEl) msgEl.innerText = activeBc.message;
-                        
                         ubModal.style.display = 'flex';
-                        
                         const gotItBtn = document.getElementById('ub-got-it-btn');
                         if (gotItBtn) {
                             gotItBtn.onclick = () => {
@@ -1182,41 +1192,69 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
     }, 1500); 
 
-    // --- TRUE PINCH-TO-ZOOM FIX ---
-    const mapContainer = document.getElementById('carousel-wrapper');
-    let mapScale = 1; let initialDist = 0; // Renamed variables to prevent duplicate errors forever
+    // --- BULLETPROOF PINCH, PAN, & ZOOM (FULLSCREEN MODAL) ---
+    const zoomImageElement = document.getElementById('zoomed-image');
+    const zoomModalContainer = document.getElementById('zoom-modal');
     
-    if (mapContainer) {
-        mapContainer.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                e.preventDefault(); 
-                initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-            }
-        }, {passive: false}); 
+    let zScale = 1, zP1x = 0, zP1y = 0, zP2x = 0, zP2y = 0;
+    let zStartX = 0, zStartY = 0, zX = 0, zY = 0;
+    let zIsDragging = false;
 
-        mapContainer.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 2) {
-                e.preventDefault(); 
-                const currentDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                const scaleChange = currentDist / initialDist;
-                mapScale = Math.min(Math.max(1, mapScale * scaleChange), 3.5); 
-                const cImg = document.getElementById('carousel-img');
-                if(cImg) cImg.style.transform = `scale(${mapScale})`;
-                initialDist = currentDist;
+    if (zoomImageElement && zoomModalContainer) {
+        // Prevent default scrolling on the entire modal overlay
+        zoomModalContainer.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+
+        zoomImageElement.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                zIsDragging = true;
+                zStartX = e.touches[0].clientX - zX;
+                zStartY = e.touches[0].clientY - zY;
+            } else if (e.touches.length === 2) {
+                zIsDragging = false;
+                zP1x = e.touches[0].clientX; zP1y = e.touches[0].clientY;
+                zP2x = e.touches[1].clientX; zP2y = e.touches[1].clientY;
             }
-        }, {passive: false});
+        }, { passive: false });
+
+        zoomImageElement.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (e.touches.length === 1 && zIsDragging) {
+                zX = e.touches[0].clientX - zStartX;
+                zY = e.touches[0].clientY - zStartY;
+                zoomImageElement.style.transform = `translate(${zX}px, ${zY}px) scale(${zScale})`;
+            } else if (e.touches.length === 2) {
+                const zCurrentP1x = e.touches[0].clientX, zCurrentP1y = e.touches[0].clientY;
+                const zCurrentP2x = e.touches[1].clientX, zCurrentP2y = e.touches[1].clientY;
+                
+                const startDist = Math.hypot(zP1x - zP2x, zP1y - zP2y);
+                const currentDist = Math.hypot(zCurrentP1x - zCurrentP2x, zCurrentP1y - zCurrentP2y);
+                
+                const distanceChange = currentDist - startDist;
+                zScale = Math.min(Math.max(1, zScale + (distanceChange * 0.01)), 4); // Max 4x Zoom
+                
+                zoomImageElement.style.transform = `translate(${zX}px, ${zY}px) scale(${zScale})`;
+                
+                zP1x = zCurrentP1x; zP1y = zCurrentP1y;
+                zP2x = zCurrentP2x; zP2y = zCurrentP2y;
+            }
+        }, { passive: false });
+
+        zoomImageElement.addEventListener('touchend', () => { zIsDragging = false; });
     }
 
-    const resetMapZoom = () => { 
-        mapScale = 1; 
-        const cImg = document.getElementById('carousel-img');
-        if(cImg) cImg.style.transform = `scale(1)`; 
+    // Reset zoom and position when closing
+    const resetFullScreenZoom = () => {
+        zScale = 1; zX = 0; zY = 0;
+        if(zoomImageElement) zoomImageElement.style.transform = `translate(0px, 0px) scale(1)`;
     };
-    const pBtn = document.getElementById('prev-img-btn');
-    const nBtn = document.getElementById('next-img-btn');
-    if(pBtn) pBtn.addEventListener('click', resetMapZoom);
-    if(nBtn) nBtn.addEventListener('click', resetMapZoom);
-    if(mapContainer) mapContainer.addEventListener('touchend', (e) => { if(e.touches.length === 0) resetMapZoom(); }, {passive: true});
+    
+    document.getElementById('close-zoom-btn')?.addEventListener('click', resetFullScreenZoom);
+    zoomModalContainer?.addEventListener('click', (e) => {
+        if(e.target === zoomModalContainer) {
+            resetFullScreenZoom();
+        }
+    });
 
     // --- ONBOARDING POPUP LOGIC ---
     const welcomeModal = document.getElementById('welcome-modal');
