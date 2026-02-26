@@ -96,5 +96,24 @@ const LibraryDB = {
         this.ratings = [];
         
         return true;
+    },
+
+        // --- NEW BROADCAST FUNCTIONS ---
+    getBroadcast: async function() {
+        try {
+            const res = await fetch(`${this.dbUrl}broadcast.json`);
+            return await res.json();
+        } catch(e) { return null; }
+    },
+
+    setBroadcast: async function(broadcastObj) {
+        try {
+            await fetch(`${this.dbUrl}broadcast.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(broadcastObj)
+            });
+            return true;
+        } catch(e) { return false; }
     }
 };
