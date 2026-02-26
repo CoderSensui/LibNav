@@ -599,7 +599,7 @@ body.light-mode .app-header.top-nav, body.light-mode .bottom-nav {
 .zoom-badge {
     position: absolute; 
     bottom: 15px; /* Moved to bottom right! */
-    right: 20px; 
+    right: 1px; 
     background: rgba(18, 18, 18, 0.85); color: white; border: none;
     width: 40px; height: 40px; border-radius: 50%;
     display: flex; justify-content: center; align-items: center;
