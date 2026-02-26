@@ -116,12 +116,12 @@
 
         <section id="about-section" class="content-section">
             <div class="card-box">
-                <div class="card-header">
+              <div class="card-header">
                     <div class="icon-box"><i data-lucide="compass"></i></div>
                     <h2>About LibNav</h2>
                 </div>
-                <p class="about-desc">LibNav is a smart library navigation system designed to help you find physical books instantly. It bridges the gap between digital searching and physical shelves.</p>
-
+                <p class="about-desc">LibNav is an exclusive smart library navigation system built for Notre Dame - Siena College of General Santos City. It bridges the gap between our digital catalog and physical shelves, modernizing the campus reading experience.</p>
+                
                 <div class="card-header secondary">
                     <div class="icon-box"><i data-lucide="book-open-check"></i></div>
                     <h2>How to Use</h2>
@@ -264,11 +264,12 @@
           <div id="admin-dashboard" style="display:none;">
                 
                 <div id="admin-main-view">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
-                        <button id="open-add-view-btn" class="btn-primary" style="padding: 15px;"><i data-lucide="plus-circle"></i> Add Book</button>
-                        <button id="open-batch-view-btn" class="btn-secondary" style="padding: 15px;"><i data-lucide="layers"></i> Batch Update</button>
+                   <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 25px;">
+                        <button id="open-add-view-btn" class="btn-primary" style="padding: 15px; font-size: 0.9rem;"><i data-lucide="plus-circle"></i> Add</button>
+                        <button id="open-batch-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.9rem;"><i data-lucide="layers"></i> Batch</button>
+                        <button id="open-broadcast-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.9rem; background: var(--primary-light); color: var(--primary); border: none;"><i data-lucide="radio"></i> Broadcast</button>
                     </div>
-
+                    
                     <h3 class="sub-title warning"><i data-lucide="database"></i> System Data</h3>
                     <div class="input-with-icon" style="margin-bottom: 15px;">
                         <i data-lucide="search"></i>
@@ -419,6 +420,43 @@
         <button id="close-zoom-btn" class="close-btn" style="position:fixed; top:20px; right:20px; background:rgba(255,255,255,0.1); color:white; border:none;"><i data-lucide="x"></i></button>
         <img id="zoomed-image" src="" style="max-width:100%; max-height:100%; object-fit:contain; transition: transform 0.2s;">
     </div>
+
+    <div id="admin-broadcast-view" class="modal-overlay" style="z-index: 10005;">
+        <div class="modal-box">
+            <button id="close-broadcast-admin-btn" class="close-btn"><i data-lucide="x"></i></button>
+            <h3 class="sub-title"><i data-lucide="radio"></i> System Broadcast</h3>
+            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:15px;">Push an alert to all users instantly.</p>
+            <input type="text" id="bc-title" class="input-field" placeholder="Broadcast Title (e.g., Update!)">
+            <textarea id="bc-msg" class="input-field" rows="4" placeholder="Type your announcement here..."></textarea>
+            <button id="send-broadcast-btn" class="btn-success full-width"><i data-lucide="send"></i> Send to All Users</button>
+            <button id="clear-broadcast-btn" class="btn-outline-warning full-width mt"><i data-lucide="trash-2"></i> Clear Active Broadcast</button>
+        </div>
+    </div>
+
+    <div id="welcome-modal" class="modal-overlay" style="z-index: 20000;">
+        <div class="modal-box welcome-layout">
+            <div class="welcome-icon-wrap"><i data-lucide="map"></i></div>
+            <h2>Welcome to LibNav!</h2>
+            <div class="steps-container" style="text-align: left; margin-bottom: 25px;">
+                <div class="step-item"><div class="step-num" style="width:25px;height:25px;font-size:0.9rem;">1</div><div class="step-text"><strong>Search</strong><span>Find books by title or author.</span></div></div>
+                <div class="step-item"><div class="step-num" style="width:25px;height:25px;font-size:0.9rem;">2</div><div class="step-text"><strong>Navigate</strong><span>Tap a cover to see the shelf map.</span></div></div>
+                <div class="step-item"><div class="step-num" style="width:25px;height:25px;font-size:0.9rem;">3</div><div class="step-text"><strong>Zoom</strong><span>Pinch the map to look closer!</span></div></div>
+            </div>
+            <label class="filter-option" style="margin-bottom:15px; justify-content:center;">
+                <input type="checkbox" id="never-show-welcome"><span class="checkmark"></span><span>Never remind me again</span>
+            </label>
+            <button id="start-libnav-btn" class="btn-primary full-width">Let's Go!</button>
+        </div>
+    </div>
+
+    <div id="user-broadcast-modal" class="modal-overlay" style="z-index: 21000;">
+        <div class="modal-box broadcast-layout" style="border: 2px solid var(--primary);">
+            <div class="welcome-icon-wrap" style="background:var(--primary); color:white;"><i data-lucide="bell-ring"></i></div>
+            <h2 id="ub-title">Announcement</h2>
+            <p id="ub-msg" style="color:var(--text-muted); margin-bottom:25px; line-height:1.5;">Message goes here.</p>
+            <button id="ub-got-it-btn" class="btn-primary full-width">I Understand</button>
+        </div>
+        </div>
     
     <script src="database.js"></script>
     <script src="app.js"></script>
