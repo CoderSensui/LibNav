@@ -420,8 +420,9 @@ document.addEventListener('DOMContentLoaded', () => {
         featuredContainer.innerHTML = `
             <div class="featured-wrap">
                 <span class="feat-tag"><i data-lucide="star"></i> Daily Global Pick</span>
-                <div class="featured-card book-card" onclick="openModalById('${b.id}')"> <div class="feat-img-wrap">
-                        <img id="fc-img" src="">
+                <div class="featured-card book-card" onclick="openModalById('${b.id}')"> 
+                    <div class="feat-img-wrap skeleton">
+                        <img id="fc-img" src="" style="opacity: 0; transition: opacity 0.4s ease;">
                         <button class="fav-btn ${isFav?'active':''}" onclick="toggleFavorite(event,'${b.id}')"><i data-lucide="bookmark"></i></button>
                     </div>
                     <div class="feat-info"><h2>${b.title}</h2><p>${b.author}</p><span class="book-badge">${b.genre}</span></div>
@@ -429,7 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         fetchCoverWithFallback(b.title, b.author, 'fc-img', true); renderIcons();
     }
-
+    
     function fetchCoverWithFallback(title, author, elementId, isImgTag) {
         const cacheKey = `${title}-${author}`; 
         if(coverCache[cacheKey]) { applyCover(coverCache[cacheKey], elementId, isImgTag); return; }
@@ -593,31 +594,46 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
         renderIcons();
     }
-    
     function updateCarousel() {
         const aa = document.getElementById('mobile-action-area');
         const dotsContainer = document.getElementById('carousel-dots');
+        const cWrapper = document.getElementById('carousel-wrapper'); // Grab the container
         
         if (currentImages && currentImages.length > 0) {
+            // --- SKELETON LOADING LOGIC ---
+            if (cWrapper) cWrapper.classList.add('skeleton'); // Add gray shimmer
+            carouselImg.style.opacity = '0'; // Hide image while loading
+            carouselImg.style.transition = 'opacity 0.3s ease, transform 0.1s ease-out';
+            
+            carouselImg.onload = () => {
+                carouselImg.style.opacity = '1'; // Fade image in
+                if (cWrapper) cWrapper.classList.remove('skeleton'); // Remove shimmer
+            };
+
+            // Trigger the image load
             carouselImg.src = currentImages[currentImageIndex];
             carouselImg.style.display = 'block';
             
+            // Update PC Controls
             if(stepCounter) stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
             if(prevBtn) { prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1"; prevBtn.style.pointerEvents = currentImageIndex === 0 ? "none" : "auto"; }
             if(nextBtn) { nextBtn.style.opacity = currentImageIndex === currentImages.length - 1 ? "0.3" : "1"; nextBtn.style.pointerEvents = currentImageIndex === currentImages.length - 1 ? "none" : "auto"; }
             
+            // Update Dots (Mobile Indicator)
             if (dotsContainer) {
                 dotsContainer.innerHTML = currentImages.map((_, i) => 
                     `<span class="dot ${i === currentImageIndex ? 'active' : ''}"></span>`
                 ).join('');
             }
 
+            // Show "I Found It" button on last step
             if (aa) aa.style.display = (currentImageIndex === currentImages.length - 1 && document.body.classList.contains('is-mobile-device')) ? 'flex' : 'none';
         } else { 
             carouselImg.style.display = 'none'; 
             if(stepCounter) stepCounter.innerText = "No map available"; 
             if(dotsContainer) dotsContainer.innerHTML = '';
             if (aa && document.body.classList.contains('is-mobile-device')) aa.style.display = 'flex';
+            if (cWrapper) cWrapper.classList.remove('skeleton'); // Clean up if empty
         }
     }
     
