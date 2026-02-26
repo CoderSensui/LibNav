@@ -748,9 +748,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('.fav-btn');
         btn.classList.toggle('active'); 
         const index = favorites.findIndex(id => String(id) === String(bookId));
-        if (index === -1) favorites.push(String(bookId)); else favorites.splice(index, 1);
+        
+        if (index === -1) {
+            favorites.push(String(bookId)); 
+        } else {
+            favorites.splice(index, 1);
+        }
+        
         localStorage.setItem('libnav_favs', JSON.stringify(favorites));
-    }
+
+        // Instantly remove book from screen if user is currently in the "Bookmarks" view
+        if (selectedGenres.has('Favorites') && index !== -1) {
+            const card = btn.closest('.book-card');
+            if (card) card.remove();
+            
+            // If all bookmarks are removed, show the empty state screen instantly
+            if (favorites.length === 0) {
+                const resultsArea = document.getElementById('results-area');
+                resultsArea.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon-wrap"><i data-lucide="bookmark-minus"></i></div>
+                        <h3>No Bookmarks Yet</h3>
+                        <p>Hold or hover over any book cover to add it to your reading list.</p>
+                    </div>`;
+                renderIcons();
+            }
+        }
+    };
 
     document.onclick = (e) => { if(!e.target.closest('.search-wrapper')) autocompleteDropdown.style.display='none'; if(!e.target.closest('.search-wrapper') && !e.target.closest('#filter-toggle')) filterMenu.style.display='none'; };
     
@@ -803,10 +827,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             
          <div class="stats-compact-grid">
-                <div class="bento-card compact-card stats-split-card">
+             <div class="bento-card compact-card stats-split-card">
                     <div class="split-stat-item">
                         <div class="csr-icon yellow" style="margin: 0;"><i data-lucide="star"></i></div>
-                        <div><strong style="font-size: 1.6rem; color: var(--text-main); line-height: 1; display: block; margin-bottom: 3px;">${avg}</strong> <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Global Rating</span></div>
+                        <div><strong style="font-size: 1.6rem; color: var(--text-main); line-height: 1; display: block; margin-bottom: 3px;">${avg}</strong> <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Global Rating (${ratings.length} Reviews)</span></div>
                     </div>
                     
                     <div class="split-divider"></div>
@@ -816,7 +840,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div><strong style="font-size: 1.6rem; color: var(--text-main); line-height: 1; display: block; margin-bottom: 3px;">${favorites.length}</strong> <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Bookmarks</span></div>
                     </div>
                 </div>
-
+                
                <div class="bento-card" style="position: relative;">     <div style="position: absolute; top: 20px; right: 20px; background: var(--primary-light); color: var(--primary); padding: 6px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">${mostViewed.views} Views</div>
                     <div class="bento-highlight" style="display: flex; flex-direction: row; align-items: center; gap: 18px;">
                         <div class="bento-icon" style="min-width: 50px; width: 50px; height: 50px; background: var(--primary); color: white; border: none; box-shadow: 0 0 15px rgba(219,39,119,0.5); border-radius: 14px; display: flex; justify-content: center; align-items: center; margin: 0; flex-shrink: 0;"><i data-lucide="flame"></i></div>
