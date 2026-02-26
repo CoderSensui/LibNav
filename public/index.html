@@ -199,14 +199,17 @@
                         <i data-lucide="qr-code"></i> Send Map to Mobile
                     </button>
                 </div>
-                
                 <div class="book-right">
                     <div id="carousel-wrapper" class="map-carousel">
                         <div id="swipe-hint" class="swipe-hint mobile-only-flex">
                             <i data-lucide="move-horizontal"></i> <span>Swipe</span>
                         </div>
+                        
                         <img id="carousel-img" src="" alt="Navigation Map">
-                        <div class="zoom-badge"><i data-lucide="maximize-2"></i></div>
+                        
+                        <button id="zoom-trigger-btn" class="zoom-badge"><i data-lucide="maximize-2"></i></button>
+                        
+                        <div id="carousel-dots" class="carousel-dots"></div>
                     </div>
                     
                     <div class="carousel-controls">
@@ -416,7 +419,7 @@
             <div id="zoom-modal" class="modal-overlay" style="z-index: 20000; background: rgba(0,0,0,0.95); display: none;">
         <button id="close-zoom-btn" class="close-btn" style="position:fixed; top:20px; right:20px; background:rgba(255,255,255,0.1); color:white; border:none;"><i data-lucide="x"></i></button>
         <img id="zoomed-image" src="" style="max-width:100%; max-height:100%; object-fit:contain; transition: transform 0.2s;">
-            </div>
+    </div>
     
     <script src="database.js"></script>
     <script src="app.js"></script>
