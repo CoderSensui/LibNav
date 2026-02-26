@@ -251,62 +251,103 @@
                 <button id="admin-auth-btn" class="btn-primary full-width">Login</button>
             </div>
             
-            <div id="admin-dashboard" style="display:none;">
-                <h3 id="admin-form-title" class="sub-title">Add New Book</h3>
-                <input type="hidden" id="edit-book-id" value="">
+          <div id="admin-dashboard" style="display:none;">
                 
-                <input type="text" id="new-title" class="input-field" placeholder="Book Title">
-                <input type="text" id="new-author" class="input-field" placeholder="Author Name">
-               
-                <div class="form-grid">
-                    <div>
-                        <label class="input-label">Genre</label>
-                        <select id="new-genre" class="input-field" style="padding-left:15px;">
-                            <option value="Fiction">Fiction</option>
-                            <option value="Filipiniana">Filipiniana</option>
-                            <option value="Filipiniana Reference">Filipiniana Reference</option>
-                            <option value="Science/Math">Science/Math</option>
-                            <option value="Religion">Religion</option>
-                        </select>
+                <div id="admin-main-view">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                        <button id="open-add-view-btn" class="btn-primary" style="padding: 15px;"><i data-lucide="plus-circle"></i> Add Book</button>
+                        <button id="open-batch-view-btn" class="btn-secondary" style="padding: 15px;"><i data-lucide="layers"></i> Batch Update</button>
                     </div>
-                    <div>
-                        <label class="input-label">Nav Steps</label>
-                        <select id="step-count-select" class="input-field" style="padding-left:15px;">
-                            <option value="2">2 Steps</option>
-                            <option value="3">3 Steps</option>
-                            <option value="4">4 Steps</option>
-                            <option value="5">5 Steps</option>
-                            <option value="6">6 Steps</option>
-                            <option value="7">7 Steps</option>
-                            <option value="8">8 Steps</option>
-                        </select>
+
+                    <h3 class="sub-title warning"><i data-lucide="database"></i> System Data</h3>
+                    <div class="input-with-icon" style="margin-bottom: 15px;">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="admin-search" class="input-field" style="padding: 15px 15px 15px 55px; font-size: 1rem; margin-bottom: 0;" placeholder="Search admin books...">
                     </div>
+                    <div id="admin-book-list" class="admin-list"></div>
+                    <button id="factory-reset-btn" class="btn-outline-warning full-width mt"><i data-lucide="alert-octagon"></i> Factory Reset</button>
                 </div>
 
-                <label class="filter-option highlight" style="margin-bottom: 20px; background: var(--bg-main); padding: 15px; border: 1px solid var(--border-color);">
-                    <input type="checkbox" id="new-arrival-check">
-                    <span class="checkmark"></span>
-                    <span style="font-weight: bold; color: var(--primary);">Mark as New Arrival</span>
-                </label>
-                
-                <div id="image-inputs-container" class="dynamic-inputs"></div>
+                <div id="admin-form-view" style="display:none;">
+                    <button id="close-form-view-btn" class="btn-secondary" style="margin-bottom: 20px; padding: 10px;"><i data-lucide="arrow-left"></i> Back to Menu</button>
+                    <h3 id="admin-form-title" class="sub-title">Add New Book</h3>
+                    <input type="hidden" id="edit-book-id" value="">
+                    
+                    <input type="text" id="new-title" class="input-field" placeholder="Book Title">
+                    <input type="text" id="new-author" class="input-field" placeholder="Author Name">
+                    
+                    <div class="form-grid">
+                        <div>
+                            <label class="input-label">Genre</label>
+                            <select id="new-genre" class="input-field" style="padding-left:15px;">
+                                <option value="Fiction">Fiction</option>
+                                <option value="Filipiniana">Filipiniana</option>
+                                <option value="Filipiniana Reference">Filipiniana Reference</option>
+                                <option value="Science/Math">Science/Math</option>
+                                <option value="Religion">Religion</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="input-label">Nav Steps</label>
+                            <select id="step-count-select" class="input-field" style="padding-left:15px;">
+                                <option value="2">2 Steps</option>
+                                <option value="3">3 Steps</option>
+                                <option value="4">4 Steps</option>
+                                <option value="5">5 Steps</option>
+                                <option value="6">6 Steps</option>
+                                <option value="7">7 Steps</option>
+                                <option value="8">8 Steps</option>
+                            </select>
+                        </div>
+                    </div>
 
-                <button id="add-book-btn" class="btn-success full-width"><i data-lucide="upload-cloud"></i> Add to Cloud</button>
-                <button id="cancel-edit-btn" class="btn-secondary full-width mt" style="display:none;">Cancel Edit</button>
-                
-                <h3 class="sub-title warning mt"><i data-lucide="database"></i> System Data</h3>
-                
-                <div class="input-with-icon" style="margin-bottom: 15px;">
-                    <i data-lucide="search"></i>
-                    <input type="text" id="admin-search" class="input-field" style="padding: 15px 15px 15px 55px; font-size: 1rem; margin-bottom: 0;" placeholder="Search admin books...">
+                    <label class="filter-option highlight" style="margin-bottom: 20px; background: var(--bg-main); padding: 15px; border: 1px solid var(--border-color);">
+                        <input type="checkbox" id="new-arrival-check">
+                        <span class="checkmark"></span>
+                        <span style="font-weight: bold; color: var(--primary);">Mark as New Arrival</span>
+                    </label>
+                    
+                    <div id="image-inputs-container" class="dynamic-inputs"></div>
+
+                    <button id="add-book-btn" class="btn-success full-width"><i data-lucide="upload-cloud"></i> Save to Cloud</button>
                 </div>
-                
-                <div id="admin-book-list" class="admin-list"></div>
-                
-                <button id="factory-reset-btn" class="btn-outline-warning full-width mt"><i data-lucide="alert-octagon"></i> Factory Reset</button>
+
+                <div id="admin-batch-view" style="display:none;">
+                    <button id="close-batch-view-btn" class="btn-secondary" style="margin-bottom: 20px; padding: 10px;"><i data-lucide="arrow-left"></i> Back to Menu</button>
+                    <h3 class="sub-title"><i data-lucide="layers"></i> Batch Update Images</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px; line-height: 1.4;">This will overwrite the map navigation images for EVERY book inside the selected category at once.</p>
+                    
+                    <div class="form-grid">
+                        <div>
+                            <label class="input-label">Target Genre</label>
+                            <select id="batch-genre" class="input-field" style="padding-left:15px;">
+                                <option value="Fiction">Fiction</option>
+                                <option value="Filipiniana">Filipiniana</option>
+                                <option value="Filipiniana Reference">Filipiniana Reference</option>
+                                <option value="Science/Math">Science/Math</option>
+                                <option value="Religion">Religion</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="input-label">Nav Steps</label>
+                            <select id="batch-step-count" class="input-field" style="padding-left:15px;">
+                                <option value="2">2 Steps</option>
+                                <option value="3">3 Steps</option>
+                                <option value="4">4 Steps</option>
+                                <option value="5">5 Steps</option>
+                                <option value="6">6 Steps</option>
+                                <option value="7">7 Steps</option>
+                                <option value="8">8 Steps</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="batch-image-inputs-container" class="dynamic-inputs"></div>
+
+                    <button id="run-batch-btn" class="full-width mt" style="background: var(--warning); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;"><i data-lucide="alert-triangle"></i> Apply to Entire Category</button>
+                </div>
+
             </div>
-        </div>
-    </div>
 
     <div id="stats-modal" class="modal-overlay">
         <div class="modal-box stats-layout">
