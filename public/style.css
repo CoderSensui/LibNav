@@ -552,3 +552,19 @@ body.light-mode .app-header.top-nav, body.light-mode .bottom-nav {
         height: 65px !important;
     }
         }
+
+/* --- MOBILE MODAL BUTTON OVERLAP FIX --- */
+@media (max-width: 849px) {
+    .modal-box.book-layout {
+        padding-top: 75px !important; /* Pushes the book cover and info down safely */
+    }
+    .close-btn, .share-btn-top {
+        top: 15px !important; /* Moves buttons higher up */
+    }
+    .close-btn { 
+        right: 15px !important; 
+    }
+    .share-btn-top { 
+        left: 15px !important; 
+    }
+}
