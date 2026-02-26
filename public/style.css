@@ -733,10 +733,13 @@ input:checked + .slider:before { transform: translateX(26px); }
     width: 250px; height: 250px; border-radius: 50%; overflow: hidden;
     border: 8px solid var(--primary); box-shadow: 0 0 80px rgba(219, 39, 119, 0.5);
     margin-bottom: 40px; display: flex; justify-content: center; align-items: center;
-    background: #fff; position: relative;
+    background: #000; position: relative;
 }
-/* This tricks the embed into filling the circle perfectly */
-.easter-egg-frame .tenor-gif-embed { width: 120% !important; height: 120% !important; pointer-events: none; margin-top:-10px;}
+/* Stretches the wide GIF to fill the circular frame perfectly */
+.easter-egg-frame .tenor-gif-embed { 
+    width: 200% !important; height: 200% !important; 
+    pointer-events: none; margin-top: -5px; 
+}
 
 #shush-text {
     font-family: 'Gloria Hallelujah', cursive; font-size: 5rem; color: var(--primary);
