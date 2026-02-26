@@ -98,22 +98,19 @@ const LibraryDB = {
         return true;
     },
 
-        // --- NEW BROADCAST FUNCTIONS ---
+      // --- ADD THESE AT THE END OF LibraryDB (Before the final }; ) ---
     getBroadcast: async function() {
-        try {
-            const res = await fetch(`${this.dbUrl}broadcast.json`);
-            return await res.json();
-        } catch(e) { return null; }
+        try { const res = await fetch(`${this.dbUrl}broadcast.json`); return await res.json(); } catch(e) { return null; }
+    },
+    setBroadcast: async function(broadcastObj) {
+        try { await fetch(`${this.dbUrl}broadcast.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(broadcastObj) }); return true; } catch(e) { return false; }
     },
 
-    setBroadcast: async function(broadcastObj) {
-        try {
-            await fetch(`${this.dbUrl}broadcast.json`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(broadcastObj)
-            });
-            return true;
-        } catch(e) { return false; }
+    // --- NEW MAINTENANCE FUNCTIONS ---
+    getMaintenance: async function() {
+        try { const res = await fetch(`${this.dbUrl}maintenance.json`); return await res.json(); } catch(e) { return false; }
+    },
+    setMaintenance: async function(status) {
+        try { await fetch(`${this.dbUrl}maintenance.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(status) }); return true; } catch(e) { return false; }
     }
 };
