@@ -210,17 +210,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if(overlay) overlay.style.display = 'none';
     });
 
+// CATEGORY FILTER LOGIC (SIDEBAR - Shows Instantly)
     document.querySelectorAll('.menu-item').forEach(btn => {
         btn.onclick = () => {
             const genre = btn.dataset.genre;
             selectedGenres.clear();
+            
             document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
                 if(b.classList) b.classList.remove('active'); 
                 else b.checked = false; 
             }); 
+            
             btn.classList.add('active');
             const checkbox = document.querySelector(`.filter-option input[value="${genre}"]`);
             if (checkbox) checkbox.checked = true;
+            
             if(genre !== 'All') selectedGenres.add(genre);
             
             const hero = document.getElementById('hero');
@@ -228,16 +232,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if(hero) { hero.style.display = 'none'; hero.style.opacity = '0'; }
             if(feat) { feat.style.display = 'none'; }
             
+            // Sidebar ALWAYS performs the search instantly
             if (genre === 'All' && searchInput.value.trim() === '') {
                 performSearch('', true);
             } else {
                 performSearch(searchInput.value);
             }
+            
             if(window.innerWidth < 850) closeSidebar(); 
             switchSection('home', true);
         };
     });
 
+    // DROPDOWN FILTER LOGIC (SEARCH BAR - Waits for input)
     document.querySelectorAll('.filter-option input').forEach(box => {
         box.onchange = (e) => {
             const val = e.target.value;
@@ -250,18 +257,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 else { selectedGenres.delete(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.remove('active'); }); }
             }
             
-            const hero = document.getElementById('hero');
-            const feat = document.getElementById('featured-container');
-            if(hero) { hero.style.display = 'none'; hero.style.opacity = '0'; }
-            if(feat) { feat.style.display = 'none'; }
-            
-            if ((selectedGenres.size === 0 || selectedGenres.has('All')) && searchInput.value.trim() === '') { 
-                performSearch('', true);
-            } else { 
+            // Dropdown ONLY performs search if there's an active query. Otherwise, wait.
+            if (searchInput.value.trim() !== '') { 
                 performSearch(searchInput.value); 
             }
         };
     });
+    
     
     document.getElementById('admin-auth-btn').onclick = () => {
         if (document.getElementById('admin-password').value === 'admin123') { 
