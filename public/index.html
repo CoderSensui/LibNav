@@ -264,12 +264,14 @@
           <div id="admin-dashboard" style="display:none;">
                 
                 <div id="admin-main-view">
-                   <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                        <button id="open-add-view-btn" class="btn-primary" style="padding: 15px; font-size: 0.9rem;"><i data-lucide="plus-circle"></i> Add</button>
-                        <button id="open-batch-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.9rem;"><i data-lucide="layers"></i> Batch</button>
-                        <button id="open-broadcast-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.9rem; background: var(--primary-light); color: var(--primary); border: none;"><i data-lucide="radio"></i> Broadcast</button>
+                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <button id="open-add-view-btn" class="btn-primary" style="padding: 15px; font-size: 0.95rem;"><i data-lucide="plus-circle"></i> Add</button>
+                        <button id="open-batch-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.95rem;"><i data-lucide="layers"></i> Batch</button>
                     </div>
-                    <button id="toggle-maintenance-btn" class="btn-outline-warning full-width" style="margin-bottom: 25px;"><i data-lucide="construction"></i> Toggle Maintenance Mode</button>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
+                        <button id="open-broadcast-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.95rem; background: var(--primary-light); color: var(--primary); border: none;"><i data-lucide="radio"></i> Broadcast</button>
+                        <button id="open-maint-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.95rem; background: rgba(245,158,11,0.1); color: var(--warning); border: none;"><i data-lucide="construction"></i> System</button>
+                    </div>
                     
                     <h3 class="sub-title warning"><i data-lucide="database"></i> System Data</h3>
                     <div class="input-with-icon" style="margin-bottom: 15px;">
@@ -467,13 +469,36 @@
         </div>
         </div>
 
-    <div id="maintenance-overlay">
-        <img src="https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif" class="maint-icon">
+   <div id="maintenance-overlay">
+        <div class="maint-gif-wrapper">
+            <div class="tenor-gif-embed" data-postid="5532131" data-share-method="host" data-aspect-ratio="1" data-width="100%"><a href="https://tenor.com/view/minion-animated-running-lol-gif-5532131">Minion Animated GIF</a>from <a href="https://tenor.com/search/minion-gifs">Minion GIFs</a></div> 
+            <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
+        </div>
+        
         <h1>We're Upgrading!</h1>
         <p>LibNav is currently closed for some quick system upgrades to make your library experience even better.</p>
-        <div class="tip-box" style="text-align: left; max-width: 350px;">
+        
+        <div class="tip-box" style="text-align: left; width: 100%; max-width: 350px;">
             <div class="tip-header"><i data-lucide="clock"></i> Check Back Soon</div>
-            <p style="color:var(--text-muted); font-size:0.9rem;">Our minions are working as fast as they can. Grab a coffee and refresh the page in a few minutes!</p>
+            <p style="color:var(--text-muted); font-size:0.9rem; line-height:1.5; margin:0;">Our minions are working as fast as they can. Grab a coffee and refresh the page in a few minutes!</p>
+        </div>
+    </div>
+    
+    <div id="admin-maint-modal" class="modal-overlay" style="z-index: 10005;">
+        <div class="modal-box">
+            <button id="close-maint-modal-btn" class="close-btn"><i data-lucide="x"></i></button>
+            <h3 class="sub-title"><i data-lucide="settings"></i> System Settings</h3>
+            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px; line-height: 1.4;">Enable maintenance mode to temporarily block all regular users from accessing LibNav. Admins will still have full access.</p>
+            
+            <div class="switch-wrapper">
+                <div class="switch-label"><i data-lucide="power" style="color: var(--warning);"></i> Maintenance Mode</div>
+                <label class="switch">
+                    <input type="checkbox" id="maint-toggle-switch">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <button id="save-maint-btn" class="btn-primary full-width"><i data-lucide="save"></i> Save Settings</button>
         </div>
     </div>
     
