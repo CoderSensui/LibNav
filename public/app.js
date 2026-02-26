@@ -29,16 +29,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let recentSearches = JSON.parse(localStorage.getItem('libnav_recent')) || [];
 
     const tips = [
-        "Use the microphone icon to search for books hands-free.",
+        "Use two fingers to pinch and zoom around the navigation map to see exact shelf details!",
+        "Books marked with a 'HOT' badge are currently the most viewed titles on campus.",
+        "Lost internet? LibNav caches your recent data so you can still find your way offline.",
+        "Tap the microphone icon in the search bar to find books completely hands-free.",
         "Bookmark a book to instantly find it in your Saved list later.",
-        "Double-tap the main LibNav logo on the home screen for a library surprise!",
-        "Browsing on PC? Scan the QR code to seamlessly transfer the map to your phone.",
-        "Filter by 'Favorites' to quickly access the books you've bookmarked.",
-        "Hold any book cover to see quick options like bookmarking.",
-        "Check the Live Stats to see what's trending on campus.",
-        "Tap the author's picture to see their full name clearly.",
-        "Use the arrow button to instantly snap back to the top of the shelf.",
-        "Books marked with a 'HOT' badge are currently the most viewed."
+        "Browsing on PC? Scan the QR code to seamlessly transfer the map to your phone."
     ];
 
     function applyTheme(mode) {
@@ -1103,5 +1099,86 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     setTimeout(renderIcons, 500); 
     setTimeout(renderIcons, 1000);
 
+    // --- PINCH TO ZOOM LOGIC ---
+    let currentScale = 1; let initialDistance = 0;
+    
+    carouselImg.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+            initialDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+        }
+    }, {passive: true});
+
+    carouselImg.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2) {
+            e.preventDefault(); // Prevents the whole page from scrolling
+            const currentDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+            const scaleChange = currentDistance / initialDistance;
+            currentScale = Math.min(Math.max(1, currentScale * scaleChange), 3.5); // Max zoom 3.5x
+            carouselImg.style.transform = `scale(${currentScale})`;
+            initialDistance = currentDistance;
+        }
+    }, {passive: false});
+
+    // Reset zoom when swiping to the next image
+    const resetZoom = () => { currentScale = 1; carouselImg.style.transform = `scale(1)`; };
+    if(prevBtn) prevBtn.addEventListener('click', resetZoom);
+    if(nextBtn) nextBtn.addEventListener('click', resetZoom);
+    if(carouselWrapper) carouselWrapper.addEventListener('touchend', resetZoom, {passive: true});
+
+    // --- ONBOARDING POPUP LOGIC ---
+    const welcomeModal = document.getElementById('welcome-modal');
+    if (!localStorage.getItem('libnav_onboarded')) {
+        setTimeout(() => { welcomeModal.style.display = 'flex'; }, 1000);
+    }
+    document.getElementById('start-libnav-btn').onclick = () => {
+        if (document.getElementById('never-show-welcome').checked) {
+            localStorage.setItem('libnav_onboarded', 'true');
+        }
+        welcomeModal.style.display = 'none';
+    };
+
+    // --- ADMIN BROADCAST CONTROLS ---
+    document.getElementById('open-broadcast-view-btn').onclick = () => {
+        document.getElementById('admin-broadcast-view').style.display = 'flex';
+    };
+    document.getElementById('close-broadcast-admin-btn').onclick = () => {
+        document.getElementById('admin-broadcast-view').style.display = 'none';
+    };
+    
+    document.getElementById('send-broadcast-btn').onclick = async () => {
+        const t = document.getElementById('bc-title').value.trim();
+        const m = document.getElementById('bc-msg').value.trim();
+        if(!t || !m) return showPopup("Error", "Fill out both fields.", null, false);
+        
+        const bcObj = { id: 'bc_' + Date.now(), title: t, message: m };
+        await LibraryDB.setBroadcast(bcObj);
+        showPopup("Success", "Broadcast sent to all users!", null, false);
+        document.getElementById('admin-broadcast-view').style.display = 'none';
+    };
+
+    document.getElementById('clear-broadcast-btn').onclick = async () => {
+        await LibraryDB.setBroadcast(null);
+        showPopup("Cleared", "Active broadcast removed.", null, false);
+        document.getElementById('admin-broadcast-view').style.display = 'none';
+    };
+
+    // --- USER BROADCAST LISTENER ---
+    setTimeout(async () => {
+        const activeBc = await LibraryDB.getBroadcast();
+        if (activeBc && activeBc.id) {
+            const seenBc = localStorage.getItem('libnav_seen_broadcast');
+            if (seenBc !== activeBc.id) {
+                document.getElementById('ub-title').innerText = activeBc.title;
+                document.getElementById('ub-msg').innerText = activeBc.message;
+                document.getElementById('user-broadcast-modal').style.display = 'flex';
+                
+                document.getElementById('ub-got-it-btn').onclick = () => {
+                    localStorage.setItem('libnav_seen_broadcast', activeBc.id);
+                    document.getElementById('user-broadcast-modal').style.display = 'none';
+                };
+            }
+        }
+    }, 2000); // Check 2 seconds after load
+    
     init();
 });
