@@ -497,6 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
 window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => String(x.id) === String(id)); if(b) openModal(b); };
 
+    // --- CAROUSEL LOGIC (SWIPE, ZOOM, DOTS) ---
     const prevBtn = document.getElementById('prev-img-btn');
     const nextBtn = document.getElementById('next-img-btn');
     const carouselWrapper = document.getElementById('carousel-wrapper');
@@ -509,11 +510,16 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     let touchStartX = 0;
     let touchEndX = 0;
+    let swipeDist = 0; // Tracks distance so we don't zoom when swiping!
 
     if(carouselWrapper) {
-        carouselWrapper.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+        carouselWrapper.addEventListener('touchstart', e => { 
+            touchStartX = e.changedTouches[0].screenX; 
+            swipeDist = 0;
+        }, {passive: true});
         carouselWrapper.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
+            swipeDist = Math.abs(touchEndX - touchStartX);
             handleSwipe();
         }, {passive: true});
     }
@@ -528,19 +534,34 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
     }
 
-    if(zoomTrigger) {
-        zoomTrigger.onclick = (e) => {
-            e.stopPropagation();
-            if(currentImages && currentImages.length > 0) {
-                zoomedImage.src = currentImages[currentImageIndex];
-                zoomModal.style.display = 'flex';
+    // --- ALL-IN-ONE ZOOM LOGIC (Clickable Image) ---
+    const openZoomModal = (e) => {
+        if (e) e.stopPropagation();
+        if(currentImages && currentImages.length > 0) {
+            zoomedImage.src = currentImages[currentImageIndex];
+            zoomModal.style.display = 'flex';
+            
+            // Trigger the double-tap/pinch hint inside modal
+            const pHint = document.getElementById('pinch-hint');
+            if (pHint && window.innerWidth < 850) {
+                pHint.style.display = 'flex';
+                pHint.style.animation = 'none';
+                pHint.offsetHeight; // Reflow
+                pHint.style.animation = 'swipeFade 3.5s ease-in-out forwards';
             }
-        };
+        }
+    };
+
+    if(zoomTrigger) zoomTrigger.onclick = openZoomModal;
+    
+    // Make the entire image clickable! (Only opens if they didn't swipe)
+    if(carouselImg) {
+        carouselImg.onclick = (e) => { if (swipeDist < 10) openZoomModal(e); };
     }
     
     document.getElementById('close-zoom-btn').onclick = () => zoomModal.style.display = 'none';
     zoomModal.onclick = (e) => { if(e.target === zoomModal || e.target === zoomedImage) zoomModal.style.display = 'none'; };
-
+    
     async function openModal(book) {
         bookModal.style.display = 'flex'; LibraryDB.incrementView(book.id);
         document.getElementById('modal-book-id').innerText = book.id;
@@ -600,17 +621,31 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         currentGenre = book.genre; 
         updateCarousel(); 
         
+        // Show Hints on Mobile (First step only)
         const hint = document.getElementById('swipe-hint');
-        if(hint && window.innerWidth < 850) {
-            hint.style.display = 'flex';
-            hint.style.animation = 'none';
-            hint.offsetHeight; 
-            hint.style.animation = 'swipeFade 2.5s ease-in-out forwards';
-        } else if (hint) {
-            hint.style.display = 'none';
+        const tHint = document.getElementById('tap-hint');
+        
+        if(window.innerWidth < 850) {
+            if(hint) {
+                hint.style.display = 'flex';
+                hint.style.animation = 'none';
+                hint.offsetHeight; /* Trigger reflow */
+                hint.style.animation = 'swipeFade 2.5s ease-in-out forwards';
+            }
+            if(tHint) {
+                tHint.style.display = 'flex';
+                tHint.style.animation = 'none';
+                tHint.offsetHeight; 
+                tHint.style.animation = 'swipeFade 2.5s ease-in-out forwards';
+                tHint.style.animationDelay = '0.7s'; // Pops up right after swipe hint
+            }
+        } else {
+            if(hint) hint.style.display = 'none';
+            if(tHint) tHint.style.display = 'none';
         }
         renderIcons();
     }
+    
     function updateCarousel() {
         const aa = document.getElementById('mobile-action-area');
         const dotsContainer = document.getElementById('carousel-dots');
@@ -1225,20 +1260,20 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
     }, 1500); 
 
-    // --- BULLETPROOF PINCH, PAN, & ZOOM (FULLSCREEN MODAL) ---
+    
+// --- BULLETPROOF PINCH, PAN & DOUBLE-TAP ZOOM ---
     const zoomImageElement = document.getElementById('zoomed-image');
     const zoomModalContainer = document.getElementById('zoom-modal');
     
     let zScale = 1, zP1x = 0, zP1y = 0, zP2x = 0, zP2y = 0;
     let zStartX = 0, zStartY = 0, zX = 0, zY = 0;
     let zIsDragging = false;
+    let zLastTapTime = 0; // Tracks double taps
 
     if (zoomImageElement && zoomModalContainer) {
-        // Prevent default scrolling on the entire modal overlay
         zoomModalContainer.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
         zoomImageElement.addEventListener('touchstart', (e) => {
-            e.preventDefault();
             if (e.touches.length === 1) {
                 zIsDragging = true;
                 zStartX = e.touches[0].clientX - zX;
@@ -1251,7 +1286,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }, { passive: false });
 
         zoomImageElement.addEventListener('touchmove', (e) => {
-            e.preventDefault();
+            e.preventDefault(); 
             if (e.touches.length === 1 && zIsDragging) {
                 zX = e.touches[0].clientX - zStartX;
                 zY = e.touches[0].clientY - zStartY;
@@ -1264,7 +1299,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 const currentDist = Math.hypot(zCurrentP1x - zCurrentP2x, zCurrentP1y - zCurrentP2y);
                 
                 const distanceChange = currentDist - startDist;
-                zScale = Math.min(Math.max(1, zScale + (distanceChange * 0.01)), 4); // Max 4x Zoom
+                zScale = Math.min(Math.max(1, zScale + (distanceChange * 0.01)), 4); 
                 
                 zoomImageElement.style.transform = `translate(${zX}px, ${zY}px) scale(${zScale})`;
                 
@@ -1273,21 +1308,31 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             }
         }, { passive: false });
 
-        zoomImageElement.addEventListener('touchend', () => { zIsDragging = false; });
+        zoomImageElement.addEventListener('touchend', (e) => { 
+            zIsDragging = false; 
+            
+            // --- THE DOUBLE TAP LOGIC ---
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - zLastTapTime;
+            
+            if (tapLength < 300 && tapLength > 0 && e.changedTouches.length === 1) {
+                if (zScale > 1) {
+                    resetFullScreenZoom(); // Zoom out
+                } else {
+                    zScale = 2.5; // Instant Zoom in!
+                    zoomImageElement.style.transform = `translate(0px, 0px) scale(${zScale})`;
+                }
+                e.preventDefault(); 
+            }
+            zLastTapTime = currentTime;
+        });
     }
 
-    // Reset zoom and position when closing
     const resetFullScreenZoom = () => {
         zScale = 1; zX = 0; zY = 0;
         if(zoomImageElement) zoomImageElement.style.transform = `translate(0px, 0px) scale(1)`;
     };
     
-    document.getElementById('close-zoom-btn')?.addEventListener('click', resetFullScreenZoom);
-    zoomModalContainer?.addEventListener('click', (e) => {
-        if(e.target === zoomModalContainer) {
-            resetFullScreenZoom();
-        }
-    });
 
     // --- ONBOARDING POPUP LOGIC ---
     const welcomeModal = document.getElementById('welcome-modal');
