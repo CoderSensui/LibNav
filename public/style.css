@@ -661,31 +661,99 @@ input:checked + .slider:before { transform: translateX(26px); }
 
 #maintenance-overlay {
     position: fixed; inset: 0;
-    background: radial-gradient(circle at center, #1e1e20 0%, #131314 100%);
+    background: #0d0d0f;
     z-index: 9999999; display: none; flex-direction: column; justify-content: center; align-items: center;
-    text-align: center; padding: 20px; box-sizing: border-box;
+    text-align: center; padding: 30px; box-sizing: border-box; overflow: hidden;
 }
+
+.maint-bg-grid {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image:
+        linear-gradient(rgba(255,158,181,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,158,181,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+
+.maint-content {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; align-items: center;
+    max-width: 480px; width: 100%;
+}
+
+.maint-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255, 158, 181, 0.1); border: 1px solid rgba(255,158,181,0.25);
+    color: var(--primary); padding: 8px 18px; border-radius: 30px;
+    font-size: 0.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px;
+    margin-bottom: 35px;
+    animation: pulse 2.5s ease-in-out infinite;
+}
+.maint-badge svg { width: 14px; height: 14px; }
+
 .maint-icon-container {
-    position: relative; width: 130px; height: 130px; margin-bottom: 30px;
+    position: relative; width: 120px; height: 120px; margin-bottom: 30px;
     display: flex; justify-content: center; align-items: center;
-    background: var(--primary-light); border-radius: 50%;
-    box-shadow: 0 0 60px rgba(219,39,119,0.25); border: 2px solid rgba(219,39,119,0.3);
+    background: radial-gradient(circle, rgba(255,158,181,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    box-shadow: 0 0 80px rgba(255,158,181,0.2);
 }
 .maint-cog { stroke: var(--primary); }
-.main-cog { width: 70px; height: 70px; animation: spin 4s linear infinite; }
-.sub-cog { width: 40px; height: 40px; position: absolute; bottom: 15px; right: 15px; animation: spin-reverse 3s linear infinite; background: var(--bg-main); border-radius: 50%; padding: 2px;}
+.main-cog { width: 72px; height: 72px; animation: spin 5s linear infinite; opacity: 0.9; }
+.sub-cog { width: 38px; height: 38px; position: absolute; bottom: 12px; right: 12px; animation: spin-reverse 3s linear infinite; background: #0d0d0f; border-radius: 50%; padding: 3px; opacity: 0.7; }
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
 @keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
 
 #maintenance-overlay h1 {
-    font-family: var(--font-head); font-size: 3.5rem; color: var(--text-main);
-    margin-bottom: 15px; line-height: 1.2; letter-spacing: -1px; text-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    font-family: var(--font-head); font-size: 3rem; color: var(--text-main);
+    margin-bottom: 14px; line-height: 1.15; letter-spacing: -1px;
 }
-#maintenance-overlay h1 span { color: var(--primary); }
-#maintenance-overlay p {
-    color: var(--text-muted); font-size: 1.15rem; max-width: 420px;
-    line-height: 1.6; margin-bottom: 40px;
+#maintenance-overlay h1 span {
+    color: var(--primary);
+    text-shadow: 0 0 40px rgba(255,158,181,0.4);
+}
+#maintenance-overlay > .maint-content > p {
+    color: var(--text-muted); font-size: 1rem; max-width: 380px;
+    line-height: 1.7; margin-bottom: 28px;
+}
+
+.maint-status-row {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 28px;
+}
+.maint-status-pill {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    padding: 7px 14px; border-radius: 20px;
+    font-size: 0.78rem; color: var(--text-muted); font-weight: 500;
+}
+.maint-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+}
+.maint-dot.green { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+.maint-dot.yellow { background: #facc15; box-shadow: 0 0 6px #facc15; animation-delay: 0.4s; }
+.maint-dot.red { background: #f87171; box-shadow: 0 0 6px #f87171; animation-delay: 0.8s; }
+
+.maint-card {
+    width: 100%; background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px; padding: 20px 24px; margin-bottom: 30px;
+    text-align: left;
+}
+.maint-card-row {
+    display: flex; align-items: flex-start; gap: 14px; padding: 6px 0;
+}
+.maint-card-row svg { width: 18px; height: 18px; color: var(--primary); margin-top: 2px; flex-shrink: 0; }
+.maint-card-row div { display: flex; flex-direction: column; gap: 3px; }
+.maint-card-row strong { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: bold; }
+.maint-card-row span { font-size: 0.95rem; color: var(--text-main); font-weight: 500; }
+.maint-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 14px 0; }
+
+.maint-footer {
+    font-size: 0.78rem; color: rgba(255,255,255,0.2);
+    text-transform: uppercase; letter-spacing: 2px; margin: 0 !important;
 }
 
 #shush-overlay {
