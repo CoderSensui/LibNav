@@ -64,7 +64,7 @@ const LibraryDB = {
     getRatings: function() { return this.ratings; },
     getHelpedCount: async function() {
         try {
-            const res = await fetch(`${this.dbUrl}globalStats/helpedCount.json`);
+            const res = await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`);
             const data = await res.json();
             if (typeof data === 'number') { this.helpedCount = data; return data; }
         } catch(e) {}
