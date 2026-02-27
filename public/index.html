@@ -228,12 +228,12 @@
 
     <div id="custom-popup" class="modal-overlay" style="z-index: 9999 !important;">
         <div class="popup-box">
-            <div id="popup-icon" class="popup-icon-wrapper popup-icon--info"><i data-lucide="bell"></i></div>
+            <div id="popup-icon" class="popup-icon-wrapper"><i data-lucide="bell"></i></div>
             <h3 id="popup-title">Alert</h3>
             <p id="popup-message">Message</p>
             <div class="popup-actions">
-                <button id="popup-cancel" class="btn-popup-cancel" style="display:none;">Cancel</button>
-                <button id="popup-confirm" class="btn-popup-confirm">OK</button>
+                <button id="popup-cancel" class="btn-secondary" style="display:none;">Cancel</button>
+                <button id="popup-confirm" class="btn-primary">OK</button>
             </div>
         </div>
     </div>
@@ -243,7 +243,7 @@
         <div class="undo-bar-fill"></div>
         <div class="undo-bar-content">
             <i data-lucide="trash-2"></i>
-            <span>Deleted <strong id="undo-book-title">book</strong></span>
+            <span>Deleted <strong id="undo-book-title"></strong></span>
             <button id="undo-delete-btn" class="undo-btn"><i data-lucide="rotate-ccw"></i> Undo</button>
         </div>
     </div>
@@ -358,67 +358,37 @@
     <div id="admin-modal" class="modal-overlay">
         <div class="modal-box admin-layout">
             <button class="close-btn"><i data-lucide="x"></i></button>
-
+            <div class="card-header" style="border:none;"><div class="icon-box"><i data-lucide="shield"></i></div><h2>Admin Panel</h2></div>
+            
             <div id="admin-login-screen">
-                <div class="admin-login-hero">
-                    <div class="admin-login-icon"><i data-lucide="shield-check"></i></div>
-                    <h2>Admin Access</h2>
-                    <p>Enter your security key to continue</p>
-                </div>
+                <p class="input-label">Enter Access Key</p>
                 <div class="input-with-icon">
                     <i data-lucide="lock"></i>
-                    <input type="password" id="admin-password" class="input-field" placeholder="Security Key">
+                    <input type="password" id="admin-password" class="input-field" placeholder="Password">
                 </div>
                 <button id="admin-auth-btn" class="btn-primary full-width">Login</button>
             </div>
-
-            <div id="admin-dashboard" style="display:none;">
-
+            
+          <div id="admin-dashboard" style="display:none;">
+                
                 <div id="admin-main-view">
-                    <div class="admin-dashboard-header">
-                        <div class="admin-dash-title">
-                            <i data-lucide="layout-dashboard"></i>
-                            <span>Dashboard</span>
-                        </div>
-                        <div class="admin-stat-badge">
-                            <span id="admin-stat-count">—</span>
-                            <small>books</small>
-                        </div>
+                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <button id="open-add-view-btn" class="btn-primary" style="padding: 15px; font-size: 0.95rem;"><i data-lucide="plus-circle"></i> Add</button>
+                        <button id="open-batch-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.95rem;"><i data-lucide="layers"></i> Batch</button>
                     </div>
-
-                    <div class="admin-action-grid">
-                        <button id="open-add-view-btn" class="admin-action-card admin-card-primary">
-                            <i data-lucide="plus-circle"></i>
-                            <span>Add Book</span>
-                        </button>
-                        <button id="open-batch-view-btn" class="admin-action-card admin-card-default">
-                            <i data-lucide="layers"></i>
-                            <span>Batch Update</span>
-                        </button>
-                        <button id="open-broadcast-view-btn" class="admin-action-card admin-card-purple">
-                            <i data-lucide="radio"></i>
-                            <span>Broadcast</span>
-                        </button>
-                        <button id="open-maint-view-btn" class="admin-action-card admin-card-warning">
-                            <i data-lucide="construction"></i>
-                            <span>System</span>
-                        </button>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
+                        <button id="open-broadcast-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.95rem; background: var(--primary-light); color: var(--primary); border: none;"><i data-lucide="radio"></i> Broadcast</button>
+                        <button id="open-maint-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.95rem; background: rgba(245,158,11,0.1); color: var(--warning); border: none;"><i data-lucide="construction"></i> System</button>
                     </div>
-
-                    <div class="admin-section-label">
-                        <i data-lucide="database"></i> Book Catalog
-                    </div>
-                    <div class="input-with-icon" style="margin-bottom: 12px;">
+                    
+                    <h3 class="sub-title warning"><i data-lucide="database"></i> System Data</h3>
+                    <div class="input-with-icon" style="margin-bottom: 15px;">
                         <i data-lucide="search"></i>
-                        <input type="text" id="admin-search" class="input-field" style="padding: 14px 14px 14px 50px; font-size: 0.95rem; margin-bottom: 0;" placeholder="Search books...">
+                        <input type="text" id="admin-search" class="input-field" style="padding: 15px 15px 15px 55px; font-size: 1rem; margin-bottom: 0;" placeholder="Search admin books...">
                     </div>
                     <div id="admin-book-list" class="admin-list"></div>
-
-                    <div class="admin-danger-zone">
-                        <div class="admin-section-label" style="margin-bottom:12px;"><i data-lucide="alert-octagon"></i> Danger Zone</div>
-                        <button id="factory-reset-btn" class="btn-outline-warning full-width"><i data-lucide="alert-octagon"></i> Factory Reset</button>
-                        <button id="admin-logout-btn" class="admin-logout-btn full-width mt"><i data-lucide="log-out"></i> Logout</button>
-                    </div>
+                    <button id="factory-reset-btn" class="btn-outline-warning full-width mt"><i data-lucide="alert-octagon"></i> Factory Reset</button>
+                    <button id="admin-logout-btn" class="btn-secondary full-width mt" style="color: #ef4444; border-color: rgba(239,68,68,0.3); margin-top: 10px;"><i data-lucide="log-out"></i> Logout</button>
                 </div>
 
                 <div id="admin-form-view" style="display:none;">
