@@ -4,7 +4,6 @@ const LibraryDB = {
     ratings: [],
     helpedCount: 0,
 
-    // Helper: fetch with a timeout so slow/hanging connections don't block forever
     fetchWithTimeout: function(url, options = {}, timeoutMs = 10000) {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -50,7 +49,7 @@ const LibraryDB = {
 
     saveToCloud: async function() {
         try {
-            const response = await this.fetchWithTimeout(`${this.dbUrl}books.json`, {
+            const response = await fetch(`${this.dbUrl}books.json`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(this.books)
@@ -63,7 +62,14 @@ const LibraryDB = {
 
     getBooks: function() { return this.books; },
     getRatings: function() { return this.ratings; },
-    getHelpedCount: function() { return this.helpedCount; },
+    getHelpedCount: async function() {
+        try {
+            const res = await fetch(`${this.dbUrl}globalStats/helpedCount.json`);
+            const data = await res.json();
+            if (typeof data === 'number') { this.helpedCount = data; return data; }
+        } catch(e) {}
+        return this.helpedCount;
+    },
 
     addBook: async function(book) {
         this.books.push(book);
