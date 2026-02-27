@@ -201,14 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-menu').onclick = closeSidebar;
     sideMenuOverlay.onclick = closeSidebar;
 
-    document.querySelectorAll('.close-btn').forEach(btn => btn.onclick = async (e) => {
+    document.querySelectorAll('.close-btn').forEach(btn => btn.onclick = (e) => {
         const overlay = e.target.closest('.modal-overlay');
-        if (overlay && overlay.id === 'admin-modal') {
-            const token = localStorage.getItem('libnav_admin_token');
-            await LibraryDB.destroyAdminSession(token);
-            document.getElementById('admin-login-screen').style.display = 'block';
-            document.getElementById('admin-dashboard').style.display = 'none';
-        }
         if(overlay) overlay.style.display = 'none';
     });
 
@@ -281,6 +275,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             localStorage.setItem('libnav_admin_token', sessionToken);
+
+            const maintOverlay = document.getElementById('maintenance-overlay');
+            if (maintOverlay) maintOverlay.style.display = 'none';
 
             document.getElementById('admin-login-screen').style.display = 'none';
             document.getElementById('admin-dashboard').style.display = 'block';
@@ -441,6 +438,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('admin-search')?.addEventListener('input', renderAdminList);
     window.handleDelete = async (id) => { showPopup("Confirm Delete", "Delete this book?", async () => { await LibraryDB.deleteBook(id); renderAdminList(); performSearch(searchInput.value); }, true); };
     document.getElementById('factory-reset-btn').onclick = async () => { showPopup("Defense Mode", "Reset Stats?", async () => { await LibraryDB.factoryReset(); window.location.reload(); }, true); };
+
+    document.getElementById('admin-logout-btn').onclick = async () => {
+        showPopup("Logout", "End your admin session?", async () => {
+            const token = localStorage.getItem('libnav_admin_token');
+            await LibraryDB.destroyAdminSession(token);
+            adminModal.style.display = 'none';
+            document.getElementById('admin-login-screen').style.display = 'block';
+            document.getElementById('admin-dashboard').style.display = 'none';
+        }, true);
+    };
 
     function loadFeaturedBook() {
         const books = LibraryDB.getBooks(); if (books.length === 0) return;
@@ -1224,21 +1231,15 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         };
     }
 
-    let maintSecretTaps = 0;
-    let maintSecretTimer;
-    const maintTrigger = document.getElementById('maint-secret-trigger');
-    if (maintTrigger) {
-        maintTrigger.addEventListener('click', () => {
-            maintSecretTaps++;
-            clearTimeout(maintSecretTimer);
-            if (maintSecretTaps >= 3) {
-                maintSecretTaps = 0;
-                document.getElementById('maintenance-overlay').style.display = 'none';
-                adminModal.style.display = 'flex';
-            } else {
-                maintSecretTimer = setTimeout(() => { maintSecretTaps = 0; }, 600);
-            }
-        });
+    function startMaintClock() {
+        const el = document.getElementById('maint-live-clock');
+        if (!el) return;
+        const tick = () => {
+            const now = new Date();
+            el.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        };
+        tick();
+        setInterval(tick, 1000);
     }
 
     setTimeout(async () => {
@@ -1248,7 +1249,11 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             const isVIP = await LibraryDB.verifyAdminSession(savedToken);
             if (isMaint && !isVIP) {
                 const maintOverlay = document.getElementById('maintenance-overlay');
-                if (maintOverlay) maintOverlay.style.display = 'flex';
+                if (maintOverlay) {
+                    maintOverlay.style.display = 'flex';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                    startMaintClock();
+                }
                 return;
             }
         }
