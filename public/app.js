@@ -1039,16 +1039,11 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 <div class="sn-hero-glow"></div>
             </div>
 
-            <div class="sn-pills-row">
+            <div class="sn-pills-row sn-pills-two">
                 <div class="sn-pill">
                     <i data-lucide="library"></i>
                     <span class="sn-pill-val">${books.length}</span>
                     <span class="sn-pill-lbl">Books</span>
-                </div>
-                <div class="sn-pill">
-                    <i data-lucide="eye"></i>
-                    <span class="sn-pill-val">${totalViews}</span>
-                    <span class="sn-pill-lbl">Views</span>
                 </div>
                 <div class="sn-pill">
                     <i data-lucide="bookmark"></i>
