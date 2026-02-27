@@ -4,12 +4,20 @@ const LibraryDB = {
     ratings: [],
     helpedCount: 0,
 
+    // Helper: fetch with a timeout so slow/hanging connections don't block forever
+    fetchWithTimeout: function(url, options = {}, timeoutMs = 10000) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        return fetch(url, { ...options, signal: controller.signal })
+            .finally(() => clearTimeout(timer));
+    },
+
     init: async function() {
         try {
             const [booksRes, ratingsRes, helpedRes] = await Promise.all([
-                fetch(`${this.dbUrl}books.json`),
-                fetch(`${this.dbUrl}ratings.json`),
-                fetch(`${this.dbUrl}globalStats/helpedCount.json`)
+                this.fetchWithTimeout(`${this.dbUrl}books.json`),
+                this.fetchWithTimeout(`${this.dbUrl}ratings.json`),
+                this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`)
             ]);
 
             if (!booksRes.ok) throw new Error("Failed to load books");
@@ -42,7 +50,7 @@ const LibraryDB = {
 
     saveToCloud: async function() {
         try {
-            const response = await fetch(`${this.dbUrl}books.json`, {
+            const response = await this.fetchWithTimeout(`${this.dbUrl}books.json`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(this.books)
