@@ -613,6 +613,8 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
         const showQrBtn = document.getElementById('show-qr-btn');
         if(showQrBtn) showQrBtn.onclick = () => { qrModal.style.display = 'flex'; };
+        const showQrBtnDesk = document.getElementById('show-qr-btn-desk');
+        if(showQrBtnDesk) showQrBtnDesk.onclick = () => { qrModal.style.display = 'flex'; };
         const topShare = document.getElementById('top-share-btn');
         if (topShare) topShare.onclick = () => {
              const url = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
@@ -698,7 +700,9 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             }
 
 
-            if (aa) aa.style.display = (currentImageIndex === currentImages.length - 1 && document.body.classList.contains('is-mobile-device')) ? 'flex' : 'none';
+            const isLastStep = currentImageIndex === currentImages.length - 1;
+            const isMobile = document.body.classList.contains('is-mobile-device');
+            if (aa) aa.style.display = (isLastStep && isMobile) ? 'flex' : 'none';
         } else {
             carouselImg.style.display = 'none';
             if(stepCounter) stepCounter.innerText = "No map available";
@@ -1039,11 +1043,16 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 <div class="sn-hero-glow"></div>
             </div>
 
-            <div class="sn-pills-row sn-pills-two">
+            <div class="sn-pills-row">
                 <div class="sn-pill">
                     <i data-lucide="library"></i>
                     <span class="sn-pill-val">${books.length}</span>
                     <span class="sn-pill-lbl">Books</span>
+                </div>
+                <div class="sn-pill sn-pill-accent">
+                    <i data-lucide="layers"></i>
+                    <span class="sn-pill-val">${sortedGenres[0] ? sortedGenres[0][0].split("/")[0] : "—"}</span>
+                    <span class="sn-pill-lbl">Top Genre</span>
                 </div>
                 <div class="sn-pill">
                     <i data-lucide="bookmark"></i>
