@@ -94,57 +94,87 @@
         </section>
 
         <section id="tools-section" class="content-section">
-            <div class="card-box">
-                <div class="card-header">
-                    <div class="icon-box"><i data-lucide="wrench"></i></div>
-                    <h2>System Tools</h2>
+            <div class="pg-header">
+                <span class="pg-eyebrow">System</span>
+                <h1 class="pg-title">Tools</h1>
+            </div>
+            <div class="tool-grid">
+                <button id="section-theme-toggle" class="tool-card">
+                    <div class="tool-card-icon tc-purple"><i id="theme-btn-icon" data-lucide="sun"></i></div>
+                    <div class="tool-card-body">
+                        <strong id="theme-btn-text">Switch to Light Mode</strong>
+                        <span>Toggle app appearance</span>
+                    </div>
+                    <i data-lucide="chevron-right" class="tool-card-arrow"></i>
+                </button>
+                <button id="section-stats-btn" class="tool-card">
+                    <div class="tool-card-icon tc-pink"><i data-lucide="bar-chart-2"></i></div>
+                    <div class="tool-card-body">
+                        <strong>Live Statistics</strong>
+                        <span>Views, trends &amp; catalog data</span>
+                    </div>
+                    <i data-lucide="chevron-right" class="tool-card-arrow"></i>
+                </button>
+                <button id="section-feedback-btn" class="tool-card">
+                    <div class="tool-card-icon tc-green"><i data-lucide="message-square-heart"></i></div>
+                    <div class="tool-card-body">
+                        <strong>Send Feedback</strong>
+                        <span>Bug reports &amp; feature ideas</span>
+                    </div>
+                    <i data-lucide="chevron-right" class="tool-card-arrow"></i>
+                </button>
+            </div>
+            <div class="tip-feature-card">
+                <div class="tip-fc-top">
+                    <i data-lucide="sparkles"></i>
+                    <span>Tip of the moment</span>
                 </div>
-                <div class="action-list">
-                    <button id="section-theme-toggle" class="action-btn">
-                        <i id="theme-btn-icon" data-lucide="sun"></i> 
-                        <span id="theme-btn-text">Switch to Light Mode</span>
-                    </button>
-                    <button id="section-stats-btn" class="action-btn"><i data-lucide="bar-chart-2"></i> View Live Statistics</button>
-                    <button id="section-feedback-btn" class="action-btn"><i data-lucide="message-square"></i> Send feedback to developer</button>
-                </div>
-                <div class="tip-box">
-                    <div class="tip-header"><i data-lucide="lightbulb"></i> Quick Tip</div>
-                    <p id="dynamic-tip">Loading tip...</p>
-                </div>
+                <p id="dynamic-tip">Loading tip...</p>
             </div>
         </section>
 
         <section id="about-section" class="content-section">
-            <div class="card-box">
-              <div class="card-header">
-                    <div class="icon-box"><i data-lucide="compass"></i></div>
-                    <h2>About LibNav</h2>
-                </div>
-                <p class="about-desc">LibNav is an exclusive smart library navigation system built for Notre Dame - Siena College of General Santos City. It bridges the gap between our digital catalog and physical shelves, modernizing the campus reading experience.</p>
-                
-                <div class="card-header secondary">
-                    <div class="icon-box"><i data-lucide="book-open-check"></i></div>
-                    <h2>How to Use</h2>
-                </div>
-                
-                <div class="steps-container">
-                    <div class="step-item">
-                        <div class="step-num">1</div>
-                        <div class="step-text"><strong>Search</strong><span>Find your desired book via text input or voice recognition.</span></div>
+            <div class="pg-header">
+                <span class="pg-eyebrow">Notre Dame - Siena College</span>
+                <h1 class="pg-title">About LibNav</h1>
+            </div>
+            <div class="about-hero-card">
+                <div class="about-hero-icon"><i data-lucide="compass"></i></div>
+                <p>LibNav is an exclusive smart library navigation system built for Notre Dame - Siena College of General Santos City. It bridges the gap between our digital catalog and physical shelves, modernizing the campus reading experience.</p>
+            </div>
+            <div class="how-section">
+                <div class="how-label"><i data-lucide="book-open-check"></i> How to Use</div>
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-node">1</div>
+                        <div class="tl-line"></div>
+                        <div class="tl-content">
+                            <strong>Search</strong>
+                            <span>Find your desired book via text input or voice recognition.</span>
+                        </div>
                     </div>
-                    <div class="step-item">
-                        <div class="step-num">2</div>
-                        <div class="step-text"><strong>Navigate</strong><span>Tap a book cover to view the step-by-step visual map to its exact shelf.</span></div>
+                    <div class="tl-item">
+                        <div class="tl-node">2</div>
+                        <div class="tl-line"></div>
+                        <div class="tl-content">
+                            <strong>Navigate</strong>
+                            <span>Tap a book cover to view the step-by-step visual map to its exact shelf.</span>
+                        </div>
                     </div>
-                    <div class="step-item">
-                        <div class="step-num">3</div>
-                        <div class="step-text"><strong>Companion Mode</strong><span>If you are on a PC, simply scan the QR code to seamlessly take the map with you on your phone.</span></div>
+                    <div class="tl-item tl-last">
+                        <div class="tl-node">3</div>
+                        <div class="tl-content">
+                            <strong>Companion Mode</strong>
+                            <span>On a PC, scan the QR code to take the map with you on your phone.</span>
+                        </div>
                     </div>
                 </div>
-
-                <div class="tip-box warning">
-                    <div class="tip-header"><i data-lucide="alert-triangle"></i> Important Reminder</div>
-                    <p>Don't forget to formally check out the book at the front desk before leaving the library!</p>
+            </div>
+            <div class="reminder-banner">
+                <div class="reminder-icon"><i data-lucide="alert-triangle"></i></div>
+                <div class="reminder-text">
+                    <strong>Important Reminder</strong>
+                    <span>Don't forget to formally check out the book at the front desk before leaving the library!</span>
                 </div>
             </div>
         </section>
@@ -172,18 +202,18 @@
 
     <div id="book-modal" class="modal-overlay">
         <div class="modal-box book-layout">
-            <span id="modal-book-id" style="display: none;"></span>
+            <span id="modal-book-id" style="display:none;"></span>
+
+            <div class="bm-float-btns">
+                <button id="top-share-btn" class="bm-float-btn"><i data-lucide="share-2"></i></button>
+                <button class="close-btn bm-float-btn"><i data-lucide="x"></i></button>
+            </div>
 
             <div class="book-modal-grid">
-                <!-- LEFT: Cover + Info Sidebar -->
                 <div class="book-left">
-                    <div class="bm-close-row">
-                        <button id="top-share-btn" class="share-btn-top" style="position:relative;top:auto;left:auto;"><i data-lucide="share-2"></i></button>
-                        <button class="close-btn" style="position:relative;top:auto;right:auto;"><i data-lucide="x"></i></button>
-                    </div>
                     <div class="bm-cover-hero">
                         <div class="bm-cover-bg"></div>
-                        <div class="umh-cover-wrap skeleton" style="background:transparent;border:none;width:auto;height:auto;">
+                        <div class="umh-cover-wrap skeleton">
                             <img id="umh-book-cover" src="" style="opacity:0;">
                         </div>
                     </div>
@@ -202,20 +232,19 @@
                     </div>
                 </div>
 
-                <!-- RIGHT: Map + Controls -->
                 <div class="book-right">
                     <div class="bm-map-label">
                         <i data-lucide="map-pin"></i> Navigation Map
                     </div>
 
                     <div id="carousel-wrapper" class="map-carousel">
-                        <div id="swipe-hint" class="swipe-hint mobile-only-flex" style="top: 35%;">
+                        <div id="swipe-hint" class="swipe-hint mobile-only-flex" style="top:35%;">
                             <i data-lucide="move-horizontal"></i> <span>Swipe</span>
                         </div>
-                        <div id="tap-hint" class="swipe-hint mobile-only-flex" style="top: 65%; display:none; flex-direction:row; align-items:center;">
+                        <div id="tap-hint" class="swipe-hint mobile-only-flex" style="top:65%;display:none;flex-direction:row;align-items:center;">
                             <i data-lucide="maximize"></i> <span style="margin-left:8px;">Tap to Expand</span>
                         </div>
-                        <img id="carousel-img" src="" alt="Navigation Map" style="cursor: pointer;">
+                        <img id="carousel-img" src="" alt="Navigation Map" style="cursor:pointer;">
                         <button id="zoom-trigger-btn" class="zoom-badge"><i data-lucide="maximize-2"></i></button>
                         <div id="carousel-dots" class="carousel-dots"></div>
                     </div>
@@ -227,24 +256,22 @@
                     </div>
 
                     <div class="bm-action-row" id="mobile-action-area" style="display:none;">
-                        <button id="show-qr-btn" class="bm-qr-btn desktop-only-flex">
+                        <button id="show-qr-btn" class="bm-qr-btn">
                             <i data-lucide="qr-code"></i> Send to Mobile
                         </button>
-                        <button class="bm-found-btn visible" onclick="showSuccessScreen()">
+                        <button class="bm-found-btn" onclick="showSuccessScreen()">
                             <i data-lucide="check-circle-2"></i> I Found It!
                         </button>
                     </div>
 
-                    <!-- QR button for desktop (always visible) -->
-                    <div class="bm-action-row desktop-only-flex" id="desktop-action-row" style="margin-top:auto;">
+                    <div class="bm-action-row bm-desktop-qr">
                         <button id="show-qr-btn-desk" class="bm-qr-btn">
                             <i data-lucide="qr-code"></i> Send Map to Mobile
                         </button>
                     </div>
 
-                    <!-- Related shelf -->
                     <div class="virtual-shelf-footer bm-shelf">
-                        <h3><i data-lucide="layers" style="width:12px;height:12px;display:inline;"></i> Also in this section</h3>
+                        <h3>Also in this section</h3>
                         <div id="related-shelf" class="related-grid"></div>
                     </div>
                 </div>
