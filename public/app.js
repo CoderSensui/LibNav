@@ -158,9 +158,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             showLoaderStep(1, 30);
-            await LibraryDB.init();
+            // Race against a 12-second safety timeout so the loader never hangs forever
+            await Promise.race([
+                LibraryDB.init(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 12000))
+            ]);
             showLoaderStep(2, 55);
         } catch(e) {
+            // DB failed or timed out — continue with empty catalog rather than staying stuck
             showLoaderStep(2, 55);
         }
 
