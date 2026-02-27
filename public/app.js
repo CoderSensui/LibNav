@@ -28,6 +28,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSort = 'default';
     let recentSearches = JSON.parse(localStorage.getItem('libnav_recent')) || [];
 
+
+    const GENRE_COLORS = {
+        'Fiction': { bg: 'rgba(167,139,250,0.18)', color: '#a78bfa', border: 'rgba(167,139,250,0.3)' },
+        'Filipiniana': { bg: 'rgba(251,191,36,0.15)', color: '#fbbf24', border: 'rgba(251,191,36,0.3)' },
+        'Filipiniana Reference': { bg: 'rgba(251,146,60,0.15)', color: '#fb923c', border: 'rgba(251,146,60,0.3)' },
+        'Science/Math': { bg: 'rgba(96,165,250,0.15)', color: '#60a5fa', border: 'rgba(96,165,250,0.3)' },
+        'Religion': { bg: 'rgba(74,222,128,0.15)', color: '#4ade80', border: 'rgba(74,222,128,0.3)' },
+    };
+    function getGenreStyle(genre) {
+        return GENRE_COLORS[genre] || { bg: 'var(--primary-light)', color: 'var(--primary)', border: 'rgba(255,158,181,0.3)' };
+    }
+
     const tips = [
         "Use two fingers to pinch and zoom around the navigation map to see exact shelf details!",
         "Books marked with a 'HOT' badge are currently the most viewed titles on campus.",
@@ -142,6 +154,61 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (!document.body.classList.contains('companion-mode-active')) { loadFeaturedBook(); resetIdleTimer(); }
         renderIcons();
+        if(window.innerWidth < 850) initPullToRefresh();
+    }
+
+    function initPullToRefresh() {
+        let startY = 0;
+        let pulling = false;
+        let indicator = document.getElementById('ptr-indicator');
+        if(!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'ptr-indicator';
+            indicator.innerHTML = '<div class="ptr-inner"><div class="ptr-spinner"></div><span>Release to refresh</span></div>';
+            document.body.prepend(indicator);
+        }
+        const main = document.querySelector('.main-container');
+        main.addEventListener('touchstart', e => {
+            if(window.scrollY === 0) { startY = e.touches[0].clientY; pulling = true; }
+        }, { passive: true });
+        main.addEventListener('touchmove', e => {
+            if(!pulling) return;
+            const dist = e.touches[0].clientY - startY;
+            if(dist > 10 && dist < 100) {
+                indicator.style.transform = `translateY(${Math.min(dist * 0.6, 55)}px)`;
+                indicator.style.opacity = Math.min(dist / 60, 1);
+            }
+        }, { passive: true });
+        main.addEventListener('touchend', async e => {
+            if(!pulling) return;
+            pulling = false;
+            const dist = e.changedTouches[0].clientY - startY;
+            if(dist > 60) {
+                indicator.classList.add('ptr-loading');
+                indicator.querySelector('span').innerText = 'Refreshing...';
+                try { await LibraryDB.init(); loadFeaturedBook(); performSearch(searchInput.value); } catch(err) {}
+                setTimeout(() => {
+                    indicator.classList.remove('ptr-loading');
+                    indicator.querySelector('span').innerText = 'Release to refresh';
+                    indicator.style.transform = '';
+                    indicator.style.opacity = '';
+                }, 600);
+            } else {
+                indicator.style.transform = '';
+                indicator.style.opacity = '';
+            }
+        }, { passive: true });
+    }
+
+    function animateCount(el, from, to, duration) {
+        const start = performance.now();
+        const update = (now) => {
+            const p = Math.min((now - start) / duration, 1);
+            const ease = 1 - Math.pow(1 - p, 3);
+            el.innerText = Math.round(from + (to - from) * ease);
+            if(p < 1) requestAnimationFrame(update);
+        };
+        requestAnimationFrame(update);
     }
 
     function switchSection(sectionId, fromCategory = false) {
@@ -153,8 +220,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const deskTab = document.querySelector(`.desk-nav-item[data-section="${sectionId}"]`);
         if(deskTab) deskTab.classList.add('active');
 
-        document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
-        document.getElementById(`${sectionId}-section`).classList.add('active');
+        const current = document.querySelector('.content-section.active');
+        const next = document.getElementById(`${sectionId}-section`);
+        if(current && current !== next) {
+            current.classList.add('section-exit');
+            setTimeout(() => { current.classList.remove('active', 'section-exit'); }, 180);
+            setTimeout(() => { next.classList.add('active'); }, 160);
+        } else {
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            next.classList.add('active');
+        }
 
         if(sectionId === 'tools') {
             document.getElementById('dynamic-tip').innerText = tips[Math.floor(Math.random() * tips.length)];
@@ -450,15 +525,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const books = LibraryDB.getBooks(); if (books.length === 0) return;
         const idx = Math.abs(new Date().toDateString().split('').reduce((a,b)=>a+(b.charCodeAt(0)),0)) % books.length; const b = books[idx];
         const isFav = favorites.some(id => String(id) === String(b.id));
+        const allBooks = LibraryDB.getBooks();
+        const maxViews = allBooks.reduce((mx, x) => Math.max(mx, x.views || 0), 0);
+        const trendingId = maxViews > 0 ? allBooks.find(x => x.views === maxViews)?.id : null;
+        const gs = getGenreStyle(b.genre);
+        const isHot = b.id === trendingId;
         featuredContainer.innerHTML = `
             <div class="featured-wrap">
                 <span class="feat-tag"><i data-lucide="star"></i> Daily Global Pick</span>
                 <div class="featured-card book-card" onclick="openModalById('${b.id}')">
                     <div class="feat-img-wrap skeleton">
+                        ${isHot ? '<div class="hot-badge"><i data-lucide="flame" style="width:12px;height:12px;fill:white;"></i> HOT</div>' : ''}
                         <img id="fc-img" src="" style="opacity: 0; transition: opacity 0.4s ease;">
                         <button class="fav-btn ${isFav?'active':''}" onclick="toggleFavorite(event,'${b.id}')"><i data-lucide="bookmark"></i></button>
                     </div>
-                    <div class="feat-info"><h2>${b.title}</h2><p>${b.author}</p><span class="book-badge">${b.genre}</span></div>
+                    <div class="feat-info">
+                        <h2>${b.title}</h2><p>${b.author}</p>
+                        <span class="book-badge" style="background:${gs.bg};color:${gs.color};border:1px solid ${gs.border};">${b.genre}</span>
+                    </div>
                 </div>
             </div>`;
         fetchCoverWithFallback(b.title, b.author, 'fc-img', true); renderIcons();
@@ -588,7 +672,17 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
         document.getElementById('umh-title').innerText = book.title;
         document.getElementById('umh-author-name').innerText = book.author;
-        document.getElementById('umh-genre').innerText = book.genre;
+        const genreEl = document.getElementById('umh-genre');
+        genreEl.innerText = book.genre;
+        const gs = getGenreStyle(book.genre);
+        const badge = genreEl.closest('.bm-genre-badge');
+        if(badge) { badge.style.background = gs.bg; badge.style.color = gs.color; badge.style.borderColor = gs.border; }
+        const viewsEl = document.getElementById('bm-views-count');
+        if(viewsEl) {
+            const viewVal = (book.views || 0) + 1;
+            viewsEl.innerText = viewVal;
+            animateCount(viewsEl, 0, viewVal, 800);
+        }
 
         const cover = document.getElementById('umh-book-cover');
         if(cover) {
@@ -900,13 +994,14 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 badgesHtml += '<div class="hot-badge"><i data-lucide="flame" style="width:12px;height:12px;fill:white;"></i> HOT</div>';
             }
 
+            const gs = getGenreStyle(book.genre);
             card.innerHTML = `
                 <div class="cover-box skeleton">
                     ${badgesHtml}
                     <img id="${coverId}" data-title="${book.title}" data-author="${book.author}" src="">
                     <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${book.id}')"><i data-lucide="bookmark"></i></button>
                 </div>
-                <div class="book-info"><strong>${titleHtml}</strong><small>${book.author}</small></div>
+                <div class="book-info"><strong>${titleHtml}</strong><small style="color:${gs.color}">${book.genre}</small></div>
             `;
             card.onclick = (e) => { if(!e.target.closest('.fav-btn')) openModal(book); }; frag.appendChild(card);
             setTimeout(() => imageObserver.observe(document.getElementById(coverId)), 0);
@@ -1089,6 +1184,13 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
         renderIcons();
         document.getElementById("stats-modal").style.display = "flex";
+        setTimeout(() => {
+            const heroViewsEl = document.querySelector('.sn-hero-views');
+            if(heroViewsEl) {
+                const finalVal = mostViewed.views || 0;
+                animateCount(heroViewsEl, 0, finalVal, 1000);
+            }
+        }, 80);
 
         const updateUptime = () => {
             const diff = Date.now() - new Date("2026-01-01T00:00:00").getTime();
