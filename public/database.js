@@ -66,7 +66,10 @@ const LibraryDB = {
         try {
             const res = await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`);
             const data = await res.json();
-            if (typeof data === 'number') { this.helpedCount = data; return data; }
+            if (typeof data === 'number') {
+                this.helpedCount = data;
+                return data;
+            }
         } catch(e) {}
         return this.helpedCount;
     },
