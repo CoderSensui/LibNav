@@ -83,39 +83,66 @@ const LibraryDB = {
             });
             return true;
         } catch (err) {
-console.error("Rating save failed", err);
+            console.error("Rating save failed", err);
             return false;
         }
     },
 
     factoryReset: async function() {
         this.books.forEach(b => b.views = 0);
-
         await this.saveToCloud();
-
         await fetch(`${this.dbUrl}ratings.json`, { method: 'DELETE' });
-
         this.ratings = [];
+        
+        try {
+            await fetch(`${this.dbUrl}globalStats/helpedCount.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: '0'
+            });
+        } catch (e) {}
 
         return true;
     },
 
+    incrementHelped: async function() {
+        try {
+            const res = await fetch(`${this.dbUrl}globalStats/helpedCount.json`);
+            let count = await res.json();
+            count = (typeof count === 'number') ? count : 0;
+            await fetch(`${this.dbUrl}globalStats/helpedCount.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(count + 1)
+            });
+        } catch (e) {}
+    },
+
+    getHelpedCount: async function() {
+        try {
+            const res = await fetch(`${this.dbUrl}globalStats/helpedCount.json`);
+            const count = await res.json();
+            return (typeof count === 'number') ? count : 0;
+        } catch (e) {
+            return 0;
+        }
+    },
 
     getBroadcast: async function() {
         try { const res = await fetch(`${this.dbUrl}broadcast.json`); return await res.json(); } catch(e) { return null; }
     },
+    
     setBroadcast: async function(broadcastObj) {
         try { await fetch(`${this.dbUrl}broadcast.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(broadcastObj) }); return true; } catch(e) { return false; }
     },
 
-
     getMaintenance: async function() {
         try { const res = await fetch(`${this.dbUrl}maintenance.json`); return await res.json(); } catch(e) { return false; }
     },
+    
     setMaintenance: async function(status) {
         try { await fetch(`${this.dbUrl}maintenance.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(status) }); return true; } catch(e) { return false; }
     },
-
 
     verifyAdminPassword: async function(inputPass) {
         try {
@@ -177,26 +204,5 @@ console.error("Rating save failed", err);
             });
         } catch(e) {}
         localStorage.removeItem('libnav_admin_token');
-    },
-
-    async incrementHelped() {
-        try {
-            const dbRef = firebase.database().ref('globalStats/helpedCount');
-            const snapshot = await dbRef.once('value');
-            let currentCount = snapshot.val() || 0;
-            await dbRef.set(currentCount + 1);
-        } catch (error) {
-            console.error("Error updating helped count:", error);
-        }
-    },
-
-    async getHelpedCount() {
-        try {
-            const snapshot = await firebase.database().ref('globalStats/helpedCount').once('value');
-            return snapshot.val() || 0;
-        } catch (error) {
-            console.error("Error fetching helped count:", error);
-            return 0;
-        }
     }
 };
