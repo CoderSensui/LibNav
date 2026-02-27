@@ -2,18 +2,21 @@ const LibraryDB = {
     dbUrl: "https://libnav-dc2c8-default-rtdb.firebaseio.com/",
     books: [],
     ratings: [],
+    helpedCount: 0,
 
     init: async function() {
         try {
-            const [booksRes, ratingsRes] = await Promise.all([
+            const [booksRes, ratingsRes, helpedRes] = await Promise.all([
                 fetch(`${this.dbUrl}books.json`),
-                fetch(`${this.dbUrl}ratings.json`)
+                fetch(`${this.dbUrl}ratings.json`),
+                fetch(`${this.dbUrl}globalStats/helpedCount.json`)
             ]);
 
             if (!booksRes.ok) throw new Error("Failed to load books");
 
             const booksData = await booksRes.json();
             const ratingsData = await ratingsRes.json();
+            const helpedData = await helpedRes.json();
 
             if (Array.isArray(booksData)) {
                 this.books = booksData.filter(b => b !== null && b !== undefined);
@@ -28,6 +31,8 @@ const LibraryDB = {
             } else {
                 this.ratings = [];
             }
+
+            this.helpedCount = (typeof helpedData === 'number') ? helpedData : 0;
 
             return true;
         } catch (error) {
@@ -50,6 +55,7 @@ const LibraryDB = {
 
     getBooks: function() { return this.books; },
     getRatings: function() { return this.ratings; },
+    getHelpedCount: function() { return this.helpedCount; },
 
     addBook: async function(book) {
         this.books.push(book);
@@ -73,6 +79,15 @@ const LibraryDB = {
         }
     },
 
+    incrementHelped: function() {
+        this.helpedCount++;
+        fetch(`${this.dbUrl}globalStats/helpedCount.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(this.helpedCount)
+        });
+    },
+
     submitRating: async function(stars) {
         try {
             this.ratings.push(stars);
@@ -83,7 +98,6 @@ const LibraryDB = {
             });
             return true;
         } catch (err) {
-            console.error("Rating save failed", err);
             return false;
         }
     },
@@ -91,47 +105,24 @@ const LibraryDB = {
     factoryReset: async function() {
         this.books.forEach(b => b.views = 0);
         await this.saveToCloud();
+
         await fetch(`${this.dbUrl}ratings.json`, { method: 'DELETE' });
         this.ratings = [];
-        
-        try {
-            await fetch(`${this.dbUrl}globalStats/helpedCount.json`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: '0'
-            });
-        } catch (e) {}
+
+        this.helpedCount = 0;
+        await fetch(`${this.dbUrl}globalStats/helpedCount.json`, { 
+            method: 'PUT', 
+            body: '0' 
+        });
+
+        localStorage.removeItem('libnav_helped_people'); 
 
         return true;
-    },
-
-    incrementHelped: async function() {
-        try {
-            const res = await fetch(`${this.dbUrl}globalStats/helpedCount.json`);
-            let count = await res.json();
-            count = (typeof count === 'number') ? count : 0;
-            await fetch(`${this.dbUrl}globalStats/helpedCount.json`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(count + 1)
-            });
-        } catch (e) {}
-    },
-
-    getHelpedCount: async function() {
-        try {
-            const res = await fetch(`${this.dbUrl}globalStats/helpedCount.json`);
-            const count = await res.json();
-            return (typeof count === 'number') ? count : 0;
-        } catch (e) {
-            return 0;
-        }
     },
 
     getBroadcast: async function() {
         try { const res = await fetch(`${this.dbUrl}broadcast.json`); return await res.json(); } catch(e) { return null; }
     },
-    
     setBroadcast: async function(broadcastObj) {
         try { await fetch(`${this.dbUrl}broadcast.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(broadcastObj) }); return true; } catch(e) { return false; }
     },
@@ -139,7 +130,6 @@ const LibraryDB = {
     getMaintenance: async function() {
         try { const res = await fetch(`${this.dbUrl}maintenance.json`); return await res.json(); } catch(e) { return false; }
     },
-    
     setMaintenance: async function(status) {
         try { await fetch(`${this.dbUrl}maintenance.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(status) }); return true; } catch(e) { return false; }
     },
@@ -148,20 +138,12 @@ const LibraryDB = {
         try {
             const res = await fetch(`${this.dbUrl}admin_password.json`);
             const realPass = await res.json();
-
             if (!realPass) {
-                await fetch(`${this.dbUrl}admin_password.json`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify("admin123")
-                });
+                await fetch(`${this.dbUrl}admin_password.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify("admin123") });
                 return inputPass === "admin123";
             }
-
             return inputPass === realPass;
-        } catch(e) {
-            return inputPass === "admin123";
-        }
+        } catch(e) { return inputPass === "admin123"; }
     },
 
     createAdminSession: async function() {
@@ -169,15 +151,9 @@ const LibraryDB = {
         const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000);
         const session = { token, expiry };
         try {
-            await fetch(`${this.dbUrl}admin_sessions/${token}.json`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(session)
-            });
+            await fetch(`${this.dbUrl}admin_sessions/${token}.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(session) });
             return token;
-        } catch(e) {
-            return null;
-        }
+        } catch(e) { return null; }
     },
 
     verifyAdminSession: async function(token) {
@@ -186,23 +162,14 @@ const LibraryDB = {
             const res = await fetch(`${this.dbUrl}admin_sessions/${token}.json`);
             const session = await res.json();
             if (!session || !session.expiry) return false;
-            if (Date.now() > session.expiry) {
-                await this.destroyAdminSession(token);
-                return false;
-            }
+            if (Date.now() > session.expiry) { await this.destroyAdminSession(token); return false; }
             return true;
-        } catch(e) {
-            return false;
-        }
+        } catch(e) { return false; }
     },
 
     destroyAdminSession: async function(token) {
         if (!token) return;
-        try {
-            await fetch(`${this.dbUrl}admin_sessions/${token}.json`, {
-                method: 'DELETE'
-            });
-        } catch(e) {}
+        try { await fetch(`${this.dbUrl}admin_sessions/${token}.json`, { method: 'DELETE' }); } catch(e) {}
         localStorage.removeItem('libnav_admin_token');
     }
 };
