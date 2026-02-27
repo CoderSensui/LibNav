@@ -160,42 +160,60 @@ document.addEventListener('DOMContentLoaded', () => {
     function initPullToRefresh() {
         let startY = 0;
         let pulling = false;
+        let triggered = false;
         let indicator = document.getElementById('ptr-indicator');
         if(!indicator) {
             indicator = document.createElement('div');
             indicator.id = 'ptr-indicator';
-            indicator.innerHTML = '<div class="ptr-inner"><div class="ptr-spinner"></div><span>Release to refresh</span></div>';
-            document.body.prepend(indicator);
+            indicator.innerHTML = '<div class="ptr-inner"><div class="ptr-spinner"></div><span class="ptr-text">Pull to refresh</span></div>';
+            document.body.appendChild(indicator);
         }
-        const main = document.querySelector('.main-container');
-        main.addEventListener('touchstart', e => {
-            if(window.scrollY === 0) { startY = e.touches[0].clientY; pulling = true; }
-        }, { passive: true });
-        main.addEventListener('touchmove', e => {
-            if(!pulling) return;
-            const dist = e.touches[0].clientY - startY;
-            if(dist > 10 && dist < 100) {
-                indicator.style.transform = `translateY(${Math.min(dist * 0.6, 55)}px)`;
-                indicator.style.opacity = Math.min(dist / 60, 1);
+
+        const setProgress = (dist) => {
+            const pct = Math.min(dist / 70, 1);
+            const travel = Math.min(dist * 0.55, 68);
+            indicator.style.transform = `translateX(-50%) translateY(${travel}px)`;
+            indicator.style.opacity = pct;
+            indicator.querySelector('.ptr-text').innerText = pct >= 1 ? 'Release to refresh' : 'Pull to refresh';
+        };
+
+        const reset = () => {
+            indicator.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+            indicator.style.transform = 'translateX(-50%) translateY(0px)';
+            indicator.style.opacity = '0';
+            indicator.classList.remove('ptr-loading');
+            indicator.querySelector('.ptr-text').innerText = 'Pull to refresh';
+            setTimeout(() => { indicator.style.transition = ''; }, 320);
+        };
+
+        document.addEventListener('touchstart', e => {
+            if(window.scrollY === 0 && !triggered) {
+                startY = e.touches[0].clientY;
+                pulling = true;
             }
         }, { passive: true });
-        main.addEventListener('touchend', async e => {
-            if(!pulling) return;
+
+        document.addEventListener('touchmove', e => {
+            if(!pulling || triggered) return;
+            const dist = e.touches[0].clientY - startY;
+            if(dist > 8) setProgress(dist);
+        }, { passive: true });
+
+        document.addEventListener('touchend', async e => {
+            if(!pulling || triggered) return;
             pulling = false;
             const dist = e.changedTouches[0].clientY - startY;
-            if(dist > 60) {
+            if(dist >= 70) {
+                triggered = true;
                 indicator.classList.add('ptr-loading');
-                indicator.querySelector('span').innerText = 'Refreshing...';
+                indicator.style.transform = 'translateX(-50%) translateY(68px)';
+                indicator.style.opacity = '1';
+                indicator.querySelector('.ptr-text').innerText = 'Refreshing...';
+                if(navigator.vibrate) navigator.vibrate(40);
                 try { await LibraryDB.init(); loadFeaturedBook(); performSearch(searchInput.value); } catch(err) {}
-                setTimeout(() => {
-                    indicator.classList.remove('ptr-loading');
-                    indicator.querySelector('span').innerText = 'Release to refresh';
-                    indicator.style.transform = '';
-                    indicator.style.opacity = '';
-                }, 600);
+                setTimeout(() => { reset(); setTimeout(() => { triggered = false; }, 350); }, 700);
             } else {
-                indicator.style.transform = '';
-                indicator.style.opacity = '';
+                reset();
             }
         }, { passive: true });
     }
@@ -657,8 +675,34 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     document.getElementById('close-zoom-btn').onclick = () => zoomModal.style.display = 'none';
     zoomModal.onclick = (e) => { if(e.target === zoomModal || e.target === zoomedImage) zoomModal.style.display = 'none'; };
 
+    let swipeCloseStartX = 0;
+    let swipeCloseStartY = 0;
+    let swipeCloseActive = false;
+
+    function initSwipeClose() {
+        const box = bookModal.querySelector('.modal-box');
+        if(!box || box._swipeClose) return;
+        box._swipeClose = true;
+        box.addEventListener('touchstart', e => {
+            swipeCloseStartX = e.touches[0].clientX;
+            swipeCloseStartY = e.touches[0].clientY;
+            swipeCloseActive = true;
+        }, { passive: true });
+        box.addEventListener('touchend', e => {
+            if(!swipeCloseActive) return;
+            swipeCloseActive = false;
+            const dx = e.changedTouches[0].clientX - swipeCloseStartX;
+            const dy = Math.abs(e.changedTouches[0].clientY - swipeCloseStartY);
+            if(dx > 80 && dy < 60) {
+                if(navigator.vibrate) navigator.vibrate(30);
+                bookModal.style.display = 'none';
+            }
+        }, { passive: true });
+    }
+
     async function openModal(book) {
         bookModal.style.display = 'flex'; LibraryDB.incrementView(book.id);
+        initSwipeClose();
         document.getElementById('modal-book-id').innerText = book.id;
 
         const modalBox = bookModal.querySelector('.modal-box');
@@ -736,16 +780,22 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         if(window.innerWidth < 850) {
             if(hint) {
                 hint.style.display = 'flex';
+                hint.style.opacity = '1';
                 hint.style.animation = 'none';
                 hint.offsetHeight;
-                hint.style.animation = 'swipeFade 2.5s ease-in-out forwards';
+                hint.style.animation = 'swipeFade 2.2s ease-in-out forwards';
             }
             if(tHint) {
-                tHint.style.display = 'flex';
-                tHint.style.animation = 'none';
-                tHint.offsetHeight;
-                tHint.style.animation = 'swipeFade 2.5s ease-in-out forwards';
-                tHint.style.animationDelay = '0.7s';
+                tHint.style.display = 'none';
+                tHint.style.opacity = '0';
+                setTimeout(() => {
+                    if(tHint) {
+                        tHint.style.display = 'flex';
+                        tHint.style.animation = 'none';
+                        tHint.offsetHeight;
+                        tHint.style.animation = 'swipeFade 2.2s ease-in-out forwards';
+                    }
+                }, 2400);
             }
         } else {
             if(hint) hint.style.display = 'none';
@@ -1003,6 +1053,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 </div>
                 <div class="book-info"><strong>${titleHtml}</strong><small style="color:${gs.color}">${book.genre}</small></div>
             `;
+            card.style.animationDelay = `${i * 0.045}s`;
             card.onclick = (e) => { if(!e.target.closest('.fav-btn')) openModal(book); }; frag.appendChild(card);
             setTimeout(() => imageObserver.observe(document.getElementById(coverId)), 0);
         });
@@ -1031,8 +1082,12 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
         if (index === -1) {
             favorites.push(String(bookId));
+            if(navigator.vibrate) navigator.vibrate(60);
+            btn.classList.add('fav-pop');
+            setTimeout(() => btn.classList.remove('fav-pop'), 400);
         } else {
             favorites.splice(index, 1);
+            if(navigator.vibrate) navigator.vibrate(30);
         }
 
         localStorage.setItem('libnav_favs', JSON.stringify(favorites));
@@ -1100,8 +1155,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const avg = ratings.length > 0 ? (ratings.reduce((a, b) => a + parseInt(b), 0) / ratings.length).toFixed(1) : "0.0";
         const avgNum = parseFloat(avg);
         const avgPct = (avgNum / 5) * 100;
-
-        const genreColors = ['#ff9eb5','#a78bfa','#4ade80','#facc15','#60a5fa','#f97316'];
 
         document.getElementById("stats-modal").firstElementChild.classList.add("stats-layout");
 
@@ -1174,7 +1227,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                                 <span class="sn-genre-count">${v} <span style="opacity:0.5">vol</span></span>
                             </div>
                             <div class="sn-genre-track">
-                                <div class="sn-genre-fill" style="width:${Math.round((v/books.length)*100)}%; background:${genreColors[i % genreColors.length]};"></div>
+                                <div class="sn-genre-fill" style="width:${Math.round((v/books.length)*100)}%; background:${getGenreStyle(k).color}; --bar-w:${Math.round((v/books.length)*100)}%;"></div>
                             </div>
                         </div>
                     `).join("")}
@@ -1190,6 +1243,19 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 const finalVal = mostViewed.views || 0;
                 animateCount(heroViewsEl, 0, finalVal, 1000);
             }
+            document.querySelectorAll('.sn-genre-fill').forEach((el, i) => {
+                const styleAttr = el.getAttribute('style') || '';
+                const match = styleAttr.match(/--bar-w:\s*([\d.]+%)/);
+                const targetW = match ? match[1] : '100%';
+                el.style.animation = 'none';
+                el.offsetHeight;
+                el.style.setProperty('--bar-w', targetW);
+                el.style.animationDelay = (0.08 + i * 0.08) + 's';
+                el.style.animationName = 'barGrow';
+                el.style.animationDuration = '0.75s';
+                el.style.animationTimingFunction = 'cubic-bezier(0.4,0,0.2,1)';
+                el.style.animationFillMode = 'both';
+            });
         }, 80);
 
         const updateUptime = () => {
@@ -1231,7 +1297,46 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         finally { btn.innerHTML = '<i data-lucide="send"></i> Send feedback'; btn.disabled = false; renderIcons();}
     };
 
-    window.showSuccessScreen = function() { document.getElementById('book-modal').style.display = 'none'; document.getElementById('success-modal').style.display = 'flex'; }
+    function launchConfetti() {
+        const canvas = document.getElementById('confetti-canvas');
+        if(!canvas) return;
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas.style.display = 'block';
+        const pieces = Array.from({length: 80}, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * -canvas.height,
+            r: Math.random() * 6 + 4,
+            d: Math.random() * 3 + 1,
+            color: ['#ff9eb5','#a78bfa','#4ade80','#fbbf24','#60a5fa','#fb923c'][Math.floor(Math.random()*6)],
+            tilt: Math.random() * 10 - 5,
+            tiltSpeed: Math.random() * 0.1 + 0.05
+        }));
+        let frame = 0;
+        const draw = () => {
+            if(frame > 120) { ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; return; }
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            pieces.forEach(p => {
+                p.y += p.d + 1;
+                p.tilt += p.tiltSpeed;
+                ctx.beginPath();
+                ctx.fillStyle = p.color;
+                ctx.ellipse(p.x + Math.sin(p.tilt)*10, p.y, p.r, p.r*0.5, p.tilt, 0, Math.PI*2);
+                ctx.fill();
+            });
+            frame++;
+            requestAnimationFrame(draw);
+        };
+        draw();
+    }
+
+    window.showSuccessScreen = function() {
+        document.getElementById('book-modal').style.display = 'none';
+        document.getElementById('success-modal').style.display = 'flex';
+        if(navigator.vibrate) navigator.vibrate([50, 30, 100, 30, 200]);
+        launchConfetti();
+    }
 
     window.closeSuccessScreen = function() {
         document.getElementById('success-modal').style.display = 'none';
