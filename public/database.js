@@ -120,10 +120,10 @@ console.error("Rating save failed", err);
             const res = await fetch(`${this.dbUrl}admin_password.json`);
             const realPass = await res.json();
 
-
             if (!realPass) {
                 await fetch(`${this.dbUrl}admin_password.json`, {
                     method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify("admin123")
                 });
                 return inputPass === "admin123";
@@ -131,8 +131,49 @@ console.error("Rating save failed", err);
 
             return inputPass === realPass;
         } catch(e) {
-console.error("Auth check failed", e);
             return inputPass === "admin123";
         }
+    },
+
+    createAdminSession: async function() {
+        const token = crypto.randomUUID();
+        const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000);
+        const session = { token, expiry };
+        try {
+            await fetch(`${this.dbUrl}admin_sessions/${token}.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(session)
+            });
+            return token;
+        } catch(e) {
+            return null;
+        }
+    },
+
+    verifyAdminSession: async function(token) {
+        if (!token) return false;
+        try {
+            const res = await fetch(`${this.dbUrl}admin_sessions/${token}.json`);
+            const session = await res.json();
+            if (!session || !session.expiry) return false;
+            if (Date.now() > session.expiry) {
+                await this.destroyAdminSession(token);
+                return false;
+            }
+            return true;
+        } catch(e) {
+            return false;
+        }
+    },
+
+    destroyAdminSession: async function(token) {
+        if (!token) return;
+        try {
+            await fetch(`${this.dbUrl}admin_sessions/${token}.json`, {
+                method: 'DELETE'
+            });
+        } catch(e) {}
+        localStorage.removeItem('libnav_admin_token');
     }
 };
