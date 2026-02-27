@@ -177,5 +177,26 @@ console.error("Rating save failed", err);
             });
         } catch(e) {}
         localStorage.removeItem('libnav_admin_token');
+    },
+
+    async incrementHelped() {
+        try {
+            const dbRef = firebase.database().ref('globalStats/helpedCount');
+            const snapshot = await dbRef.once('value');
+            let currentCount = snapshot.val() || 0;
+            await dbRef.set(currentCount + 1);
+        } catch (error) {
+            console.error("Error updating helped count:", error);
+        }
+    },
+
+    async getHelpedCount() {
+        try {
+            const snapshot = await firebase.database().ref('globalStats/helpedCount').once('value');
+            return snapshot.val() || 0;
+        } catch (error) {
+            console.error("Error fetching helped count:", error);
+            return 0;
+        }
     }
 };
