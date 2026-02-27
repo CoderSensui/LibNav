@@ -1007,95 +1007,88 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const newest = books.reduce((a, b) => (a.id > b.id) ? a : b, { title: "None", author: "N/A" });
         const genres = {};
         books.forEach(b => genres[b.genre] = (genres[b.genre] || 0) + 1);
+        const sortedGenres = Object.entries(genres).sort((a, b) => b[1] - a[1]);
         const avg = ratings.length > 0 ? (ratings.reduce((a, b) => a + parseInt(b), 0) / ratings.length).toFixed(1) : "0.0";
         const avgNum = parseFloat(avg);
-        const stars = Array.from({ length: 5 }, (_, i) => i < Math.round(avgNum) ? "★" : "☆").join("");
+        const avgPct = (avgNum / 5) * 100;
+
+        const genreColors = ['#ff9eb5','#a78bfa','#4ade80','#facc15','#60a5fa','#f97316'];
 
         document.getElementById("stats-modal").firstElementChild.classList.add("stats-layout");
 
         document.getElementById("stats-content").innerHTML = `
-            <div class="sd-header">
-                <div class="sd-header-top">
-                    <div>
-                        <h2 class="sd-title">System Dashboard</h2>
-                        <p class="sd-subtitle">LibNav · Live Analytics</p>
-                    </div>
-                    <div class="sd-uptime-pill">
-                        <span class="sd-live-dot"></span>
-                        <span id="uptime-display">Loading...</span>
-                    </div>
+            <div class="sn-header">
+                <div class="sn-title-block">
+                    <span class="sn-eyebrow">LibNav Analytics</span>
+                    <h2 class="sn-title">Dashboard</h2>
+                </div>
+                <div class="sn-uptime">
+                    <span class="sn-live-dot"></span>
+                    <span id="uptime-display">...</span>
                 </div>
             </div>
 
-            <div class="sd-kpi-row">
-                <div class="sd-kpi-card">
-                    <div class="sd-kpi-icon" style="background: rgba(255,158,181,0.12); color: var(--primary);">
-                        <i data-lucide="library"></i>
-                    </div>
-                    <div class="sd-kpi-value">${books.length}</div>
-                    <div class="sd-kpi-label">Total Books</div>
+            <div class="sn-hero">
+                <div class="sn-hero-label"><i data-lucide="flame"></i> Trending Right Now</div>
+                <div class="sn-hero-views">${mostViewed.views || 0}</div>
+                <div class="sn-hero-views-sub">total views</div>
+                <div class="sn-hero-divider"></div>
+                <h3 class="sn-hero-title">${mostViewed.title || "No Data"}</h3>
+                <p class="sn-hero-author">${mostViewed.author || ""}</p>
+                ${mostViewed.genre ? `<span class="sn-hero-genre">${mostViewed.genre}</span>` : ""}
+                <div class="sn-hero-glow"></div>
+            </div>
+
+            <div class="sn-pills-row">
+                <div class="sn-pill">
+                    <i data-lucide="library"></i>
+                    <span class="sn-pill-val">${books.length}</span>
+                    <span class="sn-pill-lbl">Books</span>
                 </div>
-                <div class="sd-kpi-card">
-                    <div class="sd-kpi-icon" style="background: rgba(74,222,128,0.12); color: #4ade80;">
-                        <i data-lucide="eye"></i>
-                    </div>
-                    <div class="sd-kpi-value">${totalViews}</div>
-                    <div class="sd-kpi-label">Total Views</div>
+                <div class="sn-pill">
+                    <i data-lucide="eye"></i>
+                    <span class="sn-pill-val">${totalViews}</span>
+                    <span class="sn-pill-lbl">Views</span>
                 </div>
-                <div class="sd-kpi-card">
-                    <div class="sd-kpi-icon" style="background: rgba(234,179,8,0.12); color: #eab308;">
-                        <i data-lucide="star"></i>
-                    </div>
-                    <div class="sd-kpi-value">${avg}</div>
-                    <div class="sd-kpi-label">Avg Rating</div>
-                </div>
-                <div class="sd-kpi-card">
-                    <div class="sd-kpi-icon" style="background: rgba(139,92,246,0.12); color: #a78bfa;">
-                        <i data-lucide="bookmark"></i>
-                    </div>
-                    <div class="sd-kpi-value">${favorites.length}</div>
-                    <div class="sd-kpi-label">Bookmarks</div>
+                <div class="sn-pill">
+                    <i data-lucide="bookmark"></i>
+                    <span class="sn-pill-val">${favorites.length}</span>
+                    <span class="sn-pill-lbl">Saved</span>
                 </div>
             </div>
 
-            <div class="sd-grid">
-                <div class="sd-card sd-trending-card">
-                    <div class="sd-card-label"><i data-lucide="flame"></i> Trending Now</div>
-                    <div class="sd-trending-views">${mostViewed.views || 0} views</div>
-                    <h3 class="sd-trending-title">${mostViewed.title || "No Data"}</h3>
-                    <p class="sd-trending-author">${mostViewed.author || ""}</p>
-                    ${mostViewed.genre ? `<span class="sd-genre-tag">${mostViewed.genre}</span>` : ""}
+            <div class="sn-two-col">
+                <div class="sn-section sn-rating-section">
+                    <div class="sn-section-label"><i data-lucide="star"></i> Rating</div>
+                    <div class="sn-rating-num">${avg}<span>/5</span></div>
+                    <div class="sn-rating-bar-track">
+                        <div class="sn-rating-bar-fill" style="width:${avgPct}%"></div>
+                    </div>
+                    <p class="sn-rating-reviews">${ratings.length} review${ratings.length !== 1 ? "s" : ""}</p>
                 </div>
 
-                <div class="sd-card sd-newest-card">
-                    <div class="sd-card-label"><i data-lucide="sparkles"></i> Latest Arrival</div>
-                    <h3 class="sd-trending-title" style="margin-top: 12px;">${newest.title || "No Data"}</h3>
-                    <p class="sd-trending-author">${newest.author || ""}</p>
-                    <div class="sd-new-badge">NEW</div>
+                <div class="sn-section sn-new-section">
+                    <div class="sn-section-label"><i data-lucide="sparkles"></i> New In</div>
+                    <div class="sn-new-badge-inline">NEW</div>
+                    <h4 class="sn-new-title">${newest.title || "No Data"}</h4>
+                    <p class="sn-new-author">${newest.author || ""}</p>
                 </div>
+            </div>
 
-                <div class="sd-card sd-rating-card">
-                    <div class="sd-card-label"><i data-lucide="message-square"></i> User Satisfaction</div>
-                    <div class="sd-rating-stars">${stars}</div>
-                    <div class="sd-rating-big">${avg} <span>/ 5.0</span></div>
-                    <p class="sd-rating-sub">Based on ${ratings.length} review${ratings.length !== 1 ? "s" : ""}</p>
-                </div>
-
-                <div class="sd-card sd-catalog-card">
-                    <div class="sd-card-label"><i data-lucide="layers"></i> Catalog Breakdown</div>
-                    <div class="sd-genre-bars">
-                        ${Object.entries(genres).sort((a, b) => b[1] - a[1]).map(([k, v]) => `
-                            <div class="sd-genre-bar-row">
-                                <div class="sd-genre-bar-meta">
-                                    <span>${k}</span>
-                                    <span>${v}</span>
-                                </div>
-                                <div class="sd-genre-bar-track">
-                                    <div class="sd-genre-bar-fill" style="width: ${Math.round((v / books.length) * 100)}%"></div>
-                                </div>
+            <div class="sn-section sn-catalog-section">
+                <div class="sn-section-label"><i data-lucide="layers"></i> Catalog Breakdown</div>
+                <div class="sn-genre-list">
+                    ${sortedGenres.map(([k, v], i) => `
+                        <div class="sn-genre-item">
+                            <div class="sn-genre-top">
+                                <span class="sn-genre-name">${k}</span>
+                                <span class="sn-genre-count">${v} <span style="opacity:0.5">vol</span></span>
                             </div>
-                        `).join("")}
-                    </div>
+                            <div class="sn-genre-track">
+                                <div class="sn-genre-fill" style="width:${Math.round((v/books.length)*100)}%; background:${genreColors[i % genreColors.length]};"></div>
+                            </div>
+                        </div>
+                    `).join("")}
                 </div>
             </div>
         `;
@@ -1104,8 +1097,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         document.getElementById("stats-modal").style.display = "flex";
 
         const updateUptime = () => {
-            const startDate = new Date("2026-01-01T00:00:00").getTime();
-            const diff = new Date().getTime() - startDate;
+            const diff = Date.now() - new Date("2026-01-01T00:00:00").getTime();
             const d = Math.floor(diff / 86400000);
             const h = Math.floor((diff % 86400000) / 3600000);
             const m = Math.floor((diff % 3600000) / 60000);
