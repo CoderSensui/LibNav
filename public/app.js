@@ -13,15 +13,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const screensaver = document.getElementById('screensaver');
     const adminModal = document.getElementById('admin-modal');
     const bookModal = document.getElementById('book-modal');
-    const qrModal = document.getElementById('qr-modal'); 
+    const qrModal = document.getElementById('qr-modal');
     const carouselImg = document.getElementById('carousel-img');
     const stepCounter = document.getElementById('step-counter');
 
-    let selectedGenres = new Set(); 
+    let selectedGenres = new Set();
     let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
-    const IDLE_LIMIT = 30000; 
+    const IDLE_LIMIT = 30000;
     let idleTimeout;
-    const coverCache = {}; 
+    const coverCache = {};
     let currentImages = [];
     let currentImageIndex = 0;
     let currentGenre = "";
@@ -58,9 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('theme', newMode);
         applyTheme(newMode);
     }
-    
+
     document.getElementById('section-theme-toggle')?.addEventListener('click', toggleThemeAction);
-    
+
     function showPopup(title, msg, onConfirm, showCancel = false) {
         document.getElementById('popup-title').innerText = title;
         document.getElementById('popup-message').innerText = msg;
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('popup-confirm').onclick = () => { pop.style.display = 'none'; if(onConfirm) onConfirm(); };
         cancelBtn.onclick = () => pop.style.display = 'none';
     }
-    
+
     let logoTapCount = 0;
     let logoTapTimer;
     const triggerEasterEgg = () => {
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const shush = document.getElementById('shush-overlay');
             if (shush) {
                 shush.style.display = 'flex';
-                if (navigator.vibrate) navigator.vibrate([100, 50, 200]); 
+                if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
                 setTimeout(() => { shush.style.display = 'none'; }, 2000);
             }
             logoTapCount = 0;
@@ -89,10 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
             logoTapTimer = setTimeout(() => { logoTapCount = 0; }, 400);
         }
     };
-    
+
     document.getElementById('hero-title')?.addEventListener('click', triggerEasterEgg);
     document.getElementById('desktop-logo')?.addEventListener('click', triggerEasterEgg);
-    
+
     document.getElementById('secret-admin-btn').addEventListener('click', () => { adminModal.style.display = 'flex'; });
 
     const imageObserver = new IntersectionObserver((entries, observer) => {
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function generateInitialsImage(name) {
         const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-        const canvas = document.createElement('canvas'); canvas.width = 200; canvas.height = 300; 
+        const canvas = document.createElement('canvas'); canvas.width = 200; canvas.height = 300;
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#121212'; ctx.fillRect(0, 0, 200, 300);
         ctx.font = 'bold 80px sans-serif'; ctx.fillStyle = '#db2777'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -125,13 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const saved = localStorage.getItem('theme') || 'dark';
         applyTheme(saved);
         try { await LibraryDB.init(); } catch(e) {}
-        
+
         if (window.innerWidth <= 849) {
             document.body.classList.add('is-mobile-device');
         } else {
-            document.body.classList.add('sidebar-closed'); 
+            document.body.classList.add('sidebar-closed');
         }
-        
+
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('book')) {
             const book = LibraryDB.getBooks().find(b => String(b.id) === String(urlParams.get('book')));
@@ -148,14 +148,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.nav-tab').forEach(i => i.classList.remove('active'));
         const mobileTab = document.querySelector(`.nav-tab[data-section="${sectionId}"]`);
         if(mobileTab) mobileTab.classList.add('active');
-        
+
         document.querySelectorAll('.desk-nav-item').forEach(d => d.classList.remove('active'));
         const deskTab = document.querySelector(`.desk-nav-item[data-section="${sectionId}"]`);
         if(deskTab) deskTab.classList.add('active');
-        
+
         document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
         document.getElementById(`${sectionId}-section`).classList.add('active');
-        
+
         if(sectionId === 'tools') {
             document.getElementById('dynamic-tip').innerText = tips[Math.floor(Math.random() * tips.length)];
         }
@@ -177,30 +177,30 @@ document.addEventListener('DOMContentLoaded', () => {
         item.addEventListener('click', (e) => { e.preventDefault(); switchSection(item.dataset.section); });
     });
 
-    const filterToggle = document.getElementById('filter-toggle'); 
+    const filterToggle = document.getElementById('filter-toggle');
     const filterMenu = document.getElementById('filter-menu');
     filterToggle.onclick = (e) => { e.stopPropagation(); filterMenu.style.display = filterMenu.style.display === 'flex' ? 'none' : 'flex'; };
 
-    document.getElementById('hamburger-btn').onclick = () => { 
+    document.getElementById('hamburger-btn').onclick = () => {
         if (window.innerWidth >= 850) {
             document.body.classList.toggle('sidebar-closed');
         } else {
-            sideMenu.classList.add('active'); 
-            sideMenuOverlay.style.display = 'block'; 
-            filterMenu.style.display='none'; 
+            sideMenu.classList.add('active');
+            sideMenuOverlay.style.display = 'block';
+            filterMenu.style.display='none';
         }
     };
-    const closeSidebar = () => { 
+    const closeSidebar = () => {
         if (window.innerWidth >= 850) {
-            document.body.classList.add('sidebar-closed'); 
+            document.body.classList.add('sidebar-closed');
         } else {
-            sideMenu.classList.remove('active'); 
-            sideMenuOverlay.style.display = 'none'; 
+            sideMenu.classList.remove('active');
+            sideMenuOverlay.style.display = 'none';
         }
     };
-    document.getElementById('close-menu').onclick = closeSidebar; 
+    document.getElementById('close-menu').onclick = closeSidebar;
     sideMenuOverlay.onclick = closeSidebar;
-    
+
     document.querySelectorAll('.close-btn').forEach(btn => btn.onclick = (e) => {
         const overlay = e.target.closest('.modal-overlay');
         if(overlay) overlay.style.display = 'none';
@@ -210,30 +210,30 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.onclick = () => {
             const genre = btn.dataset.genre;
             selectedGenres.clear();
-            
-            document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
-                if(b.classList) b.classList.remove('active'); 
-                else b.checked = false; 
-            }); 
-            
+
+            document.querySelectorAll('.menu-item, .filter-option input').forEach(b => {
+                if(b.classList) b.classList.remove('active');
+                else b.checked = false;
+            });
+
             btn.classList.add('active');
             const checkbox = document.querySelector(`.filter-option input[value="${genre}"]`);
             if (checkbox) checkbox.checked = true;
-            
+
             if(genre !== 'All') selectedGenres.add(genre);
-            
+
             const hero = document.getElementById('hero');
             const feat = document.getElementById('featured-container');
             if(hero) { hero.style.display = 'none'; hero.style.opacity = '0'; }
             if(feat) { feat.style.display = 'none'; }
-            
+
             if (genre === 'All' && searchInput.value.trim() === '') {
                 performSearch('', true);
             } else {
                 performSearch(searchInput.value);
             }
-            
-            if(window.innerWidth < 850) closeSidebar(); 
+
+            if(window.innerWidth < 850) closeSidebar();
             switchSection('home', true);
         };
     });
@@ -246,56 +246,56 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelectorAll('.filter-option input').forEach(c => { if(c.value !== 'All') c.checked = false; });
                 document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active')); if(e.target.checked) document.querySelector('.menu-item[data-genre="All"]').classList.add('active');
             } else {
-                if(e.target.checked) { selectedGenres.delete('All'); document.querySelector('.filter-option input[value="All"]').checked = false; document.querySelector('.menu-item[data-genre="All"]').classList.remove('active'); selectedGenres.add(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.add('active'); }); } 
+                if(e.target.checked) { selectedGenres.delete('All'); document.querySelector('.filter-option input[value="All"]').checked = false; document.querySelector('.menu-item[data-genre="All"]').classList.remove('active'); selectedGenres.add(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.add('active'); }); }
                 else { selectedGenres.delete(val); document.querySelectorAll('.menu-item').forEach(b => { if(b.dataset.genre===val) b.classList.remove('active'); }); }
             }
-            if (searchInput.value.trim() !== '') { 
-                performSearch(searchInput.value); 
+            if (searchInput.value.trim() !== '') {
+                performSearch(searchInput.value);
             }
         };
     });
-    
+
   document.getElementById('admin-auth-btn').onclick = async () => {
         const btn = document.getElementById('admin-auth-btn');
         const passInput = document.getElementById('admin-password').value;
-        
-        // Show loading state while checking database
+
+
         btn.innerHTML = 'Verifying...';
         btn.disabled = true;
 
-        // Check Firebase
+
         const isValid = await LibraryDB.verifyAdminPassword(passInput);
 
-        if (isValid) { 
-            // Save admin VIP token
+        if (isValid) {
+
             localStorage.setItem('libnav_admin_token', 'VIP_GRANTED');
-            
-            document.getElementById('admin-login-screen').style.display = 'none'; 
-            document.getElementById('admin-dashboard').style.display = 'block'; 
-            document.getElementById('admin-password').value = ''; // clear password field
-            updateImageInputs(); 
-            renderAdminList(); 
-        } else { 
-            showPopup("Access Denied", "Incorrect Security Key.", null, false); 
+
+            document.getElementById('admin-login-screen').style.display = 'none';
+            document.getElementById('admin-dashboard').style.display = 'block';
+            document.getElementById('admin-password').value = '';
+            updateImageInputs();
+            renderAdminList();
+        } else {
+            showPopup("Access Denied", "Incorrect Security Key.", null, false);
         }
-        
-        // Reset button
+
+
         btn.innerHTML = 'Login';
         btn.disabled = false;
     };
-    
+
     const adminMainView = document.getElementById('admin-main-view');
     const adminFormView = document.getElementById('admin-form-view');
     const adminBatchView = document.getElementById('admin-batch-view');
 
     function resetAdminForm() {
-        document.getElementById('edit-book-id').value = ''; 
+        document.getElementById('edit-book-id').value = '';
         document.getElementById('admin-form-title').innerText = "Add New Book";
-        document.getElementById('new-title').value = ''; 
+        document.getElementById('new-title').value = '';
         document.getElementById('new-author').value = '';
         const newCheck = document.getElementById('new-arrival-check'); if(newCheck) newCheck.checked = false;
-        document.getElementById('add-book-btn').innerHTML = '<i data-lucide="upload-cloud"></i> Save to Cloud'; 
-        updateImageInputs(); 
+        document.getElementById('add-book-btn').innerHTML = '<i data-lucide="upload-cloud"></i> Save to Cloud';
+        updateImageInputs();
         renderIcons();
     }
 
@@ -323,12 +323,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateImageInputs() {
         const container = document.getElementById('image-inputs-container');
-        container.innerHTML = ''; 
+        container.innerHTML = '';
         const count = parseInt(document.getElementById('step-count-select').value) || 2;
         for (let i = 1; i <= count; i++) {
-            const input = document.createElement('input'); 
+            const input = document.createElement('input');
             input.type = 'url';
-            input.className = 'input-field step-url-input'; 
+            input.className = 'input-field step-url-input';
             input.placeholder = (i === count) ? `Final Image URL (Leave blank for default)` : `Step ${i} Image URL (Leave blank for default)`;
             container.appendChild(input);
         }
@@ -337,12 +337,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateBatchImageInputs() {
         const container = document.getElementById('batch-image-inputs-container');
-        container.innerHTML = ''; 
+        container.innerHTML = '';
         const count = parseInt(document.getElementById('batch-step-count').value) || 2;
         for (let i = 1; i <= count; i++) {
-            const input = document.createElement('input'); 
+            const input = document.createElement('input');
             input.type = 'url';
-            input.className = 'input-field batch-step-url-input'; 
+            input.className = 'input-field batch-step-url-input';
             input.placeholder = (i === count) ? `Final Image URL (Leave blank for default)` : `Step ${i} Image URL (Leave blank for default)`;
             container.appendChild(input);
         }
@@ -351,16 +351,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.handleEdit = function(id) {
         const book = LibraryDB.getBooks().find(b => String(b.id) === String(id)); if (!book) return;
-        document.getElementById('edit-book-id').value = book.id; 
+        document.getElementById('edit-book-id').value = book.id;
         document.getElementById('admin-form-title').innerText = "Edit Book";
         document.getElementById('new-title').value = book.title; document.getElementById('new-author').value = book.author;
         document.getElementById('new-genre').value = book.genre; document.getElementById('step-count-select').value = book.images.length || 2;
         const newCheck = document.getElementById('new-arrival-check'); if(newCheck) newCheck.checked = !!book.isNew;
         updateImageInputs();
-        const inputs = document.querySelectorAll('.step-url-input'); 
+        const inputs = document.querySelectorAll('.step-url-input');
         book.images.forEach((img, i) => { if (inputs[i] && !img.includes('placehold.co')) inputs[i].value = img; });
-        document.getElementById('add-book-btn').innerHTML = '<i data-lucide="save"></i> Update Book'; 
-        
+        document.getElementById('add-book-btn').innerHTML = '<i data-lucide="save"></i> Update Book';
+
         adminMainView.style.display = 'none';
         adminFormView.style.display = 'block';
         renderIcons();
@@ -411,9 +411,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (searchTerm) {
             filteredBooks = books.filter(b => b.title.toLowerCase().includes(searchTerm) || b.author.toLowerCase().includes(searchTerm));
         }
-        if (!filteredBooks || filteredBooks.length === 0) { 
-            listContainer.innerHTML = '<p style="text-align:center;color:var(--text-muted); padding:20px 0;">No books match your search.</p>'; 
-            return; 
+        if (!filteredBooks || filteredBooks.length === 0) {
+            listContainer.innerHTML = '<p style="text-align:center;color:var(--text-muted); padding:20px 0;">No books match your search.</p>';
+            return;
         }
         listContainer.innerHTML = filteredBooks.map(b => `
             <div class="admin-list-item">
@@ -422,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button onclick="handleEdit('${b.id}')" class="btn-edit"><i data-lucide="edit-2"></i> Edit</button>
                     <button onclick="handleDelete('${b.id}')" class="btn-delete"><i data-lucide="trash-2"></i> Delete</button>
                 </div>
-            </div>`).join(''); 
+            </div>`).join('');
         renderIcons();
     }
 
@@ -437,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
         featuredContainer.innerHTML = `
             <div class="featured-wrap">
                 <span class="feat-tag"><i data-lucide="star"></i> Daily Global Pick</span>
-                <div class="featured-card book-card" onclick="openModalById('${b.id}')"> 
+                <div class="featured-card book-card" onclick="openModalById('${b.id}')">
                     <div class="feat-img-wrap skeleton">
                         <img id="fc-img" src="" style="opacity: 0; transition: opacity 0.4s ease;">
                         <button class="fav-btn ${isFav?'active':''}" onclick="toggleFavorite(event,'${b.id}')"><i data-lucide="bookmark"></i></button>
@@ -447,45 +447,45 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         fetchCoverWithFallback(b.title, b.author, 'fc-img', true); renderIcons();
     }
-    
+
     function fetchCoverWithFallback(title, author, elementId, isImgTag) {
-        const cacheKey = `${title}-${author}`; 
+        const cacheKey = `${title}-${author}`;
         if(coverCache[cacheKey]) { applyCover(coverCache[cacheKey], elementId, isImgTag); return; }
         fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1`).then(r=>r.json()).then(d => {
-            if(d.docs && d.docs.length > 0 && d.docs[0].cover_i) { 
-                const url = `https://covers.openlibrary.org/b/id/${d.docs[0].cover_i}-M.jpg`; 
-                coverCache[cacheKey] = url; 
-                applyCover(url, elementId, isImgTag); 
+            if(d.docs && d.docs.length > 0 && d.docs[0].cover_i) {
+                const url = `https://covers.openlibrary.org/b/id/${d.docs[0].cover_i}-M.jpg`;
+                coverCache[cacheKey] = url;
+                applyCover(url, elementId, isImgTag);
             } else {
                 fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&limit=1`).then(r2=>r2.json()).then(d2 => {
-                    if(d2.docs && d2.docs.length > 0 && d2.docs[0].cover_i) { 
-                        const url = `https://covers.openlibrary.org/b/id/${d2.docs[0].cover_i}-M.jpg`; 
-                        coverCache[cacheKey] = url; 
-                        applyCover(url, elementId, isImgTag); 
-                    } else { 
-                        const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); 
+                    if(d2.docs && d2.docs.length > 0 && d2.docs[0].cover_i) {
+                        const url = `https://covers.openlibrary.org/b/id/${d2.docs[0].cover_i}-M.jpg`;
+                        coverCache[cacheKey] = url;
+                        applyCover(url, elementId, isImgTag);
+                    } else {
+                        const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag);
                     }
                 }).catch(() => { const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); });
             }
-        }).catch(() => { 
-            const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); 
+        }).catch(() => {
+            const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag);
         });
     }
-    
+
     function fetchAuthorPic(author) {
         const el = document.getElementById('umh-author-pic');
         if(!el) return;
-        
+
         const fallback = generateInitialsImage(author);
         el.src = fallback;
         el.onerror = function() { this.src = fallback; };
-        
+
         fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(author)}`).then(r=>r.json()).then(d=>{
             if(d.docs?.[0]?.key) {
                 const url = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg?default=false`;
                 el.src = url;
             }
-        }).catch(e => console.log("Author fetch error:", e));
+}).catch(e => console.log("Author fetch error:", e));
     }
 
     function applyCover(url, elId, isImgTag) {
@@ -494,10 +494,10 @@ document.addEventListener('DOMContentLoaded', () => {
         else { el.style.backgroundImage = `url(${url})`; }
     }
 
-    
+
 window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => String(x.id) === String(id)); if(b) openModal(b); };
 
-    // --- CAROUSEL LOGIC (SWIPE, ZOOM, DOTS) ---
+
     const prevBtn = document.getElementById('prev-img-btn');
     const nextBtn = document.getElementById('next-img-btn');
     const carouselWrapper = document.getElementById('carousel-wrapper');
@@ -510,11 +510,11 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     let touchStartX = 0;
     let touchEndX = 0;
-    let swipeDist = 0; // Tracks distance so we don't zoom when swiping!
+    let swipeDist = 0;
 
     if(carouselWrapper) {
-        carouselWrapper.addEventListener('touchstart', e => { 
-            touchStartX = e.changedTouches[0].screenX; 
+        carouselWrapper.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
             swipeDist = 0;
         }, {passive: true});
         carouselWrapper.addEventListener('touchend', e => {
@@ -525,60 +525,60 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     }
 
     function handleSwipe() {
-        const threshold = 50; 
+        const threshold = 50;
         if (touchEndX < touchStartX - threshold) {
-            if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); } 
+            if (currentImageIndex < currentImages.length - 1) { currentImageIndex++; updateCarousel(); }
         }
         if (touchEndX > touchStartX + threshold) {
-            if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); } 
+            if (currentImageIndex > 0) { currentImageIndex--; updateCarousel(); }
         }
     }
 
-    // --- ALL-IN-ONE ZOOM LOGIC (Clickable Image) ---
+
     const openZoomModal = (e) => {
         if (e) e.stopPropagation();
         if(currentImages && currentImages.length > 0) {
             zoomedImage.src = currentImages[currentImageIndex];
             zoomModal.style.display = 'flex';
-            
-            // Trigger the double-tap/pinch hint inside modal
+
+
             const pHint = document.getElementById('pinch-hint');
             if (pHint && window.innerWidth < 850) {
                 pHint.style.display = 'flex';
                 pHint.style.animation = 'none';
-                pHint.offsetHeight; // Reflow
+                pHint.offsetHeight;
                 pHint.style.animation = 'swipeFade 3.5s ease-in-out forwards';
             }
         }
     };
 
     if(zoomTrigger) zoomTrigger.onclick = openZoomModal;
-    
-    // Make the entire image clickable! (Only opens if they didn't swipe)
+
+
     if(carouselImg) {
         carouselImg.onclick = (e) => { if (swipeDist < 10) openZoomModal(e); };
     }
-    
+
     document.getElementById('close-zoom-btn').onclick = () => zoomModal.style.display = 'none';
     zoomModal.onclick = (e) => { if(e.target === zoomModal || e.target === zoomedImage) zoomModal.style.display = 'none'; };
-    
+
     async function openModal(book) {
         bookModal.style.display = 'flex'; LibraryDB.incrementView(book.id);
         document.getElementById('modal-book-id').innerText = book.id;
-        
+
         const modalBox = bookModal.querySelector('.modal-box');
         modalBox.classList.remove('dynamic-theme');
         let hash = 0;
         for (let i = 0; i < book.title.length; i++) { hash = book.title.charCodeAt(i) + ((hash << 5) - hash); }
-        const hue = Math.abs(hash) % 360; 
-        const glowColor = `hsla(${hue}, 80%, 60%, 0.3)`; 
+        const hue = Math.abs(hash) % 360;
+        const glowColor = `hsla(${hue}, 80%, 60%, 0.3)`;
         modalBox.style.setProperty('--dynamic-color', glowColor);
         modalBox.classList.add('dynamic-theme');
-     
+
         document.getElementById('umh-title').innerText = book.title;
         document.getElementById('umh-author-name').innerText = book.author;
         document.getElementById('umh-genre').innerText = book.genre;
-        
+
         const cover = document.getElementById('umh-book-cover');
         if(cover) {
             cover.src = ''; cover.style.opacity = '0'; cover.parentElement.classList.add('skeleton');
@@ -588,7 +588,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
         const qrContainer = document.getElementById('qrcode');
         if (qrContainer) {
-            qrContainer.innerHTML = ''; 
+            qrContainer.innerHTML = '';
             const dl = `${window.location.origin}${window.location.pathname}?book=${book.id}&view=mobile`;
             try { new QRCode(qrContainer, { text: dl, width: 140, height: 140, colorDark : "#121212", colorLight : "#ffffff" }); } catch(err) {}
         }
@@ -597,7 +597,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const topShare = document.getElementById('top-share-btn');
         if (topShare) topShare.onclick = () => {
              const url = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
-             navigator.clipboard.writeText(`Check out "${book.title}" on LibNav: ${url}`); 
+             navigator.clipboard.writeText(`Check out "${book.title}" on LibNav: ${url}`);
              const toast = document.getElementById('toast-notification');
              toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000);
         };
@@ -608,7 +608,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             relatedContainer.innerHTML = '';
             related.forEach(rBook => {
                 const div = document.createElement('div');
-                div.className = 'related-card skeleton'; 
+                div.className = 'related-card skeleton';
                 div.innerHTML = `<img id="rel-${rBook.id}" src="" style="opacity:0" onload="this.style.opacity=1;this.parentElement.classList.remove('skeleton')">`;
                 div.onclick = () => openModal(rBook);
                 relatedContainer.appendChild(div);
@@ -616,28 +616,28 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             });
         }
 
-        currentImages = book.images || []; 
-        currentImageIndex = 0; 
-        currentGenre = book.genre; 
-        updateCarousel(); 
-        
-        // Show Hints on Mobile (First step only)
+        currentImages = book.images || [];
+        currentImageIndex = 0;
+        currentGenre = book.genre;
+        updateCarousel();
+
+
         const hint = document.getElementById('swipe-hint');
         const tHint = document.getElementById('tap-hint');
-        
+
         if(window.innerWidth < 850) {
             if(hint) {
                 hint.style.display = 'flex';
                 hint.style.animation = 'none';
-                hint.offsetHeight; /* Trigger reflow */
+                hint.offsetHeight;
                 hint.style.animation = 'swipeFade 2.5s ease-in-out forwards';
             }
             if(tHint) {
                 tHint.style.display = 'flex';
                 tHint.style.animation = 'none';
-                tHint.offsetHeight; 
+                tHint.offsetHeight;
                 tHint.style.animation = 'swipeFade 2.5s ease-in-out forwards';
-                tHint.style.animationDelay = '0.7s'; // Pops up right after swipe hint
+                tHint.style.animationDelay = '0.7s';
             }
         } else {
             if(hint) hint.style.display = 'none';
@@ -645,53 +645,53 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
         renderIcons();
     }
-    
+
     function updateCarousel() {
         const aa = document.getElementById('mobile-action-area');
         const dotsContainer = document.getElementById('carousel-dots');
-        const cWrapper = document.getElementById('carousel-wrapper'); // Grab the container
-        
+        const cWrapper = document.getElementById('carousel-wrapper');
+
         if (currentImages && currentImages.length > 0) {
-            // --- SKELETON LOADING LOGIC ---
-            if (cWrapper) cWrapper.classList.add('skeleton'); // Add gray shimmer
-            carouselImg.style.opacity = '0'; // Hide image while loading
+
+            if (cWrapper) cWrapper.classList.add('skeleton');
+            carouselImg.style.opacity = '0';
             carouselImg.style.transition = 'opacity 0.3s ease, transform 0.1s ease-out';
-            
+
             carouselImg.onload = () => {
-                carouselImg.style.opacity = '1'; // Fade image in
-                if (cWrapper) cWrapper.classList.remove('skeleton'); // Remove shimmer
+                carouselImg.style.opacity = '1';
+                if (cWrapper) cWrapper.classList.remove('skeleton');
             };
 
-            // Trigger the image load
+
             carouselImg.src = currentImages[currentImageIndex];
             carouselImg.style.display = 'block';
-            
-            // Update PC Controls
+
+
             if(stepCounter) stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
             if(prevBtn) { prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1"; prevBtn.style.pointerEvents = currentImageIndex === 0 ? "none" : "auto"; }
             if(nextBtn) { nextBtn.style.opacity = currentImageIndex === currentImages.length - 1 ? "0.3" : "1"; nextBtn.style.pointerEvents = currentImageIndex === currentImages.length - 1 ? "none" : "auto"; }
-            
-            // Update Dots (Mobile Indicator)
+
+
             if (dotsContainer) {
-                dotsContainer.innerHTML = currentImages.map((_, i) => 
+                dotsContainer.innerHTML = currentImages.map((_, i) =>
                     `<span class="dot ${i === currentImageIndex ? 'active' : ''}"></span>`
                 ).join('');
             }
 
-            // Show "I Found It" button on last step
+
             if (aa) aa.style.display = (currentImageIndex === currentImages.length - 1 && document.body.classList.contains('is-mobile-device')) ? 'flex' : 'none';
-        } else { 
-            carouselImg.style.display = 'none'; 
-            if(stepCounter) stepCounter.innerText = "No map available"; 
+        } else {
+            carouselImg.style.display = 'none';
+            if(stepCounter) stepCounter.innerText = "No map available";
             if(dotsContainer) dotsContainer.innerHTML = '';
             if (aa && document.body.classList.contains('is-mobile-device')) aa.style.display = 'flex';
-            if (cWrapper) cWrapper.classList.remove('skeleton'); // Clean up if empty
+            if (cWrapper) cWrapper.classList.remove('skeleton');
         }
     }
-    
+
 
     const recentDropdown = document.getElementById('recent-searches-dropdown');
-    
+
     function saveRecentSearch(query) {
         if (!query.trim()) return;
         recentSearches = recentSearches.filter(q => q.toLowerCase() !== query.toLowerCase());
@@ -719,7 +719,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     };
 
     window.selectRecent = function(query) {
-        searchInput.value = query; 
+        searchInput.value = query;
         if(recentDropdown) recentDropdown.style.display = 'none';
         performSearch(query);
     };
@@ -741,9 +741,9 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     searchInput.addEventListener('input', (e) => {
         const t = e.target.value.toLowerCase().trim();
-        if (t.length > 0) { hero.style.display = 'none'; featuredContainer.style.display = 'none'; } 
+        if (t.length > 0) { hero.style.display = 'none'; featuredContainer.style.display = 'none'; }
         else if (selectedGenres.size === 0 || selectedGenres.has('All')) { hero.style.display = 'block'; featuredContainer.style.display = 'block'; }
-        
+
         autocompleteDropdown.innerHTML = '';
         if (t.length > 1) {
             if(recentDropdown) recentDropdown.style.display = 'none';
@@ -784,18 +784,18 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     function performSearch(term, forceShowAll = false) {
         let books = LibraryDB.getBooks(); term = term.toLowerCase().trim();
-        if (!forceShowAll && term === '' && (selectedGenres.size === 0 || selectedGenres.has('All'))) { 
-            document.getElementById('results-area').innerHTML = ''; 
-            return; 
+        if (!forceShowAll && term === '' && (selectedGenres.size === 0 || selectedGenres.has('All'))) {
+            document.getElementById('results-area').innerHTML = '';
+            return;
         }
         let matches = books.filter(b => {
-            const tm = b.title.toLowerCase().includes(term); 
-            const am = b.author.toLowerCase().includes(term); 
+            const tm = b.title.toLowerCase().includes(term);
+            const am = b.author.toLowerCase().includes(term);
             let gm = false;
             if (selectedGenres.has('All') || selectedGenres.size === 0) gm = true;
-            else { 
-                if (selectedGenres.has('Favorites') && favorites.includes(String(b.id))) gm = true; 
-                if (selectedGenres.has(b.genre)) gm = true; 
+            else {
+                if (selectedGenres.has('Favorites') && favorites.includes(String(b.id))) gm = true;
+                if (selectedGenres.has(b.genre)) gm = true;
             }
             return (tm || am) && gm;
         });
@@ -809,9 +809,9 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             searchInput.value = '';
             selectedGenres.clear();
             btn.style.color = '';
-            document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
-                if(b.classList) b.classList.remove('active'); 
-                else b.checked = false; 
+            document.querySelectorAll('.menu-item, .filter-option input').forEach(b => {
+                if(b.classList) b.classList.remove('active');
+                else b.checked = false;
             });
             hero.style.display = 'block'; hero.style.height = 'auto'; hero.style.opacity = '1'; hero.style.margin = '0 0 30px 0';
             featuredContainer.style.display = 'block'; document.getElementById('results-area').innerHTML = '';
@@ -821,11 +821,11 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             selectedGenres.clear();
             selectedGenres.add('Favorites');
             btn.style.color = 'var(--primary)';
-            document.querySelectorAll('.menu-item, .filter-option input').forEach(b => { 
-                if(b.classList) b.classList.remove('active'); 
-                else b.checked = false; 
+            document.querySelectorAll('.menu-item, .filter-option input').forEach(b => {
+                if(b.classList) b.classList.remove('active');
+                else b.checked = false;
             });
-            hero.style.display = 'none'; 
+            hero.style.display = 'none';
             featuredContainer.style.display = 'none';
             performSearch('');
             switchSection('home', true);
@@ -851,16 +851,16 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     function renderResults(books) {
         resultsArea.innerHTML = '';
-        if (books.length === 0) { 
+        if (books.length === 0) {
             resultsArea.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon-wrap"><i data-lucide="ghost"></i></div>
                     <h3>Whoops! Ghost Town.</h3>
                     <p>We couldn't find any books matching your search. Try a different title or author.</p>
-                </div>`; 
-            renderIcons(); return; 
+                </div>`;
+            renderIcons(); return;
         }
-        
+
         if (selectedGenres.has('Favorites') && books.length > 0) {
             const exportHtml = `
                 <div class="saved-actions-bar">
@@ -916,23 +916,23 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     };
 
     window.toggleFavorite = function(e, bookId) {
-        e.stopPropagation(); 
+        e.stopPropagation();
         const btn = e.target.closest('.fav-btn');
-        btn.classList.toggle('active'); 
+        btn.classList.toggle('active');
         const index = favorites.findIndex(id => String(id) === String(bookId));
-        
+
         if (index === -1) {
-            favorites.push(String(bookId)); 
+            favorites.push(String(bookId));
         } else {
             favorites.splice(index, 1);
         }
-        
+
         localStorage.setItem('libnav_favs', JSON.stringify(favorites));
 
         if (selectedGenres.has('Favorites') && index !== -1) {
             const card = btn.closest('.book-card');
             if (card) card.remove();
-            
+
             if (favorites.length === 0) {
                 const resultsArea = document.getElementById('results-area');
                 resultsArea.innerHTML = `
@@ -959,36 +959,36 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
     }
 
-    function resetIdleTimer() { 
-        clearTimeout(idleTimeout); 
-        screensaver.style.display='none'; 
-        idleTimeout = setTimeout(() => { 
-            if(!document.body.classList.contains('companion-mode-active')) { 
-                switchSection('home'); 
-                document.querySelectorAll('.modal-overlay').forEach(m=>m.style.display='none'); 
-                screensaver.style.display='flex'; 
+    function resetIdleTimer() {
+        clearTimeout(idleTimeout);
+        screensaver.style.display='none';
+        idleTimeout = setTimeout(() => {
+            if(!document.body.classList.contains('companion-mode-active')) {
+                switchSection('home');
+                document.querySelectorAll('.modal-overlay').forEach(m=>m.style.display='none');
+                screensaver.style.display='flex';
                 fetchScreensaverFact();
                 renderIcons();
-            } 
-        }, IDLE_LIMIT); 
+            }
+        }, IDLE_LIMIT);
     }
-    
-    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(evt => 
+
+    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(evt =>
         document.addEventListener(evt, resetIdleTimer, true)
     );
     window.onload = resetIdleTimer;
-    
+
     let uptimeInterval = null;
     const openStats = () => {
-        const books = LibraryDB.getBooks(); 
+        const books = LibraryDB.getBooks();
         const ratings = LibraryDB.getRatings() || [];
-        
+
         const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0, author:"N/A"});
         const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None", author:"N/A"});
         const genres = {}; books.forEach(b=>genres[b.genre]=(genres[b.genre]||0)+1);
-        
+
         const avg = ratings.length > 0 ? `${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)}` : "0.0";
-        
+
         document.getElementById('stats-modal').firstElementChild.classList.add('stats-layout');
 
         document.getElementById('stats-content').innerHTML = `
@@ -996,22 +996,22 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 <h2>System Dashboard</h2>
                 <div class="uptime-pill"><i data-lucide="radio"></i> <span id="uptime-display">Booting...</span></div>
             </div>
-            
+
          <div class="stats-compact-grid">
              <div class="bento-card compact-card stats-split-card">
                     <div class="split-stat-item">
                         <div class="csr-icon yellow" style="margin: 0;"><i data-lucide="star"></i></div>
                         <div><strong style="font-size: 1.6rem; color: var(--text-main); line-height: 1; display: block; margin-bottom: 3px;">${avg}</strong> <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Global Rating (${ratings.length} Reviews)</span></div>
                     </div>
-                    
+
                     <div class="split-divider"></div>
-                    
+
                     <div class="split-stat-item">
                         <div class="csr-icon pink" style="margin: 0;"><i data-lucide="bookmark"></i></div>
                         <div><strong style="font-size: 1.6rem; color: var(--text-main); line-height: 1; display: block; margin-bottom: 3px;">${favorites.length}</strong> <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Bookmarks</span></div>
                     </div>
                 </div>
-                
+
                <div class="bento-card" style="position: relative;">     <div style="position: absolute; top: 20px; right: 20px; background: var(--primary-light); color: var(--primary); padding: 6px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">${mostViewed.views || 0} Views</div>
                     <div class="bento-highlight" style="display: flex; flex-direction: row; align-items: center; gap: 18px;">
                         <div class="bento-icon" style="min-width: 50px; width: 50px; height: 50px; background: var(--primary); color: white; border: none; box-shadow: 0 0 15px rgba(219,39,119,0.5); border-radius: 14px; display: flex; justify-content: center; align-items: center; margin: 0; flex-shrink: 0;"><i data-lucide="flame"></i></div>
@@ -1020,7 +1020,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                             <h3 style="color: var(--text-main); font-size: 1.4rem; margin: 0 0 4px 0; line-height: 1.2;">${mostViewed.title || 'No Data'}</h3>
                             <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">${mostViewed.author || ''}</p>
                             <span style="background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: bold; width: fit-content; text-transform: uppercase;">${mostViewed.genre || 'Unknown'}</span>
-                        
+
                         </div>
                     </div>
                 </div>
@@ -1035,7 +1035,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                         </div>
                     </div>
                 </div>
-                       
+
                 <div class="bento-card compact-card full-width bento-span-2">
                     <div class="csr-header">
                         <span><i data-lucide="pie-chart" style="width:18px;"></i> Catalog Composition</span>
@@ -1051,19 +1051,19 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                     </div>
                 </div>
             </div>
-        `; 
-        renderIcons(); 
+        `;
+        renderIcons();
         document.getElementById('stats-modal').style.display = 'flex';
 
         const updateUptime = () => {
             const startDate = new Date("2026-01-01T00:00:00").getTime(); const diff = new Date().getTime() - startDate;
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24)); const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); 
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24)); const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)); const s = Math.floor((diff % (1000 * 60)) / 1000);
             const el = document.getElementById('uptime-display'); if(el) el.innerText = `Online: ${d}d ${h}h ${m}m ${s}s`;
         };
         if(uptimeInterval) clearInterval(uptimeInterval); updateUptime(); uptimeInterval = setInterval(updateUptime, 1000);
     };
-    
+
     document.getElementById('section-stats-btn')?.addEventListener('click', openStats);
 
     const openFeedback = () => { document.getElementById('feedback-modal').style.display = 'flex'; };
@@ -1071,30 +1071,30 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     const fForm = document.getElementById('feedback-form');
     if(fForm) fForm.onsubmit = async (e) => {
-        e.preventDefault(); const btn = document.getElementById('fb-submit-btn'); 
+        e.preventDefault(); const btn = document.getElementById('fb-submit-btn');
         const name = document.getElementById('fb-name').value;
         const email = document.getElementById('fb-email').value;
         const message = document.getElementById('fb-message').value;
-        const rating = document.querySelector('input[name="rating"]:checked')?.value || 5; 
+        const rating = document.querySelector('input[name="rating"]:checked')?.value || 5;
         btn.innerHTML = '<i data-lucide="loader-2"></i> Sending...'; renderIcons(); btn.disabled = true;
-        try { 
-            await LibraryDB.submitRating(parseInt(rating)); 
+        try {
+            await LibraryDB.submitRating(parseInt(rating));
             const combinedMessage = `[User Rating: ${rating}/5 Stars]\n\n${message}`;
             const payload = { name: name, email: email, message: combinedMessage };
             await fetch('/api/send-feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            showPopup("Success", "Feedback Sent via Email! Thank you.", null, false); 
+            showPopup("Success", "Feedback Sent via Email! Thank you.", null, false);
             fForm.reset(); document.getElementById('feedback-modal').style.display = 'none';
-        } 
-        catch { showPopup("Error", "Message saved locally.", null, false); document.getElementById('feedback-modal').style.display = 'none';} 
+        }
+        catch { showPopup("Error", "Message saved locally.", null, false); document.getElementById('feedback-modal').style.display = 'none';}
         finally { btn.innerHTML = '<i data-lucide="send"></i> Send feedback'; btn.disabled = false; renderIcons();}
     };
 
     window.showSuccessScreen = function() { document.getElementById('book-modal').style.display = 'none'; document.getElementById('success-modal').style.display = 'flex'; }
-    
-    window.closeSuccessScreen = function() { 
-        document.getElementById('success-modal').style.display = 'none'; 
-        document.body.classList.remove('companion-mode-active'); 
-        switchSection('home'); 
+
+    window.closeSuccessScreen = function() {
+        document.getElementById('success-modal').style.display = 'none';
+        document.body.classList.remove('companion-mode-active');
+        switchSection('home');
     }
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -1106,11 +1106,11 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     } else micBtn.style.display = 'none';
 
     let lastScrollY = window.scrollY;
-    const topNav = document.querySelector('.search-wrapper') || document.querySelector('.top-nav'); 
-    
+    const topNav = document.querySelector('.search-wrapper') || document.querySelector('.top-nav');
+
     window.addEventListener('scroll', () => {
         const currentScrollY = window.scrollY;
-        if (currentScrollY > 100) { 
+        if (currentScrollY > 100) {
             if (currentScrollY > lastScrollY + 10) {
                 if(topNav) topNav.classList.add('header-hidden');
                 lastScrollY = currentScrollY;
@@ -1130,9 +1130,9 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         if (!card) return;
         document.querySelectorAll('.book-card.show-actions').forEach(c => c.classList.remove('show-actions'));
         holdTimer = setTimeout(() => {
-            if(navigator.vibrate) navigator.vibrate(50); 
+            if(navigator.vibrate) navigator.vibrate(50);
             card.classList.add('show-actions');
-        }, 500); 
+        }, 500);
     }, {passive: true});
     document.getElementById('results-area').addEventListener('touchend', () => clearTimeout(holdTimer));
     document.getElementById('results-area').addEventListener('touchmove', () => clearTimeout(holdTimer));
@@ -1147,12 +1147,11 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     window.addEventListener('offline', () => document.getElementById('offline-banner').style.display = 'flex');
     if (!navigator.onLine) document.getElementById('offline-banner').style.display = 'flex';
 
-    renderIcons(); 
-    setTimeout(renderIcons, 200); 
-    setTimeout(renderIcons, 500); 
+    renderIcons();
+    setTimeout(renderIcons, 200);
+    setTimeout(renderIcons, 500);
     setTimeout(renderIcons, 1000);
 
-   // --- ADMIN MAINTENANCE MODAL LOGIC ---
     const openMaintBtn = document.getElementById('open-maint-view-btn');
     const closeMaintBtn = document.getElementById('close-maint-modal-btn');
     const maintModal = document.getElementById('admin-maint-modal');
@@ -1180,7 +1179,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         };
     }
 
-    // --- ADMIN BROADCAST CONTROLS ---
     const openBcBtn = document.getElementById('open-broadcast-view-btn');
     const closeBcBtn = document.getElementById('close-broadcast-admin-btn');
     const sendBcBtn = document.getElementById('send-broadcast-btn');
@@ -1189,15 +1187,15 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     if (openBcBtn && adminBcView) openBcBtn.onclick = () => adminBcView.style.display = 'flex';
     if (closeBcBtn && adminBcView) closeBcBtn.onclick = () => adminBcView.style.display = 'none';
-    
+
     if (sendBcBtn) {
         sendBcBtn.onclick = async () => {
             const t = document.getElementById('bc-title')?.value.trim();
             const m = document.getElementById('bc-msg')?.value.trim();
-            const theme = document.getElementById('bc-theme')?.value; 
+            const theme = document.getElementById('bc-theme')?.value;
             if(!t || !m) return showPopup("Error", "Fill out both fields.", null, false);
             if (typeof LibraryDB.setBroadcast !== 'function') return showPopup("Error", "Database update missing.", null, false);
-            
+
             const bcObj = { id: 'bc_' + Date.now(), title: t, message: m, theme: theme };
             await LibraryDB.setBroadcast(bcObj);
             showPopup("Success", "Broadcast sent to all users!", null, false);
@@ -1214,7 +1212,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         };
     }
 
-    // --- ON LOAD CHECKER (Maintenance & Broadcasts) ---
     setTimeout(async () => {
         if (typeof LibraryDB.getMaintenance === 'function') {
             const isMaint = await LibraryDB.getMaintenance();
@@ -1222,7 +1219,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             if (isMaint && !isVIP) {
                 const maintOverlay = document.getElementById('maintenance-overlay');
                 if (maintOverlay) maintOverlay.style.display = 'flex';
-                return; 
+                return;
             }
         }
 
@@ -1258,18 +1255,16 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 }
             }
         }
-    }, 1500); 
+    }, 1500);
 
-    
-// --- BULLETPROOF PINCH, PAN & DOUBLE-TAP ZOOM ---
+
     const zoomImageElement = document.getElementById('zoomed-image');
     const zoomModalContainer = document.getElementById('zoom-modal');
-    
+
     let zScale = 1, zP1x = 0, zP1y = 0, zP2x = 0, zP2y = 0;
     let zStartX = 0, zStartY = 0, zX = 0, zY = 0;
     let zIsDragging = false;
-    let zLastTapTime = 0; // Tracks double taps
-
+    let zLastTapTime = 0; 
     if (zoomImageElement && zoomModalContainer) {
         zoomModalContainer.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
@@ -1286,7 +1281,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }, { passive: false });
 
         zoomImageElement.addEventListener('touchmove', (e) => {
-            e.preventDefault(); 
+            e.preventDefault();
             if (e.touches.length === 1 && zIsDragging) {
                 zX = e.touches[0].clientX - zStartX;
                 zY = e.touches[0].clientY - zStartY;
@@ -1294,35 +1289,34 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             } else if (e.touches.length === 2) {
                 const zCurrentP1x = e.touches[0].clientX, zCurrentP1y = e.touches[0].clientY;
                 const zCurrentP2x = e.touches[1].clientX, zCurrentP2y = e.touches[1].clientY;
-                
+
                 const startDist = Math.hypot(zP1x - zP2x, zP1y - zP2y);
                 const currentDist = Math.hypot(zCurrentP1x - zCurrentP2x, zCurrentP1y - zCurrentP2y);
-                
+
                 const distanceChange = currentDist - startDist;
-                zScale = Math.min(Math.max(1, zScale + (distanceChange * 0.01)), 4); 
-                
+                zScale = Math.min(Math.max(1, zScale + (distanceChange * 0.01)), 4);
+
                 zoomImageElement.style.transform = `translate(${zX}px, ${zY}px) scale(${zScale})`;
-                
+
                 zP1x = zCurrentP1x; zP1y = zCurrentP1y;
                 zP2x = zCurrentP2x; zP2y = zCurrentP2y;
             }
         }, { passive: false });
 
-        zoomImageElement.addEventListener('touchend', (e) => { 
-            zIsDragging = false; 
-            
-            // --- THE DOUBLE TAP LOGIC ---
+        zoomImageElement.addEventListener('touchend', (e) => {
+            zIsDragging = false;
+
             const currentTime = new Date().getTime();
             const tapLength = currentTime - zLastTapTime;
-            
+
             if (tapLength < 300 && tapLength > 0 && e.changedTouches.length === 1) {
                 if (zScale > 1) {
-                    resetFullScreenZoom(); // Zoom out
+                    resetFullScreenZoom(); 
                 } else {
-                    zScale = 2.5; // Instant Zoom in!
+                    zScale = 2.5; 
                     zoomImageElement.style.transform = `translate(0px, 0px) scale(${zScale})`;
                 }
-                e.preventDefault(); 
+                e.preventDefault();
             }
             zLastTapTime = currentTime;
         });
@@ -1332,9 +1326,8 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         zScale = 1; zX = 0; zY = 0;
         if(zoomImageElement) zoomImageElement.style.transform = `translate(0px, 0px) scale(1)`;
     };
-    
 
-    // --- ONBOARDING POPUP LOGIC ---
+
     const welcomeModal = document.getElementById('welcome-modal');
     const startLibnavBtn = document.getElementById('start-libnav-btn');
     if (welcomeModal && !localStorage.getItem('libnav_onboarded')) {
