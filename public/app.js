@@ -259,10 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.getElementById('admin-auth-btn');
         const passInput = document.getElementById('admin-password').value;
 
-
         btn.innerHTML = 'Verifying...';
         btn.disabled = true;
-
 
         const isValid = await LibraryDB.verifyAdminPassword(passInput);
 
@@ -287,7 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             showPopup("Access Denied", "Incorrect Security Key.", null, false);
         }
-
 
         btn.innerHTML = 'Login';
         btn.disabled = false;
@@ -494,28 +491,26 @@ document.addEventListener('DOMContentLoaded', () => {
     function fetchAuthorPic(author) {
         const el = document.getElementById('umh-author-pic');
         if(!el) return;
-
+        const wrap = el.closest('.bm-author-avatar');
         const fallback = generateInitialsImage(author);
         el.src = fallback;
+        if(wrap) wrap.classList.remove('skeleton');
         el.onerror = function() { this.src = fallback; };
-
         fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(author)}`).then(r=>r.json()).then(d=>{
             if(d.docs?.[0]?.key) {
                 const url = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg?default=false`;
                 el.src = url;
             }
-}).catch(e => console.log("Author fetch error:", e));
+        }).catch(() => {});
     }
 
     function applyCover(url, elId, isImgTag) {
         const el = document.getElementById(elId); if(!el) return;
-        if(isImgTag) { el.src = url; el.onload = () => { el.style.opacity = '1'; const wrap = el.closest('.skeleton'); if(wrap) wrap.classList.remove('skeleton'); }; }
+        if(isImgTag) { el.src = url; el.onload = () => { el.style.opacity = '1'; const wrap = el.closest('.umh-cover-wrap') || el.closest('.skeleton'); if(wrap) wrap.classList.remove('skeleton'); }; }
         else { el.style.backgroundImage = `url(${url})`; }
     }
 
-
 window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => String(x.id) === String(id)); if(b) openModal(b); };
-
 
     const prevBtn = document.getElementById('prev-img-btn');
     const nextBtn = document.getElementById('next-img-btn');
@@ -553,13 +548,11 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
     }
 
-
     const openZoomModal = (e) => {
         if (e) e.stopPropagation();
         if(currentImages && currentImages.length > 0) {
             zoomedImage.src = currentImages[currentImageIndex];
             zoomModal.style.display = 'flex';
-
 
             const pHint = document.getElementById('pinch-hint');
             if (pHint && window.innerWidth < 850) {
@@ -572,7 +565,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     };
 
     if(zoomTrigger) zoomTrigger.onclick = openZoomModal;
-
 
     if(carouselImg) {
         carouselImg.onclick = (e) => { if (swipeDist < 10) openZoomModal(e); };
@@ -600,7 +592,9 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
         const cover = document.getElementById('umh-book-cover');
         if(cover) {
-            cover.src = ''; cover.style.opacity = '0'; cover.parentElement.classList.add('skeleton');
+            cover.src = ''; cover.style.opacity = '0';
+            const wrap = cover.closest('.umh-cover-wrap');
+            if(wrap) wrap.classList.add('skeleton');
             fetchCoverWithFallback(book.title, book.author, 'umh-book-cover', true);
         }
         fetchAuthorPic(book.author);
@@ -642,7 +636,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         currentGenre = book.genre;
         updateCarousel();
 
-
         const hint = document.getElementById('swipe-hint');
         const tHint = document.getElementById('tap-hint');
 
@@ -683,15 +676,12 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 if (cWrapper) cWrapper.classList.remove('skeleton');
             };
 
-
             carouselImg.src = currentImages[currentImageIndex];
             carouselImg.style.display = 'block';
-
 
             if(stepCounter) stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
             if(prevBtn) { prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1"; prevBtn.style.pointerEvents = currentImageIndex === 0 ? "none" : "auto"; }
             if(nextBtn) { nextBtn.style.opacity = currentImageIndex === currentImages.length - 1 ? "0.3" : "1"; nextBtn.style.pointerEvents = currentImageIndex === currentImages.length - 1 ? "none" : "auto"; }
-
 
             if (dotsContainer) {
                 dotsContainer.innerHTML = currentImages.map((_, i) =>
@@ -699,10 +689,11 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 ).join('');
             }
 
-
             const isLastStep = currentImageIndex === currentImages.length - 1;
             const isMobile = document.body.classList.contains('is-mobile-device');
             if (aa) aa.style.display = (isLastStep && isMobile) ? 'flex' : 'none';
+            const desktopQr = document.getElementById('desktop-action-row');
+            if(desktopQr && !isMobile) desktopQr.style.display = 'flex';
         } else {
             carouselImg.style.display = 'none';
             if(stepCounter) stepCounter.innerText = "No map available";
@@ -711,7 +702,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             if (cWrapper) cWrapper.classList.remove('skeleton');
         }
     }
-
 
     const recentDropdown = document.getElementById('recent-searches-dropdown');
 
@@ -1072,7 +1062,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 </div>
 
                 <div class="sn-section sn-new-section">
-                    <div class="sn-section-label"><i data-lucide="sparkles"></i> New In</div>
+                    <div class="sn-section-label"><i data-lucide="sparkles"></i> New Arrival</div>
                     <div class="sn-new-badge-inline">NEW</div>
                     <h4 class="sn-new-title">${newest.title || "No Data"}</h4>
                     <p class="sn-new-author">${newest.author || ""}</p>
@@ -1323,7 +1313,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
     }, 1500);
 
-
     const zoomImageElement = document.getElementById('zoomed-image');
     const zoomModalContainer = document.getElementById('zoom-modal');
 
@@ -1393,7 +1382,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         zScale = 1; zX = 0; zY = 0;
         if(zoomImageElement) zoomImageElement.style.transform = `translate(0px, 0px) scale(1)`;
     };
-
 
     const welcomeModal = document.getElementById('welcome-modal');
     const startLibnavBtn = document.getElementById('start-libnav-btn');
