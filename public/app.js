@@ -1002,85 +1002,120 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const books = LibraryDB.getBooks();
         const ratings = LibraryDB.getRatings() || [];
 
-        const mostViewed = books.reduce((a,b)=>(a.views||0)>(b.views||0)?a:b, {title:"None",views:0, author:"N/A"});
-        const newest = books.reduce((a,b)=>(a.id>b.id)?a:b, {title:"None", author:"N/A"});
-        const genres = {}; books.forEach(b=>genres[b.genre]=(genres[b.genre]||0)+1);
+        const totalViews = books.reduce((sum, b) => sum + (b.views || 0), 0);
+        const mostViewed = books.reduce((a, b) => (a.views || 0) > (b.views || 0) ? a : b, { title: "None", views: 0, author: "N/A", genre: "" });
+        const newest = books.reduce((a, b) => (a.id > b.id) ? a : b, { title: "None", author: "N/A" });
+        const genres = {};
+        books.forEach(b => genres[b.genre] = (genres[b.genre] || 0) + 1);
+        const avg = ratings.length > 0 ? (ratings.reduce((a, b) => a + parseInt(b), 0) / ratings.length).toFixed(1) : "0.0";
+        const avgNum = parseFloat(avg);
+        const stars = Array.from({ length: 5 }, (_, i) => i < Math.round(avgNum) ? "★" : "☆").join("");
 
-        const avg = ratings.length > 0 ? `${(ratings.reduce((a,b)=>a+parseInt(b),0)/ratings.length).toFixed(1)}` : "0.0";
+        document.getElementById("stats-modal").firstElementChild.classList.add("stats-layout");
 
-        document.getElementById('stats-modal').firstElementChild.classList.add('stats-layout');
-
-        document.getElementById('stats-content').innerHTML = `
-            <div class="stats-header-neon">
-                <h2>System Dashboard</h2>
-                <div class="uptime-pill"><i data-lucide="radio"></i> <span id="uptime-display">Booting...</span></div>
+        document.getElementById("stats-content").innerHTML = `
+            <div class="sd-header">
+                <div class="sd-header-top">
+                    <div>
+                        <h2 class="sd-title">System Dashboard</h2>
+                        <p class="sd-subtitle">LibNav · Live Analytics</p>
+                    </div>
+                    <div class="sd-uptime-pill">
+                        <span class="sd-live-dot"></span>
+                        <span id="uptime-display">Loading...</span>
+                    </div>
+                </div>
             </div>
 
-         <div class="stats-compact-grid">
-             <div class="bento-card compact-card stats-split-card">
-                    <div class="split-stat-item">
-                        <div class="csr-icon yellow" style="margin: 0;"><i data-lucide="star"></i></div>
-                        <div><strong style="font-size: 1.6rem; color: var(--text-main); line-height: 1; display: block; margin-bottom: 3px;">${avg}</strong> <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Global Rating (${ratings.length} Reviews)</span></div>
+            <div class="sd-kpi-row">
+                <div class="sd-kpi-card">
+                    <div class="sd-kpi-icon" style="background: rgba(255,158,181,0.12); color: var(--primary);">
+                        <i data-lucide="library"></i>
                     </div>
-
-                    <div class="split-divider"></div>
-
-                    <div class="split-stat-item">
-                        <div class="csr-icon pink" style="margin: 0;"><i data-lucide="bookmark"></i></div>
-                        <div><strong style="font-size: 1.6rem; color: var(--text-main); line-height: 1; display: block; margin-bottom: 3px;">${favorites.length}</strong> <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Bookmarks</span></div>
+                    <div class="sd-kpi-value">${books.length}</div>
+                    <div class="sd-kpi-label">Total Books</div>
+                </div>
+                <div class="sd-kpi-card">
+                    <div class="sd-kpi-icon" style="background: rgba(74,222,128,0.12); color: #4ade80;">
+                        <i data-lucide="eye"></i>
                     </div>
+                    <div class="sd-kpi-value">${totalViews}</div>
+                    <div class="sd-kpi-label">Total Views</div>
+                </div>
+                <div class="sd-kpi-card">
+                    <div class="sd-kpi-icon" style="background: rgba(234,179,8,0.12); color: #eab308;">
+                        <i data-lucide="star"></i>
+                    </div>
+                    <div class="sd-kpi-value">${avg}</div>
+                    <div class="sd-kpi-label">Avg Rating</div>
+                </div>
+                <div class="sd-kpi-card">
+                    <div class="sd-kpi-icon" style="background: rgba(139,92,246,0.12); color: #a78bfa;">
+                        <i data-lucide="bookmark"></i>
+                    </div>
+                    <div class="sd-kpi-value">${favorites.length}</div>
+                    <div class="sd-kpi-label">Bookmarks</div>
+                </div>
+            </div>
+
+            <div class="sd-grid">
+                <div class="sd-card sd-trending-card">
+                    <div class="sd-card-label"><i data-lucide="flame"></i> Trending Now</div>
+                    <div class="sd-trending-views">${mostViewed.views || 0} views</div>
+                    <h3 class="sd-trending-title">${mostViewed.title || "No Data"}</h3>
+                    <p class="sd-trending-author">${mostViewed.author || ""}</p>
+                    ${mostViewed.genre ? `<span class="sd-genre-tag">${mostViewed.genre}</span>` : ""}
                 </div>
 
-               <div class="bento-card" style="position: relative;">     <div style="position: absolute; top: 20px; right: 20px; background: var(--primary-light); color: var(--primary); padding: 6px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">${mostViewed.views || 0} Views</div>
-                    <div class="bento-highlight" style="display: flex; flex-direction: row; align-items: center; gap: 18px;">
-                        <div class="bento-icon" style="min-width: 50px; width: 50px; height: 50px; background: var(--primary); color: white; border: none; box-shadow: 0 0 15px rgba(219,39,119,0.5); border-radius: 14px; display: flex; justify-content: center; align-items: center; margin: 0; flex-shrink: 0;"><i data-lucide="flame"></i></div>
-                        <div class="bento-highlight-info" style="display: flex; flex-direction: column; text-align: left;">
-                            <div class="bento-title" style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 4px;">Trending Pick</div>
-                            <h3 style="color: var(--text-main); font-size: 1.4rem; margin: 0 0 4px 0; line-height: 1.2;">${mostViewed.title || 'No Data'}</h3>
-                            <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">${mostViewed.author || ''}</p>
-                            <span style="background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: bold; width: fit-content; text-transform: uppercase;">${mostViewed.genre || 'Unknown'}</span>
-
-                        </div>
-                    </div>
+                <div class="sd-card sd-newest-card">
+                    <div class="sd-card-label"><i data-lucide="sparkles"></i> Latest Arrival</div>
+                    <h3 class="sd-trending-title" style="margin-top: 12px;">${newest.title || "No Data"}</h3>
+                    <p class="sd-trending-author">${newest.author || ""}</p>
+                    <div class="sd-new-badge">NEW</div>
                 </div>
 
-                <div class="bento-card bento-span-2">
-                    <div class="bento-highlight" style="display: flex; flex-direction: row; align-items: center; gap: 18px;">
-                        <div class="bento-icon" style="min-width: 50px; width: 50px; height: 50px; background: var(--surface-lighter); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 14px; display: flex; justify-content: center; align-items: center; margin: 0; flex-shrink: 0;"><i data-lucide="sparkles"></i></div>
-                        <div class="bento-highlight-info" style="display: flex; flex-direction: column; text-align: left;">
-                            <div class="bento-title" style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 4px;">Latest Arrival</div>
-                            <h3 style="color: var(--text-main); font-size: 1.4rem; margin: 0 0 4px 0; line-height: 1.2;">${newest.title || 'No Data'}</h3>
-                            <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">${newest.author || ''}</p>
-                        </div>
-                    </div>
+                <div class="sd-card sd-rating-card">
+                    <div class="sd-card-label"><i data-lucide="message-square"></i> User Satisfaction</div>
+                    <div class="sd-rating-stars">${stars}</div>
+                    <div class="sd-rating-big">${avg} <span>/ 5.0</span></div>
+                    <p class="sd-rating-sub">Based on ${ratings.length} review${ratings.length !== 1 ? "s" : ""}</p>
                 </div>
 
-                <div class="bento-card compact-card full-width bento-span-2">
-                    <div class="csr-header">
-                        <span><i data-lucide="pie-chart" style="width:18px;"></i> Catalog Composition</span>
-                        <small>Vault: ${books.length} Books</small>
-                    </div>
-                    <div class="neon-bars">
-                        ${Object.entries(genres).map(([k,v])=>`
-                            <div class="neon-bar-row">
-                                <div class="neon-bar-labels"><span>${k}</span> <span>${v} Vol</span></div>
-                                <div class="neon-bar-track"><div class="neon-bar-fill" style="width: ${(v/books.length)*100}%"></div></div>
+                <div class="sd-card sd-catalog-card">
+                    <div class="sd-card-label"><i data-lucide="layers"></i> Catalog Breakdown</div>
+                    <div class="sd-genre-bars">
+                        ${Object.entries(genres).sort((a, b) => b[1] - a[1]).map(([k, v]) => `
+                            <div class="sd-genre-bar-row">
+                                <div class="sd-genre-bar-meta">
+                                    <span>${k}</span>
+                                    <span>${v}</span>
+                                </div>
+                                <div class="sd-genre-bar-track">
+                                    <div class="sd-genre-bar-fill" style="width: ${Math.round((v / books.length) * 100)}%"></div>
+                                </div>
                             </div>
-                        `).join('')}
+                        `).join("")}
                     </div>
                 </div>
             </div>
         `;
+
         renderIcons();
-        document.getElementById('stats-modal').style.display = 'flex';
+        document.getElementById("stats-modal").style.display = "flex";
 
         const updateUptime = () => {
-            const startDate = new Date("2026-01-01T00:00:00").getTime(); const diff = new Date().getTime() - startDate;
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24)); const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)); const s = Math.floor((diff % (1000 * 60)) / 1000);
-            const el = document.getElementById('uptime-display'); if(el) el.innerText = `Online: ${d}d ${h}h ${m}m ${s}s`;
+            const startDate = new Date("2026-01-01T00:00:00").getTime();
+            const diff = new Date().getTime() - startDate;
+            const d = Math.floor(diff / 86400000);
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            const el = document.getElementById("uptime-display");
+            if (el) el.innerText = `${d}d ${h}h ${m}m ${s}s`;
         };
-        if(uptimeInterval) clearInterval(uptimeInterval); updateUptime(); uptimeInterval = setInterval(updateUptime, 1000);
+        if (uptimeInterval) clearInterval(uptimeInterval);
+        updateUptime();
+        uptimeInterval = setInterval(updateUptime, 1000);
     };
 
     document.getElementById('section-stats-btn')?.addEventListener('click', openStats);
