@@ -241,11 +241,11 @@
                     </div>
 
                     <div id="carousel-wrapper" class="map-carousel">
-                        <div id="swipe-hint" class="swipe-hint mobile-only-flex" style="top:35%;">
-                            <i data-lucide="move-horizontal"></i> <span>Swipe</span>
+                        <div id="swipe-hint" class="swipe-hint mobile-only-flex">
+                            <i data-lucide="move-horizontal"></i> <span>Swipe to navigate</span>
                         </div>
-                        <div id="tap-hint" class="swipe-hint mobile-only-flex" style="top:65%;display:none;flex-direction:row;align-items:center;">
-                            <i data-lucide="maximize"></i> <span style="margin-left:8px;">Tap to Expand</span>
+                        <div id="tap-hint" class="swipe-hint mobile-only-flex" style="display:none;">
+                            <i data-lucide="maximize-2"></i> <span>Tap map to zoom</span>
                         </div>
                         <img id="carousel-img" src="" alt="Navigation Map" style="cursor:pointer;">
                         <button id="zoom-trigger-btn" class="zoom-badge"><i data-lucide="maximize-2"></i></button>
@@ -604,6 +604,7 @@
         </div>
     </div>
     
+    <canvas id="confetti-canvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99998;display:none;"></canvas>
     <script src="database.js"></script>
     <script src="app.js"></script>
 </body>
