@@ -13,6 +13,43 @@
 </head>
 <body>
 
+    <!-- LOADING SCREEN -->
+    <div id="app-loader" class="app-loader">
+        <div class="loader-bg-orb loader-orb1"></div>
+        <div class="loader-bg-orb loader-orb2"></div>
+        <div class="loader-inner">
+            <div class="loader-logo-ring">
+                <div class="loader-ring r1"></div>
+                <div class="loader-ring r2"></div>
+                <i data-lucide="library" class="loader-icon"></i>
+            </div>
+            <h1 class="loader-title">LibNav</h1>
+            <p class="loader-subtitle">Smart Library Navigation</p>
+            <div class="loader-steps">
+                <div class="loader-step active" id="ls-1">
+                    <div class="ls-dot"></div>
+                    <span>Connecting to Firebase...</span>
+                </div>
+                <div class="loader-step" id="ls-2">
+                    <div class="ls-dot"></div>
+                    <span>Loading book catalog...</span>
+                </div>
+                <div class="loader-step" id="ls-3">
+                    <div class="ls-dot"></div>
+                    <span>Preparing navigation maps...</span>
+                </div>
+                <div class="loader-step" id="ls-4">
+                    <div class="ls-dot"></div>
+                    <span>Almost ready...</span>
+                </div>
+            </div>
+            <div class="loader-bar-track">
+                <div class="loader-bar-fill" id="loader-bar"></div>
+            </div>
+            <p class="loader-footer">Notre Dame - Siena College &nbsp;·&nbsp; GenSan</p>
+        </div>
+    </div>
+
     <div id="offline-banner" class="offline-banner">
         <div class="wifi-icon-anim"><i data-lucide="wifi-off"></i></div>
         <div class="offline-text">
@@ -276,7 +313,13 @@
 
                     <div class="virtual-shelf-footer bm-shelf">
                         <h3>Also in this section</h3>
-                        <div id="related-shelf" class="related-grid"></div>
+                        <div class="related-scroll-wrap" id="related-scroll-wrap">
+                            <div id="related-shelf" class="related-grid"></div>
+                        </div>
+                        <div class="related-shelf-arrows">
+                            <button class="rel-arrow-btn" id="rel-prev-btn" disabled><i data-lucide="chevron-left"></i></button>
+                            <button class="rel-arrow-btn" id="rel-next-btn"><i data-lucide="chevron-right"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -493,7 +536,7 @@
     
             <div id="zoom-modal" class="modal-overlay" style="z-index: 20000; background: rgba(0,0,0,0.95); display: none;">
         <button id="close-zoom-btn" class="close-btn" style="position:fixed; top:20px; right:20px; background:rgba(255,255,255,0.1); color:white; border:none;"><i data-lucide="x"></i></button>
-        <div id="pinch-hint" class="swipe-hint mobile-only-flex" style="display:none; z-index: 20001; top: 15%; width:max-content;">
+        <div id="pinch-hint" class="swipe-hint mobile-only-flex" style="display:none; z-index: 20001; top: 15%; bottom: auto; left: 50%; transform: translateX(-50%); width: max-content; position: absolute;">
             <i data-lucide="zoom-in"></i> <span style="margin-left:8px;">Double-Tap or Pinch</span>
         </div>
         <img id="zoomed-image" src="" style="max-width:100%; max-height:100%; object-fit:contain; transition: transform 0.2s;">
