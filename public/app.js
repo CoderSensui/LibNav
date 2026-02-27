@@ -710,7 +710,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         };
         const genreEl = document.getElementById('umh-genre');
         genreEl.innerText = book.genre;
-        const gs = getGenreStyle(book.genre);
         const badge = genreEl.closest('.bm-genre-badge');
         if(badge) {
             badge.style.background = gs.bg;
@@ -891,7 +890,10 @@ const isLastStep = currentImageIndex === currentImages.length - 1;
             const showQrBtn = document.getElementById('show-qr-btn');
             if (showQrBtn) {
                 showQrBtn.style.display = isMobile ? 'none' : 'flex';
-            } else {
+            }
+
+        } else {
+            // No images available for this book
             carouselImg.style.display = 'none';
             if(stepCounter) stepCounter.innerText = "No map available";
             if(dotsContainer) dotsContainer.innerHTML = '';
