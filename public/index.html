@@ -70,6 +70,7 @@
                 <i data-lucide="search" class="search-icon"></i>
                 <input type="text" id="search-input" placeholder="Search title or author..." autocomplete="off">
                <div class="search-actions">
+                    <button id="search-clear-btn" class="icon-btn search-clear-btn" style="display:none;" title="Clear"><i data-lucide="x"></i></button>
                     <button id="quick-bookmark-btn" class="icon-btn" title="My Reading List"><i data-lucide="bookmark"></i></button>
                     <button id="mic-btn" class="icon-btn mobile-only"><i data-lucide="mic"></i></button>
                     <button id="filter-toggle" class="icon-btn"><i data-lucide="sliders-horizontal"></i></button>
@@ -471,18 +472,29 @@
     </div>
     
     <div id="screensaver" class="screensaver">
-        <h1 class="hero-title">LibNav</h1>
-        <p style="margin-bottom: 50px;">Touch screen to start</p>
-        <div class="tip-box" style="max-width: 400px; text-align: left; background: var(--surface); border-color: var(--border-color); padding: 20px;">
-            <div class="tip-header" style="color: var(--primary);"><i data-lucide="sparkles"></i> Did you know?</div>
-            <p id="screensaver-fact" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0; text-transform: none; font-weight: normal; letter-spacing: normal; animation: none;">Loading a fun fact...</p>
+        <div class="ss-bg-orb ss-orb1"></div>
+        <div class="ss-bg-orb ss-orb2"></div>
+        <div class="ss-bg-orb ss-orb3"></div>
+        <div class="ss-inner">
+            <div class="ss-logo-wrap">
+                <div class="ss-logo-ring"></div>
+                <i data-lucide="library" class="ss-logo-icon"></i>
+            </div>
+            <h1 class="ss-title">LibNav</h1>
+            <p class="ss-subtitle">Touch anywhere to start</p>
+            <div class="ss-clock" id="screensaver-clock">00:00</div>
+            <div class="ss-fact-card">
+                <div class="ss-fact-label"><i data-lucide="sparkles"></i> Did you know?</div>
+                <p id="screensaver-fact">Loading a fun fact...</p>
+            </div>
+            <div class="ss-footer">Notre Dame - Siena College &nbsp;·&nbsp; General Santos City</div>
         </div>
     </div>
     
             <div id="zoom-modal" class="modal-overlay" style="z-index: 20000; background: rgba(0,0,0,0.95); display: none;">
         <button id="close-zoom-btn" class="close-btn" style="position:fixed; top:20px; right:20px; background:rgba(255,255,255,0.1); color:white; border:none;"><i data-lucide="x"></i></button>
-     <div id="pinch-hint" class="swipe-hint mobile-only-flex" style="display:none; z-index: 20001; top: 15%; bottom: auto; width:max-content;">
-         <i data-lucide="zoom-in"></i> <span style="margin-left:8px;">Double-Tap or Pinch</span>
+        <div id="pinch-hint" class="swipe-hint mobile-only-flex" style="display:none; z-index: 20001; top: 15%; width:max-content;">
+            <i data-lucide="zoom-in"></i> <span style="margin-left:8px;">Double-Tap or Pinch</span>
         </div>
         <img id="zoomed-image" src="" style="max-width:100%; max-height:100%; object-fit:contain; transition: transform 0.2s;">
     </div>
