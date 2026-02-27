@@ -201,8 +201,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-menu').onclick = closeSidebar;
     sideMenuOverlay.onclick = closeSidebar;
 
-    document.querySelectorAll('.close-btn').forEach(btn => btn.onclick = (e) => {
+    document.querySelectorAll('.close-btn').forEach(btn => btn.onclick = async (e) => {
         const overlay = e.target.closest('.modal-overlay');
+        if (overlay && overlay.id === 'admin-modal') {
+            const token = localStorage.getItem('libnav_admin_token');
+            await LibraryDB.destroyAdminSession(token);
+            document.getElementById('admin-login-screen').style.display = 'block';
+            document.getElementById('admin-dashboard').style.display = 'none';
+        }
         if(overlay) overlay.style.display = 'none';
     });
 
@@ -267,8 +273,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const isValid = await LibraryDB.verifyAdminPassword(passInput);
 
         if (isValid) {
-
-            localStorage.setItem('libnav_admin_token', 'VIP_GRANTED');
+            const sessionToken = await LibraryDB.createAdminSession();
+            if (!sessionToken) {
+                showPopup("Error", "Could not create session. Check your connection.", null, false);
+                btn.innerHTML = 'Login';
+                btn.disabled = false;
+                return;
+            }
+            localStorage.setItem('libnav_admin_token', sessionToken);
 
             document.getElementById('admin-login-screen').style.display = 'none';
             document.getElementById('admin-dashboard').style.display = 'block';
@@ -1212,10 +1224,28 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         };
     }
 
+    let maintSecretTaps = 0;
+    let maintSecretTimer;
+    const maintTrigger = document.getElementById('maint-secret-trigger');
+    if (maintTrigger) {
+        maintTrigger.addEventListener('click', () => {
+            maintSecretTaps++;
+            clearTimeout(maintSecretTimer);
+            if (maintSecretTaps >= 3) {
+                maintSecretTaps = 0;
+                document.getElementById('maintenance-overlay').style.display = 'none';
+                adminModal.style.display = 'flex';
+            } else {
+                maintSecretTimer = setTimeout(() => { maintSecretTaps = 0; }, 600);
+            }
+        });
+    }
+
     setTimeout(async () => {
         if (typeof LibraryDB.getMaintenance === 'function') {
             const isMaint = await LibraryDB.getMaintenance();
-            const isVIP = localStorage.getItem('libnav_admin_token') === 'VIP_GRANTED';
+            const savedToken = localStorage.getItem('libnav_admin_token');
+            const isVIP = await LibraryDB.verifyAdminSession(savedToken);
             if (isMaint && !isVIP) {
                 const maintOverlay = document.getElementById('maintenance-overlay');
                 if (maintOverlay) maintOverlay.style.display = 'flex';
@@ -1264,7 +1294,8 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     let zScale = 1, zP1x = 0, zP1y = 0, zP2x = 0, zP2y = 0;
     let zStartX = 0, zStartY = 0, zX = 0, zY = 0;
     let zIsDragging = false;
-    let zLastTapTime = 0; 
+    let zLastTapTime = 0; // Tracks double taps
+
     if (zoomImageElement && zoomModalContainer) {
         zoomModalContainer.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
@@ -1311,9 +1342,9 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
             if (tapLength < 300 && tapLength > 0 && e.changedTouches.length === 1) {
                 if (zScale > 1) {
-                    resetFullScreenZoom(); 
+                    resetFullScreenZoom(); // Zoom out
                 } else {
-                    zScale = 2.5; 
+                    zScale = 2.5; // Instant Zoom in!
                     zoomImageElement.style.transform = `translate(0px, 0px) scale(${zScale})`;
                 }
                 e.preventDefault();
