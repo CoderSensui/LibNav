@@ -283,6 +283,7 @@
                     </div>
                     <div id="admin-book-list" class="admin-list"></div>
                     <button id="factory-reset-btn" class="btn-outline-warning full-width mt"><i data-lucide="alert-octagon"></i> Factory Reset</button>
+                    <button id="admin-logout-btn" class="btn-secondary full-width mt" style="color: #ef4444; border-color: rgba(239,68,68,0.3); margin-top: 10px;"><i data-lucide="log-out"></i> Logout</button>
                 </div>
 
                 <div id="admin-form-view" style="display:none;">
@@ -480,19 +481,58 @@
         </div>
 
 <div id="maintenance-overlay">
-        <div class="maint-icon-container" id="maint-secret-trigger">
+    <div class="maint-bg-grid"></div>
+
+    <div class="maint-content">
+        <div class="maint-badge">
+            <i data-lucide="shield-alert"></i>
+            <span>System Maintenance</span>
+        </div>
+
+        <div class="maint-icon-container">
             <i data-lucide="settings" class="maint-cog main-cog"></i>
             <i data-lucide="settings" class="maint-cog sub-cog"></i>
         </div>
-        
+
         <h1>We're <span>Upgrading!</span></h1>
-        <p>LibNav is currently closed for some quick system upgrades to make your library experience even better.</p>
-        
-        <div class="tip-box" style="text-align: left; width: 100%; max-width: 380px;">
-            <div class="tip-header"><i data-lucide="clock"></i> Check Back Soon</div>
-            <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.5; margin:0;">Our system architects are working as fast as they can. Grab a coffee and refresh the page in a few minutes!</p>
+        <p>LibNav is temporarily offline for system improvements. We'll be back shortly with a better experience for you.</p>
+
+        <div class="maint-status-row">
+            <div class="maint-status-pill">
+                <span class="maint-dot green"></span>
+                Database Online
+            </div>
+            <div class="maint-status-pill">
+                <span class="maint-dot yellow"></span>
+                App Updating
+            </div>
+            <div class="maint-status-pill">
+                <span class="maint-dot red"></span>
+                Access Restricted
+            </div>
         </div>
+
+        <div class="maint-card">
+            <div class="maint-card-row">
+                <i data-lucide="clock"></i>
+                <div>
+                    <strong>Current Time</strong>
+                    <span id="maint-live-clock">--:--:-- --</span>
+                </div>
+            </div>
+            <div class="maint-divider"></div>
+            <div class="maint-card-row">
+                <i data-lucide="info"></i>
+                <div>
+                    <strong>Status</strong>
+                    <span>Maintenance in progress. Please check back soon.</span>
+                </div>
+            </div>
+        </div>
+
+        <p class="maint-footer">Notre Dame - Siena College of General Santos City</p>
     </div>
+</div>
     
     <div id="admin-maint-modal" class="modal-overlay" style="z-index: 10005;">
         <div class="modal-box">
