@@ -668,45 +668,22 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     document.getElementById('close-zoom-btn').onclick = () => { zoomModal.style.display = 'none'; resetFullScreenZoom(); };
     zoomModal.onclick = (e) => { if(e.target === zoomModal || e.target === zoomedImage) { zoomModal.style.display = 'none'; resetFullScreenZoom(); } };
 
-    let swipeCloseStartX = 0;
-    let swipeCloseStartY = 0;
-    let swipeCloseActive = false;
-
-    function initSwipeClose() {
-        const box = bookModal.querySelector('.modal-box');
-        if(!box || box._swipeClose) return;
-        box._swipeClose = true;
-        box.addEventListener('touchstart', e => {
-            swipeCloseStartX = e.touches[0].clientX;
-            swipeCloseStartY = e.touches[0].clientY;
-            swipeCloseActive = true;
-        }, { passive: true });
-        box.addEventListener('touchend', e => {
-            if(!swipeCloseActive) return;
-            swipeCloseActive = false;
-            const dx = e.changedTouches[0].clientX - swipeCloseStartX;
-            const dy = Math.abs(e.changedTouches[0].clientY - swipeCloseStartY);
-            if(dx > 80 && dy < 60) {
-                if(navigator.vibrate) navigator.vibrate(30);
-                bookModal.style.display = 'none';
-            }
-        }, { passive: true });
-    }
 
     async function openModal(book) {
         bookModal.style.display = 'flex'; LibraryDB.incrementView(book.id);
-        initSwipeClose();
         document.getElementById('modal-book-id').innerText = book.id;
 
-        const modalBox = bookModal.querySelector('.modal-box');
-        modalBox.classList.remove('dynamic-theme');
-        let hash = 0;
-        for (let i = 0; i < book.title.length; i++) { hash = book.title.charCodeAt(i) + ((hash << 5) - hash); }
-        const hue = Math.abs(hash) % 360;
-        const glowColor = `hsla(${hue}, 80%, 60%, 0.3)`;
-        modalBox.style.setProperty('--dynamic-color', glowColor);
+ const modalBox = bookModal.querySelector('.modal-box');
+        const gs = getGenreStyle(book.genre);
+        
+        modalBox.style.setProperty('--dynamic-color', gs.color);
         modalBox.classList.add('dynamic-theme');
 
+        const coverBg = modalBox.querySelector('.bm-cover-bg');
+        if (coverBg) {
+            coverBg.style.background = `linear-gradient(160deg, ${gs.bg} 0%, transparent 80%)`;
+        }
+        
         document.getElementById('umh-title').innerText = book.title;
         const authorNameEl = document.getElementById('umh-author-name');
         authorNameEl.innerText = book.author;
@@ -898,12 +875,18 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 ).join('');
             }
 
-            const isLastStep = currentImageIndex === currentImages.length - 1;
+const isLastStep = currentImageIndex === currentImages.length - 1;
             const isMobile = document.body.classList.contains('is-mobile-device');
-            if (aa) aa.style.display = (isLastStep && isMobile) ? 'flex' : 'none';
+            
+            if (aa) aa.style.display = isLastStep ? 'flex' : 'none';
+            
             const desktopQr = document.querySelector('.bm-desktop-qr');
-            if(desktopQr && !isMobile) desktopQr.style.display = 'flex';
-        } else {
+            if (desktopQr) desktopQr.style.display = 'none';
+
+            const showQrBtn = document.getElementById('show-qr-btn');
+            if (showQrBtn) {
+                showQrBtn.style.display = isMobile ? 'none' : 'flex';
+            } else {
             carouselImg.style.display = 'none';
             if(stepCounter) stepCounter.innerText = "No map available";
             if(dotsContainer) dotsContainer.innerHTML = '';
@@ -1293,7 +1276,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     window.onload = resetIdleTimer;
 
     let uptimeInterval = null;
-    const openStats = () => {
+    const openStats = async () => {
         const books = LibraryDB.getBooks();
         const ratings = LibraryDB.getRatings() || [];
 
@@ -1305,7 +1288,8 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const avg = ratings.length > 0 ? (ratings.reduce((a, b) => a + parseInt(b), 0) / ratings.length).toFixed(1) : "0.0";
         const avgNum = parseFloat(avg);
         const avgPct = (avgNum / 5) * 100;
-
+        const globalHelpedCount = typeof LibraryDB.getHelpedCount === 'function' ? await LibraryDB.getHelpedCount() : 0;
+        
         document.getElementById("stats-modal").firstElementChild.classList.add("stats-layout");
 
         document.getElementById("stats-content").innerHTML = `
@@ -1339,8 +1323,8 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 </div>
                 <div class="sn-pill sn-pill-accent" id="helped-pill">
                     <i data-lucide="heart-handshake"></i>
-                    <span class="sn-pill-val" id="sn-helped-val">...</span>
-                    <span class="sn-pill-lbl">Helped</span>
+                  <span class="sn-pill-val">${globalHelpedCount}</span>
+                    <span class="sn-pill-lbl" style="color: #10b981;">Helped</span>
                 </div>
                 <div class="sn-pill">
                     <i data-lucide="bookmark"></i>
@@ -1518,14 +1502,17 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         return parseInt(localStorage.getItem('libnav_helped_local') || '0');
     }
 
-    window.showSuccessScreen = function() {
+  window.showSuccessScreen = async function() {
         document.getElementById('book-modal').style.display = 'none';
         document.getElementById('success-modal').style.display = 'flex';
         if(navigator.vibrate) navigator.vibrate([50, 30, 100, 30, 200]);
         launchConfetti();
-        incrementHelpedCount();
+        
+        if (typeof LibraryDB.incrementHelped === 'function') {
+            await LibraryDB.incrementHelped();
+        }
     }
-
+    
     window.closeSuccessScreen = function() {
         document.getElementById('success-modal').style.display = 'none';
         document.body.classList.remove('companion-mode-active');
