@@ -522,7 +522,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('admin-search')?.addEventListener('input', renderAdminList);
-
     let undoDeleteTimer = null;
 
     window.handleDelete = function(id) {
@@ -530,21 +529,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const bookToDelete = books.find(b => String(b.id) === String(id));
         if (!bookToDelete) return;
 
-        // Remove from in-memory list and re-render immediately
+        // Remove from memory immediately and re-render
         LibraryDB.books = books.filter(b => String(b.id) !== String(id));
         renderAdminList();
         performSearch(searchInput.value);
 
-        // Clear any previous undo timer
+        // Cancel any pending undo from a previous deletion
         if (undoDeleteTimer) clearTimeout(undoDeleteTimer);
 
-        // Show undo bar
         const undoBar = document.getElementById('undo-delete-bar');
         const undoTitleEl = document.getElementById('undo-book-title');
         if (undoBar) {
             if (undoTitleEl) undoTitleEl.textContent = `"${bookToDelete.title}"`;
 
-            // Reset and animate the countdown fill
+            // Reset and start the countdown fill animation
             const fill = undoBar.querySelector('.undo-bar-fill');
             if (fill) {
                 fill.style.transition = 'none';
@@ -557,13 +555,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             undoBar.classList.add('visible');
 
-            // Wire the undo button for THIS deletion
+            // Wire undo button for this specific deletion
             const undoBtn = document.getElementById('undo-delete-btn');
             if (undoBtn) {
                 undoBtn.onclick = () => {
                     clearTimeout(undoDeleteTimer);
                     undoBar.classList.remove('visible');
-                    // Restore the book back into memory and re-render
                     LibraryDB.books.push(bookToDelete);
                     LibraryDB.books.sort((a, b) => a.id - b.id);
                     renderAdminList();
@@ -571,14 +568,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             }
 
-            // After 5s, commit the delete to Firebase
+            // After 5s, commit the deletion to Firebase
             undoDeleteTimer = setTimeout(async () => {
                 undoBar.classList.remove('visible');
                 await LibraryDB.saveToCloud();
             }, 5000);
         }
     };
-
     document.getElementById('factory-reset-btn').onclick = async () => { showPopup("Defense Mode", "Reset Stats?", async () => { await LibraryDB.factoryReset(); window.location.reload(); }, true); };
 
     document.getElementById('admin-logout-btn').onclick = async () => {
@@ -909,23 +905,23 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const dotsContainer = document.getElementById('carousel-dots');
         const cWrapper = document.getElementById('carousel-wrapper');
         const desktopQr = document.querySelector('.bm-desktop-qr');
+        const showQrBtn = document.getElementById('show-qr-btn');
+        const isMobile = document.body.classList.contains('is-mobile-device');
 
         if (currentImages && currentImages.length > 0) {
             if (cWrapper) cWrapper.classList.add('skeleton');
             carouselImg.style.opacity = '0';
             carouselImg.style.transition = 'opacity 0.3s ease, transform 0.1s ease-out';
-
             carouselImg.onload = () => {
                 carouselImg.style.opacity = '1';
                 if (cWrapper) cWrapper.classList.remove('skeleton');
             };
-
             carouselImg.src = currentImages[currentImageIndex];
             carouselImg.style.display = 'block';
 
-            if(stepCounter) stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
-            if(prevBtn) { prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1"; prevBtn.style.pointerEvents = currentImageIndex === 0 ? "none" : "auto"; }
-            if(nextBtn) { nextBtn.style.opacity = currentImageIndex === currentImages.length - 1 ? "0.3" : "1"; nextBtn.style.pointerEvents = currentImageIndex === currentImages.length - 1 ? "none" : "auto"; }
+            if (stepCounter) stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
+            if (prevBtn) { prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1"; prevBtn.style.pointerEvents = currentImageIndex === 0 ? "none" : "auto"; }
+            if (nextBtn) { nextBtn.style.opacity = currentImageIndex === currentImages.length - 1 ? "0.3" : "1"; nextBtn.style.pointerEvents = currentImageIndex === currentImages.length - 1 ? "none" : "auto"; }
 
             if (dotsContainer) {
                 dotsContainer.innerHTML = currentImages.map((_, i) =>
@@ -935,19 +931,22 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
             const isLastStep = currentImageIndex === currentImages.length - 1;
 
-            // Mobile: show action row (QR + Found It) only on last step
+            // --- MOBILE action row (Send to Mobile + I Found It!) ---
+            // Show whole row only on last step; also hide "Send to Mobile" on mobile devices
             if (aa) aa.style.display = isLastStep ? 'flex' : 'none';
+            if (showQrBtn) showQrBtn.style.display = isMobile ? 'none' : 'flex';
 
-            // Desktop: show action row (Send to Mobile + Found It) only on last step
-            if (desktopQr) desktopQr.style.display = isLastStep ? 'flex' : 'none';
+            // --- DESKTOP action row (Send Map to Mobile + I Found It!) ---
+            // JS inline style beats CSS even with !important via setProperty trick
+            if (desktopQr) desktopQr.style.setProperty('display', isLastStep ? 'flex' : 'none', 'important');
 
         } else {
-            // No images for this book
+            // No map images for this book
             carouselImg.style.display = 'none';
-            if(stepCounter) stepCounter.innerText = "No map available";
-            if(dotsContainer) dotsContainer.innerHTML = '';
-            if (aa && document.body.classList.contains('is-mobile-device')) aa.style.display = 'flex';
-            if (desktopQr) desktopQr.style.display = 'none';
+            if (stepCounter) stepCounter.innerText = "No map available";
+            if (dotsContainer) dotsContainer.innerHTML = '';
+            if (aa) aa.style.display = 'none';
+            if (desktopQr) desktopQr.style.setProperty('display', 'none', 'important');
             if (cWrapper) cWrapper.classList.remove('skeleton');
         }
     }
@@ -1333,113 +1332,151 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     window.onload = resetIdleTimer;
 
     let uptimeInterval = null;
-  
-        const openStats = async () => {
-    const books = LibraryDB.getBooks();
-    const ratings = LibraryDB.getRatings() || [];
 
-    const mostViewed = books.reduce((a, b) => (a.views || 0) > (b.views || 0) ? a : b, { title: "None", views: 0, author: "N/A", genre: "" });
-    const newest = books.reduce((a, b) => (a.id > b.id) ? a : b, { title: "None", author: "N/A" });
-    const genres = {};
-    books.forEach(b => genres[b.genre] = (genres[b.genre] || 0) + 1);
-    const sortedGenres = Object.entries(genres).sort((a, b) => b[1] - a[1]);
-    const avg = ratings.length > 0 ? (ratings.reduce((a, b) => a + parseInt(b), 0) / ratings.length).toFixed(1) : "0.0";
-    const avgNum = parseFloat(avg);
-    const avgPct = (avgNum / 5) * 100;
-    // Await the live count so it never shows "[object Promise]"
-    const globalHelpedCount = await (typeof LibraryDB.getHelpedCount === 'function' ? LibraryDB.getHelpedCount() : Promise.resolve(0));
-    
-    document.getElementById("stats-modal").firstElementChild.classList.add("stats-layout");
+    function showModalLoader(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.style.display = 'flex';
+        const box = modal.querySelector('.modal-box');
+        if (!box) return;
+        box.dataset.prevContent = box.innerHTML;
+        box.innerHTML = `
+            <div class="modal-loading-state">
+                <div class="modal-loader-ring"></div>
+                <p>Loading...</p>
+            </div>`;
+    }
 
-    document.getElementById("stats-content").innerHTML = `
-        <div class="sn-header">
-            <div class="sn-title-block">
-                <span class="sn-eyebrow">LibNav Analytics</span>
-                <h2 class="sn-title">Dashboard</h2>
-            </div>
-            <div class="sn-uptime">
-                <span class="sn-live-dot"></span>
-                <span id="uptime-display">...</span>
-            </div>
-        </div>
+    function hideModalLoader(modalId, restoreContent) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        const box = modal.querySelector('.modal-box');
+        if (!box) return;
+        if (restoreContent) box.innerHTML = restoreContent;
+    }
 
-        <div class="sn-hero">
-            <div class="sn-hero-label"><i data-lucide="flame"></i> Trending Right Now</div>
-            <div class="sn-hero-views">${mostViewed.views || 0}</div>
-            <div class="sn-hero-views-sub">total views</div>
-            <div class="sn-hero-divider"></div>
-            <h3 class="sn-hero-title">${mostViewed.title || "No Data"}</h3>
-            <p class="sn-hero-author">${mostViewed.author || ""}</p>
-            ${mostViewed.genre ? `<span class="sn-hero-genre">${mostViewed.genre}</span>` : ""}
-            <div class="sn-hero-glow"></div>
-        </div>
+    const openStats = async () => {
+        // Show modal with loading spinner immediately
+        const statsModal = document.getElementById('stats-modal');
+        const statsBox = statsModal?.querySelector('.modal-box');
+        if (statsModal) statsModal.style.display = 'flex';
+        if (statsBox) statsBox.innerHTML = `
+            <div class="modal-loading-state">
+                <div class="modal-loader-ring"></div>
+                <p>Fetching live data...</p>
+            </div>`;
 
-        <div class="sn-pills-row">
-            <div class="sn-pill">
-                <i data-lucide="library"></i>
-                <span class="sn-pill-val">${books.length}</span>
-                <span class="sn-pill-lbl">Books</span>
-            </div>
-            <div class="sn-pill sn-pill-accent" id="helped-pill">
-                <i data-lucide="heart-handshake"></i>
-              <span class="sn-pill-val" id="sn-helped-val">${globalHelpedCount}</span>
-                <span class="sn-pill-lbl" style="color: #10b981;">Helped</span>
-            </div>
-            <div class="sn-pill">
-                <i data-lucide="bookmark"></i>
-                <span class="sn-pill-val">${favorites.length}</span>
-                <span class="sn-pill-lbl">Saved</span>
-            </div>
-        </div>
+        const books = LibraryDB.getBooks();
+        const ratings = LibraryDB.getRatings() || [];
 
-        <div class="sn-two-col">
-            <div class="sn-section sn-rating-section">
-                <div class="sn-section-label"><i data-lucide="star"></i> Rating</div>
-                <div class="sn-rating-num">${avg}<span>/5</span></div>
-                <div class="sn-rating-bar-track">
-                    <div class="sn-rating-bar-fill" style="width:${avgPct}%"></div>
+        // Await the LIVE count from Firebase — no localStorage fallback
+        const globalHelpedCount = await getHelpedCount();
+
+        const mostViewed = books.reduce((a, b) => (a.views || 0) > (b.views || 0) ? a : b, { title: "None", views: 0, author: "N/A", genre: "" });
+        const newest = books.reduce((a, b) => (a.id > b.id) ? a : b, { title: "None", author: "N/A" });
+        const genres = {};
+        books.forEach(b => genres[b.genre] = (genres[b.genre] || 0) + 1);
+        const sortedGenres = Object.entries(genres).sort((a, b) => b[1] - a[1]);
+        const avg = ratings.length > 0 ? (ratings.reduce((a, b) => a + parseInt(b), 0) / ratings.length).toFixed(1) : "0.0";
+        const avgNum = parseFloat(avg);
+        const avgPct = (avgNum / 5) * 100;
+
+        if (statsBox) {
+            statsBox.classList.add('stats-layout');
+            statsBox.innerHTML = `
+            <button class="close-btn"><i data-lucide="x"></i></button>
+            <div id="stats-content">
+            <div class="sn-header">
+                <div class="sn-title-block">
+                    <span class="sn-eyebrow">LibNav Analytics</span>
+                    <h2 class="sn-title">Dashboard</h2>
                 </div>
-                <p class="sn-rating-reviews">${ratings.length} review${ratings.length !== 1 ? "s" : ""}</p>
+                <div class="sn-uptime">
+                    <span class="sn-live-dot"></span>
+                    <span id="uptime-display">...</span>
+                </div>
             </div>
 
-            <div class="sn-section sn-new-section">
-                <div class="sn-section-label"><i data-lucide="sparkles"></i> New Arrival</div>
-                <div class="sn-new-badge-inline">NEW</div>
-                <h4 class="sn-new-title">${newest.title || "No Data"}</h4>
-                <p class="sn-new-author">${newest.author || ""}</p>
+            <div class="sn-hero">
+                <div class="sn-hero-label"><i data-lucide="flame"></i> Trending Right Now</div>
+                <div class="sn-hero-views">${mostViewed.views || 0}</div>
+                <div class="sn-hero-views-sub">total views</div>
+                <div class="sn-hero-divider"></div>
+                <h3 class="sn-hero-title">${mostViewed.title || "No Data"}</h3>
+                <p class="sn-hero-author">${mostViewed.author || ""}</p>
+                ${mostViewed.genre ? `<span class="sn-hero-genre">${mostViewed.genre}</span>` : ""}
+                <div class="sn-hero-glow"></div>
             </div>
-        </div>
 
-        <div class="sn-section sn-catalog-section">
-            <div class="sn-section-label"><i data-lucide="layers"></i> Catalog Breakdown</div>
-            <div class="sn-genre-list">
-                ${sortedGenres.map(([k, v], i) => `
-                    <div class="sn-genre-item">
-                        <div class="sn-genre-top">
-                            <span class="sn-genre-name">${k}</span>
-                            <span class="sn-genre-count">${v} <span style="opacity:0.5">vol</span></span>
-                        </div>
-                        <div class="sn-genre-track">
-                            <div class="sn-genre-fill" style="width:${Math.round((v/books.length)*100)}%; background:${getGenreStyle(k).color}; --bar-w:${Math.round((v/books.length)*100)}%;"></div>
-                        </div>
+            <div class="sn-pills-row">
+                <div class="sn-pill">
+                    <i data-lucide="library"></i>
+                    <span class="sn-pill-val">${books.length}</span>
+                    <span class="sn-pill-lbl">Books</span>
+                </div>
+                <div class="sn-pill sn-pill-accent" id="helped-pill">
+                    <i data-lucide="heart-handshake"></i>
+                    <span class="sn-pill-val" id="sn-helped-val">${globalHelpedCount}</span>
+                    <span class="sn-pill-lbl" style="color: #10b981;">Helped</span>
+                </div>
+                <div class="sn-pill">
+                    <i data-lucide="bookmark"></i>
+                    <span class="sn-pill-val">${favorites.length}</span>
+                    <span class="sn-pill-lbl">Saved</span>
+                </div>
+            </div>
+
+            <div class="sn-two-col">
+                <div class="sn-section sn-rating-section">
+                    <div class="sn-section-label"><i data-lucide="star"></i> Rating</div>
+                    <div class="sn-rating-num">${avg}<span>/5</span></div>
+                    <div class="sn-rating-bar-track">
+                        <div class="sn-rating-bar-fill" style="width:${avgPct}%"></div>
                     </div>
-                `).join("")}
+                    <p class="sn-rating-reviews">${ratings.length} review${ratings.length !== 1 ? "s" : ""}</p>
+                </div>
+
+                <div class="sn-section sn-new-section">
+                    <div class="sn-section-label"><i data-lucide="sparkles"></i> New Arrival</div>
+                    <div class="sn-new-badge-inline">NEW</div>
+                    <h4 class="sn-new-title">${newest.title || "No Data"}</h4>
+                    <p class="sn-new-author">${newest.author || ""}</p>
+                </div>
             </div>
-        </div>
-    `;
-    renderIcons();
-        
-        document.getElementById("stats-modal").style.display = "flex";
-        getHelpedCount().then(cnt => {
-            const el = document.getElementById('sn-helped-val');
-            if(el) animateCount(el, 0, cnt, 800);
+
+            <div class="sn-section sn-catalog-section">
+                <div class="sn-section-label"><i data-lucide="layers"></i> Catalog Breakdown</div>
+                <div class="sn-genre-list">
+                    ${sortedGenres.map(([k, v]) => `
+                        <div class="sn-genre-item">
+                            <div class="sn-genre-top">
+                                <span class="sn-genre-name">${k}</span>
+                                <span class="sn-genre-count">${v} <span style="opacity:0.5">vol</span></span>
+                            </div>
+                            <div class="sn-genre-track">
+                                <div class="sn-genre-fill" style="width:${Math.round((v/books.length)*100)}%; background:${getGenreStyle(k).color}; --bar-w:${Math.round((v/books.length)*100)}%;"></div>
+                            </div>
+                        </div>
+                    `).join("")}
+                </div>
+            </div>
+            </div>`;
+        }
+
+        // Re-wire close button since we rebuilt the HTML
+        statsBox?.querySelector('.close-btn')?.addEventListener('click', () => {
+            if (statsModal) statsModal.style.display = 'none';
         });
+
+        renderIcons();
+
+        // Animate helped count since we now have the real value
+        const helpedEl = document.getElementById('sn-helped-val');
+        if (helpedEl) animateCount(helpedEl, 0, globalHelpedCount, 800);
+
         setTimeout(() => {
             const heroViewsEl = document.querySelector('.sn-hero-views');
-            if(heroViewsEl) {
-                const finalVal = mostViewed.views || 0;
-                animateCount(heroViewsEl, 0, finalVal, 1000);
-            }
+            if (heroViewsEl) animateCount(heroViewsEl, 0, mostViewed.views || 0, 1000);
             document.querySelectorAll('.sn-genre-fill').forEach((el, i) => {
                 const styleAttr = el.getAttribute('style') || '';
                 const match = styleAttr.match(/--bar-w:\s*([\d.]+%)/);
@@ -1471,7 +1508,28 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     document.getElementById('section-stats-btn')?.addEventListener('click', openStats);
 
-    const openFeedback = () => { document.getElementById('feedback-modal').style.display = 'flex'; };
+    const openFeedback = () => {
+        const feedbackModal = document.getElementById('feedback-modal');
+        const feedbackBox = feedbackModal?.querySelector('.modal-box');
+        if (!feedbackModal || !feedbackBox) return;
+
+        // Show spinner briefly then reveal form
+        feedbackModal.style.display = 'flex';
+        const originalContent = feedbackBox.innerHTML;
+        feedbackBox.innerHTML = `
+            <div class="modal-loading-state">
+                <div class="modal-loader-ring"></div>
+                <p>Loading...</p>
+            </div>`;
+        setTimeout(() => {
+            feedbackBox.innerHTML = originalContent;
+            renderIcons();
+            // Re-wire close button
+            feedbackBox.querySelector('.close-btn')?.addEventListener('click', () => {
+                feedbackModal.style.display = 'none';
+            });
+        }, 600);
+    };
     document.getElementById('section-feedback-btn')?.addEventListener('click', openFeedback);
 
     const fForm = document.getElementById('feedback-form');
@@ -1530,14 +1588,16 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     async function incrementHelpedCount() {
         try {
-            let count = parseInt(localStorage.getItem('libnav_helped_local') || '0');
-            count++;
-            localStorage.setItem('libnav_helped_local', String(count));
-            if(typeof LibraryDB.incrementHelped === 'function') {
+            if (typeof LibraryDB.incrementHelped === 'function') {
                 await LibraryDB.incrementHelped();
             }
+            // Refresh the cached count so stats show correctly after incrementing
+            if (typeof LibraryDB.getHelpedCount === 'function') {
+                LibraryDB.helpedCount = await LibraryDB.getHelpedCount();
+            }
+            const count = LibraryDB.helpedCount;
             const MILESTONES = [10, 25, 50, 100, 200, 500, 1000];
-            if(MILESTONES.includes(count)) {
+            if (MILESTONES.includes(count)) {
                 setTimeout(() => showMilestoneToast(count), 2200);
             }
         } catch(e) {}
@@ -1554,11 +1614,11 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     async function getHelpedCount() {
         try {
-            if(typeof LibraryDB.getHelpedCount === 'function') {
+            if (typeof LibraryDB.getHelpedCount === 'function') {
                 return await LibraryDB.getHelpedCount();
             }
         } catch(e) {}
-        return parseInt(localStorage.getItem('libnav_helped_local') || '0');
+        return 0;
     }
 
 window.showSuccessScreen = function() {
