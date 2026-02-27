@@ -172,64 +172,82 @@
 
     <div id="book-modal" class="modal-overlay">
         <div class="modal-box book-layout">
-            <button id="top-share-btn" class="share-btn-top"><i data-lucide="share-2"></i></button>
-            <button class="close-btn"><i data-lucide="x"></i></button>
-            
-            <div class="book-modal-grid">
-                <div class="book-left">
-                    <span id="modal-book-id" style="display: none;"></span>
+            <span id="modal-book-id" style="display: none;"></span>
 
-                    <div class="unified-modal-header">
-                        <div class="umh-book-section">
-                            <div class="umh-cover-wrap skeleton"><img id="umh-book-cover" src=""></div>
-                            <div class="umh-book-info">
-                                <h2 id="umh-title">Title</h2>
-                                <span id="umh-genre" class="book-badge">Genre</span>
-                            </div>
-                        </div>
-                        
-                        <div class="umh-divider"></div>
-                        
-                        <div class="umh-author-section">
-                            <div class="umh-author-wrap skeleton"><img id="umh-author-pic" src=""></div>
-                            <h3 id="umh-author-name">Author</h3>
+            <div class="book-modal-grid">
+                <!-- LEFT: Cover + Info Sidebar -->
+                <div class="book-left">
+                    <div class="bm-close-row">
+                        <button id="top-share-btn" class="share-btn-top" style="position:relative;top:auto;left:auto;"><i data-lucide="share-2"></i></button>
+                        <button class="close-btn" style="position:relative;top:auto;right:auto;"><i data-lucide="x"></i></button>
+                    </div>
+                    <div class="bm-cover-hero">
+                        <div class="bm-cover-bg"></div>
+                        <div class="umh-cover-wrap skeleton" style="background:transparent;border:none;width:auto;height:auto;">
+                            <img id="umh-book-cover" src="" style="opacity:0;">
                         </div>
                     </div>
-                    <button id="show-qr-btn" class="btn-secondary full-width desktop-only-flex mt">
-                        <i data-lucide="qr-code"></i> Send Map to Mobile
-                    </button>
+                    <div class="bm-info-strip">
+                        <span class="bm-genre-badge"><i data-lucide="tag" style="width:10px;height:10px;"></i> <span id="umh-genre">Genre</span></span>
+                        <h2 class="bm-book-title" id="umh-title">Title</h2>
+                        <div class="bm-author-row">
+                            <div class="bm-author-avatar skeleton">
+                                <img id="umh-author-pic" src="">
+                            </div>
+                            <div>
+                                <div class="bm-author-label">Author</div>
+                                <div class="bm-author-name" id="umh-author-name">Name</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-          <div class="book-right">
+
+                <!-- RIGHT: Map + Controls -->
+                <div class="book-right">
+                    <div class="bm-map-label">
+                        <i data-lucide="map-pin"></i> Navigation Map
+                    </div>
+
                     <div id="carousel-wrapper" class="map-carousel">
                         <div id="swipe-hint" class="swipe-hint mobile-only-flex" style="top: 35%;">
                             <i data-lucide="move-horizontal"></i> <span>Swipe</span>
                         </div>
                         <div id="tap-hint" class="swipe-hint mobile-only-flex" style="top: 65%; display:none; flex-direction:row; align-items:center;">
-                            <i data-lucide="maximize"></i> <span style="margin-left:8px;">Tap Map to Expand</span>
+                            <i data-lucide="maximize"></i> <span style="margin-left:8px;">Tap to Expand</span>
                         </div>
-                        
                         <img id="carousel-img" src="" alt="Navigation Map" style="cursor: pointer;">
-                        
                         <button id="zoom-trigger-btn" class="zoom-badge"><i data-lucide="maximize-2"></i></button>
-                        
                         <div id="carousel-dots" class="carousel-dots"></div>
                     </div>
-              
+
                     <div class="carousel-controls">
                         <button id="prev-img-btn" class="nav-control-btn"><i data-lucide="chevron-left"></i></button>
                         <div id="step-counter" class="step-pill">Step 1</div>
                         <button id="next-img-btn" class="nav-control-btn"><i data-lucide="chevron-right"></i></button>
                     </div>
-                    
-                    <div id="mobile-action-area" class="action-area" style="display: none;">
-                        <button class="btn-primary full-width large" onclick="showSuccessScreen()"><i data-lucide="check-circle-2"></i> I Found It!</button>
+
+                    <div class="bm-action-row" id="mobile-action-area" style="display:none;">
+                        <button id="show-qr-btn" class="bm-qr-btn desktop-only-flex">
+                            <i data-lucide="qr-code"></i> Send to Mobile
+                        </button>
+                        <button class="bm-found-btn visible" onclick="showSuccessScreen()">
+                            <i data-lucide="check-circle-2"></i> I Found It!
+                        </button>
+                    </div>
+
+                    <!-- QR button for desktop (always visible) -->
+                    <div class="bm-action-row desktop-only-flex" id="desktop-action-row" style="margin-top:auto;">
+                        <button id="show-qr-btn-desk" class="bm-qr-btn">
+                            <i data-lucide="qr-code"></i> Send Map to Mobile
+                        </button>
+                    </div>
+
+                    <!-- Related shelf -->
+                    <div class="virtual-shelf-footer bm-shelf">
+                        <h3><i data-lucide="layers" style="width:12px;height:12px;display:inline;"></i> Also in this section</h3>
+                        <div id="related-shelf" class="related-grid"></div>
                     </div>
                 </div>
-            </div>
-
-            <div class="virtual-shelf-footer">
-                <h3>Also in this section</h3>
-                <div id="related-shelf" class="related-grid"></div>
             </div>
         </div>
     </div>
