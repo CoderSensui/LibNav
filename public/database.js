@@ -4,31 +4,33 @@ const LibraryDB = {
     ratings: [],
 
     init: async function() {
-console.log("Connecting to LibNav Global Database...");
         try {
-            const response = await fetch(`${this.dbUrl}.json`);
-            if (!response.ok) throw new Error("Cloud Connection Failed");
+            const [booksRes, ratingsRes] = await Promise.all([
+                fetch(`${this.dbUrl}books.json`),
+                fetch(`${this.dbUrl}ratings.json`)
+            ]);
 
-            const data = await response.json() || {};
+            if (!booksRes.ok) throw new Error("Failed to load books");
 
-            if (data.books) {
-                this.books = Object.values(data.books).filter(b => b !== null && b !== undefined);
-            } else if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object') {
-                this.books = data.filter(b => b !== null && b !== undefined);
+            const booksData = await booksRes.json();
+            const ratingsData = await ratingsRes.json();
+
+            if (Array.isArray(booksData)) {
+                this.books = booksData.filter(b => b !== null && b !== undefined);
+            } else if (booksData && typeof booksData === 'object') {
+                this.books = Object.values(booksData).filter(b => b !== null && b !== undefined);
             } else {
                 this.books = [];
             }
 
-            if (data.ratings) {
-                this.ratings = Object.values(data.ratings).filter(r => r !== null && r !== undefined && typeof r === 'number');
+            if (ratingsData && typeof ratingsData === 'object') {
+                this.ratings = Object.values(ratingsData).filter(r => r !== null && r !== undefined && typeof r === 'number');
             } else {
                 this.ratings = [];
             }
 
-console.log(`Success: ${this.books.length} books loaded. Ratings: ${this.ratings.length}`);
             return true;
         } catch (error) {
-console.error("Firebase Error:", error);
             return false;
         }
     },
