@@ -133,10 +133,41 @@ document.addEventListener('DOMContentLoaded', () => {
         return canvas.toDataURL();
     }
 
+    function showLoaderStep(step, pct) {
+        document.querySelectorAll('.loader-step').forEach((el, i) => {
+            el.classList.toggle('active', i < step);
+            el.classList.toggle('done', i < step - 1);
+        });
+        const bar = document.getElementById('loader-bar');
+        if(bar) bar.style.width = pct + '%';
+    }
+
+    function hideLoader() {
+        const loader = document.getElementById('app-loader');
+        if(!loader) return;
+        loader.classList.add('loader-out');
+        setTimeout(() => { loader.style.display = 'none'; }, 600);
+    }
+
     async function init() {
         const saved = localStorage.getItem('theme') || 'dark';
         applyTheme(saved);
-        try { await LibraryDB.init(); } catch(e) {}
+
+        showLoaderStep(1, 15);
+        await new Promise(r => setTimeout(r, 300));
+
+        try {
+            showLoaderStep(1, 30);
+            await LibraryDB.init();
+            showLoaderStep(2, 55);
+        } catch(e) {
+            showLoaderStep(2, 55);
+        }
+
+        await new Promise(r => setTimeout(r, 250));
+        showLoaderStep(3, 75);
+        await new Promise(r => setTimeout(r, 200));
+        showLoaderStep(4, 92);
 
         if (window.innerWidth <= 849) {
             document.body.classList.add('is-mobile-device');
@@ -153,7 +184,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         if (!document.body.classList.contains('companion-mode-active')) { loadFeaturedBook(); resetIdleTimer(); }
+
+        showLoaderStep(4, 100);
+        await new Promise(r => setTimeout(r, 180));
+        hideLoader();
         renderIcons();
+
+        setTimeout(() => {
+            const gif = new Image();
+            gif.src = 'https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif';
+        }, 5000);
     }
 
 
@@ -295,6 +335,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 performSearch(searchInput.value);
             }
         };
+    });
+
+  document.getElementById('admin-password').addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') document.getElementById('admin-auth-btn').click();
     });
 
   document.getElementById('admin-auth-btn').onclick = async () => {
@@ -500,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
         featuredContainer.innerHTML = `
             <div class="featured-wrap">
                 <span class="feat-tag"><i data-lucide="star"></i> Daily Global Pick</span>
-                <div class="featured-card book-card" onclick="openModalById('${b.id}')">
+                <div class="featured-card book-card" style="--feat-glow: ${gs.bg};" onclick="openModalById('${b.id}')">
                     <div class="feat-img-wrap skeleton">
                         ${isHot ? '<div class="hot-badge"><i data-lucide="flame" style="width:12px;height:12px;fill:white;"></i> HOT</div>' : ''}
                         <img id="fc-img" src="" style="opacity: 0; transition: opacity 0.4s ease;">
@@ -664,12 +708,51 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         modalBox.classList.add('dynamic-theme');
 
         document.getElementById('umh-title').innerText = book.title;
-        document.getElementById('umh-author-name').innerText = book.author;
+        const authorNameEl = document.getElementById('umh-author-name');
+        authorNameEl.innerText = book.author;
+        authorNameEl.style.cursor = 'pointer';
+        authorNameEl.title = `Search books by ${book.author}`;
+        authorNameEl.classList.add('clickable-author');
+        authorNameEl.onclick = (e) => {
+            e.stopPropagation();
+            bookModal.style.display = 'none';
+            searchInput.value = book.author;
+            if(searchClearBtn) searchClearBtn.style.display = 'flex';
+            hero.style.display = 'none';
+            featuredContainer.style.display = 'none';
+            selectedGenres.clear();
+            saveRecentSearch(book.author);
+            performSearch(book.author);
+            switchSection('home', true);
+            if(navigator.vibrate) navigator.vibrate(20);
+        };
         const genreEl = document.getElementById('umh-genre');
         genreEl.innerText = book.genre;
         const gs = getGenreStyle(book.genre);
         const badge = genreEl.closest('.bm-genre-badge');
-        if(badge) { badge.style.background = gs.bg; badge.style.color = gs.color; badge.style.borderColor = gs.border; }
+        if(badge) {
+            badge.style.background = gs.bg;
+            badge.style.color = gs.color;
+            badge.style.borderColor = gs.border;
+            badge.style.cursor = 'pointer';
+            badge.title = `Browse ${book.genre}`;
+            badge.onclick = (e) => {
+                e.stopPropagation();
+                bookModal.style.display = 'none';
+                selectedGenres.clear();
+                selectedGenres.add(book.genre);
+                searchInput.value = '';
+                if(searchClearBtn) searchClearBtn.style.display = 'none';
+                hero.style.display = 'none';
+                featuredContainer.style.display = 'none';
+                document.querySelectorAll('.menu-item').forEach(b => {
+                    b.classList.toggle('active', b.dataset.genre === book.genre);
+                });
+                performSearch('');
+                switchSection('home', true);
+                if(navigator.vibrate) navigator.vibrate(20);
+            };
+        }
         const viewsEl = document.getElementById('bm-views-count');
         if(viewsEl) {
             const viewVal = (book.views || 0) + 1;
@@ -707,6 +790,12 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const related = LibraryDB.getBooks().filter(b => b.genre === book.genre && b.id !== book.id).slice(0, 25);
         const relatedContainer = document.getElementById('related-shelf');
         const relatedShelf = relatedContainer?.closest('.bm-shelf');
+        const relatedHeading = relatedShelf?.querySelector('h3');
+        if(relatedHeading) {
+            relatedHeading.innerHTML = related.length > 0
+                ? `Also in this section <span class="related-count">${related.length} more in ${book.genre}</span>`
+                : 'Also in this section';
+        }
         if (relatedContainer) {
             relatedContainer.innerHTML = '';
             if(related.length === 0) {
@@ -729,6 +818,26 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         currentImageIndex = 0;
         currentGenre = book.genre;
         updateCarousel();
+
+        const relGrid = document.getElementById('related-shelf');
+        const relWrap = document.getElementById('related-scroll-wrap');
+        const relPrev = document.getElementById('rel-prev-btn');
+        const relNext = document.getElementById('rel-next-btn');
+        if(relGrid && relPrev && relNext) {
+            const scrollAmt = 240;
+            relPrev.onclick = () => relGrid.scrollBy({ left: -scrollAmt, behavior: 'smooth' });
+            relNext.onclick = () => relGrid.scrollBy({ left: scrollAmt, behavior: 'smooth' });
+            const updateRelArrows = () => {
+                if(relPrev) relPrev.disabled = relGrid.scrollLeft <= 0;
+                if(relNext) relNext.disabled = relGrid.scrollLeft + relGrid.clientWidth >= relGrid.scrollWidth - 4;
+                if(relWrap) {
+                    relWrap.classList.toggle('can-scroll-left', relGrid.scrollLeft > 10);
+                    relWrap.classList.toggle('no-more-right', relGrid.scrollLeft + relGrid.clientWidth >= relGrid.scrollWidth - 10);
+                }
+            };
+            relGrid.addEventListener('scroll', updateRelArrows, { passive: true });
+            setTimeout(updateRelArrows, 300);
+        }
 
         const hint = document.getElementById('swipe-hint');
         const tHint = document.getElementById('tap-hint');
@@ -804,6 +913,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     }
 
     const recentDropdown = document.getElementById('recent-searches-dropdown');
+    const searchClearBtn = document.getElementById('search-clear-btn');
 
     function saveRecentSearch(query) {
         if (!query.trim()) return;
@@ -834,7 +944,12 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     window.selectRecent = function(query) {
         searchInput.value = query;
         if(recentDropdown) recentDropdown.style.display = 'none';
+        autocompleteDropdown.style.display = 'none';
+        if(searchClearBtn) searchClearBtn.style.display = 'flex';
+        hero.style.display = 'none';
+        featuredContainer.style.display = 'none';
         performSearch(query);
+        saveRecentSearch(query);
     };
 
     searchInput.addEventListener('focus', () => {
@@ -861,9 +976,30 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }, 180);
     });
 
+    searchInput.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') {
+            autocompleteDropdown.style.display = 'none';
+            if(recentDropdown) recentDropdown.style.display = 'none';
+            searchInput.blur();
+            const t = searchInput.value.trim();
+            if(t) { saveRecentSearch(t); performSearch(t); }
+        }
+        if(e.key === 'Escape') {
+            autocompleteDropdown.style.display = 'none';
+            if(recentDropdown) recentDropdown.style.display = 'none';
+            searchInput.blur();
+        }
+    });
+
+    searchInput.addEventListener('mouseleave', () => {
+        if(document.activeElement !== searchInput) {
+            autocompleteDropdown.style.display = 'none';
+            if(recentDropdown) recentDropdown.style.display = 'none';
+        }
+    });
+
     searchInput.addEventListener('change', () => saveRecentSearch(searchInput.value));
 
-    const searchClearBtn = document.getElementById('search-clear-btn');
     if(searchClearBtn) {
         searchClearBtn.onclick = () => {
             searchInput.value = '';
@@ -1201,10 +1337,10 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                     <span class="sn-pill-val">${books.length}</span>
                     <span class="sn-pill-lbl">Books</span>
                 </div>
-                <div class="sn-pill sn-pill-accent">
-                    <i data-lucide="layers"></i>
-                    <span class="sn-pill-val">${sortedGenres[0] ? sortedGenres[0][0].split("/")[0] : "—"}</span>
-                    <span class="sn-pill-lbl">Top Genre</span>
+                <div class="sn-pill sn-pill-accent" id="helped-pill">
+                    <i data-lucide="heart-handshake"></i>
+                    <span class="sn-pill-val" id="sn-helped-val">...</span>
+                    <span class="sn-pill-lbl">Helped</span>
                 </div>
                 <div class="sn-pill">
                     <i data-lucide="bookmark"></i>
@@ -1251,6 +1387,10 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
         renderIcons();
         document.getElementById("stats-modal").style.display = "flex";
+        getHelpedCount().then(cnt => {
+            const el = document.getElementById('sn-helped-val');
+            if(el) animateCount(el, 0, cnt, 800);
+        });
         setTimeout(() => {
             const heroViewsEl = document.querySelector('.sn-hero-views');
             if(heroViewsEl) {
@@ -1345,11 +1485,45 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         draw();
     }
 
+    async function incrementHelpedCount() {
+        try {
+            let count = parseInt(localStorage.getItem('libnav_helped_local') || '0');
+            count++;
+            localStorage.setItem('libnav_helped_local', String(count));
+            if(typeof LibraryDB.incrementHelped === 'function') {
+                await LibraryDB.incrementHelped();
+            }
+            const MILESTONES = [10, 25, 50, 100, 200, 500, 1000];
+            if(MILESTONES.includes(count)) {
+                setTimeout(() => showMilestoneToast(count), 2200);
+            }
+        } catch(e) {}
+    }
+
+    function showMilestoneToast(count) {
+        const toast = document.getElementById('toast-notification');
+        if(!toast) return;
+        toast.innerHTML = `<i data-lucide="party-popper"></i> <span>LibNav has helped ${count} students find their book! 🎉</span>`;
+        toast.classList.add('show', 'toast-milestone');
+        renderIcons();
+        setTimeout(() => { toast.classList.remove('show', 'toast-milestone'); }, 5000);
+    }
+
+    async function getHelpedCount() {
+        try {
+            if(typeof LibraryDB.getHelpedCount === 'function') {
+                return await LibraryDB.getHelpedCount();
+            }
+        } catch(e) {}
+        return parseInt(localStorage.getItem('libnav_helped_local') || '0');
+    }
+
     window.showSuccessScreen = function() {
         document.getElementById('book-modal').style.display = 'none';
         document.getElementById('success-modal').style.display = 'flex';
         if(navigator.vibrate) navigator.vibrate([50, 30, 100, 30, 200]);
         launchConfetti();
+        incrementHelpedCount();
     }
 
     window.closeSuccessScreen = function() {
