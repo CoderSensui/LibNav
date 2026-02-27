@@ -1276,100 +1276,101 @@ const isLastStep = currentImageIndex === currentImages.length - 1;
     window.onload = resetIdleTimer;
 
     let uptimeInterval = null;
-    const openStats = async () => {
-        const books = LibraryDB.getBooks();
-        const ratings = LibraryDB.getRatings() || [];
+  
+        const openStats = () => {
+    const books = LibraryDB.getBooks();
+    const ratings = LibraryDB.getRatings() || [];
 
-        const mostViewed = books.reduce((a, b) => (a.views || 0) > (b.views || 0) ? a : b, { title: "None", views: 0, author: "N/A", genre: "" });
-        const newest = books.reduce((a, b) => (a.id > b.id) ? a : b, { title: "None", author: "N/A" });
-        const genres = {};
-        books.forEach(b => genres[b.genre] = (genres[b.genre] || 0) + 1);
-        const sortedGenres = Object.entries(genres).sort((a, b) => b[1] - a[1]);
-        const avg = ratings.length > 0 ? (ratings.reduce((a, b) => a + parseInt(b), 0) / ratings.length).toFixed(1) : "0.0";
-        const avgNum = parseFloat(avg);
-        const avgPct = (avgNum / 5) * 100;
-        const globalHelpedCount = typeof LibraryDB.getHelpedCount === 'function' ? await LibraryDB.getHelpedCount() : 0;
-        
-        document.getElementById("stats-modal").firstElementChild.classList.add("stats-layout");
+    const mostViewed = books.reduce((a, b) => (a.views || 0) > (b.views || 0) ? a : b, { title: "None", views: 0, author: "N/A", genre: "" });
+    const newest = books.reduce((a, b) => (a.id > b.id) ? a : b, { title: "None", author: "N/A" });
+    const genres = {};
+    books.forEach(b => genres[b.genre] = (genres[b.genre] || 0) + 1);
+    const sortedGenres = Object.entries(genres).sort((a, b) => b[1] - a[1]);
+    const avg = ratings.length > 0 ? (ratings.reduce((a, b) => a + parseInt(b), 0) / ratings.length).toFixed(1) : "0.0";
+    const avgNum = parseFloat(avg);
+    const avgPct = (avgNum / 5) * 100;
+    const globalHelpedCount = typeof LibraryDB.getHelpedCount === 'function' ? LibraryDB.getHelpedCount() : 0;
+    
+    document.getElementById("stats-modal").firstElementChild.classList.add("stats-layout");
 
-        document.getElementById("stats-content").innerHTML = `
-            <div class="sn-header">
-                <div class="sn-title-block">
-                    <span class="sn-eyebrow">LibNav Analytics</span>
-                    <h2 class="sn-title">Dashboard</h2>
+    document.getElementById("stats-content").innerHTML = `
+        <div class="sn-header">
+            <div class="sn-title-block">
+                <span class="sn-eyebrow">LibNav Analytics</span>
+                <h2 class="sn-title">Dashboard</h2>
+            </div>
+            <div class="sn-uptime">
+                <span class="sn-live-dot"></span>
+                <span id="uptime-display">...</span>
+            </div>
+        </div>
+
+        <div class="sn-hero">
+            <div class="sn-hero-label"><i data-lucide="flame"></i> Trending Right Now</div>
+            <div class="sn-hero-views">${mostViewed.views || 0}</div>
+            <div class="sn-hero-views-sub">total views</div>
+            <div class="sn-hero-divider"></div>
+            <h3 class="sn-hero-title">${mostViewed.title || "No Data"}</h3>
+            <p class="sn-hero-author">${mostViewed.author || ""}</p>
+            ${mostViewed.genre ? `<span class="sn-hero-genre">${mostViewed.genre}</span>` : ""}
+            <div class="sn-hero-glow"></div>
+        </div>
+
+        <div class="sn-pills-row">
+            <div class="sn-pill">
+                <i data-lucide="library"></i>
+                <span class="sn-pill-val">${books.length}</span>
+                <span class="sn-pill-lbl">Books</span>
+            </div>
+            <div class="sn-pill sn-pill-accent" id="helped-pill">
+                <i data-lucide="heart-handshake"></i>
+              <span class="sn-pill-val">${globalHelpedCount}</span>
+                <span class="sn-pill-lbl" style="color: #10b981;">Helped</span>
+            </div>
+            <div class="sn-pill">
+                <i data-lucide="bookmark"></i>
+                <span class="sn-pill-val">${favorites.length}</span>
+                <span class="sn-pill-lbl">Saved</span>
+            </div>
+        </div>
+
+        <div class="sn-two-col">
+            <div class="sn-section sn-rating-section">
+                <div class="sn-section-label"><i data-lucide="star"></i> Rating</div>
+                <div class="sn-rating-num">${avg}<span>/5</span></div>
+                <div class="sn-rating-bar-track">
+                    <div class="sn-rating-bar-fill" style="width:${avgPct}%"></div>
                 </div>
-                <div class="sn-uptime">
-                    <span class="sn-live-dot"></span>
-                    <span id="uptime-display">...</span>
-                </div>
+                <p class="sn-rating-reviews">${ratings.length} review${ratings.length !== 1 ? "s" : ""}</p>
             </div>
 
-            <div class="sn-hero">
-                <div class="sn-hero-label"><i data-lucide="flame"></i> Trending Right Now</div>
-                <div class="sn-hero-views">${mostViewed.views || 0}</div>
-                <div class="sn-hero-views-sub">total views</div>
-                <div class="sn-hero-divider"></div>
-                <h3 class="sn-hero-title">${mostViewed.title || "No Data"}</h3>
-                <p class="sn-hero-author">${mostViewed.author || ""}</p>
-                ${mostViewed.genre ? `<span class="sn-hero-genre">${mostViewed.genre}</span>` : ""}
-                <div class="sn-hero-glow"></div>
+            <div class="sn-section sn-new-section">
+                <div class="sn-section-label"><i data-lucide="sparkles"></i> New Arrival</div>
+                <div class="sn-new-badge-inline">NEW</div>
+                <h4 class="sn-new-title">${newest.title || "No Data"}</h4>
+                <p class="sn-new-author">${newest.author || ""}</p>
             </div>
+        </div>
 
-            <div class="sn-pills-row">
-                <div class="sn-pill">
-                    <i data-lucide="library"></i>
-                    <span class="sn-pill-val">${books.length}</span>
-                    <span class="sn-pill-lbl">Books</span>
-                </div>
-                <div class="sn-pill sn-pill-accent" id="helped-pill">
-                    <i data-lucide="heart-handshake"></i>
-                  <span class="sn-pill-val">${globalHelpedCount}</span>
-                    <span class="sn-pill-lbl" style="color: #10b981;">Helped</span>
-                </div>
-                <div class="sn-pill">
-                    <i data-lucide="bookmark"></i>
-                    <span class="sn-pill-val">${favorites.length}</span>
-                    <span class="sn-pill-lbl">Saved</span>
-                </div>
-            </div>
-
-            <div class="sn-two-col">
-                <div class="sn-section sn-rating-section">
-                    <div class="sn-section-label"><i data-lucide="star"></i> Rating</div>
-                    <div class="sn-rating-num">${avg}<span>/5</span></div>
-                    <div class="sn-rating-bar-track">
-                        <div class="sn-rating-bar-fill" style="width:${avgPct}%"></div>
-                    </div>
-                    <p class="sn-rating-reviews">${ratings.length} review${ratings.length !== 1 ? "s" : ""}</p>
-                </div>
-
-                <div class="sn-section sn-new-section">
-                    <div class="sn-section-label"><i data-lucide="sparkles"></i> New Arrival</div>
-                    <div class="sn-new-badge-inline">NEW</div>
-                    <h4 class="sn-new-title">${newest.title || "No Data"}</h4>
-                    <p class="sn-new-author">${newest.author || ""}</p>
-                </div>
-            </div>
-
-            <div class="sn-section sn-catalog-section">
-                <div class="sn-section-label"><i data-lucide="layers"></i> Catalog Breakdown</div>
-                <div class="sn-genre-list">
-                    ${sortedGenres.map(([k, v], i) => `
-                        <div class="sn-genre-item">
-                            <div class="sn-genre-top">
-                                <span class="sn-genre-name">${k}</span>
-                                <span class="sn-genre-count">${v} <span style="opacity:0.5">vol</span></span>
-                            </div>
-                            <div class="sn-genre-track">
-                                <div class="sn-genre-fill" style="width:${Math.round((v/books.length)*100)}%; background:${getGenreStyle(k).color}; --bar-w:${Math.round((v/books.length)*100)}%;"></div>
-                            </div>
+        <div class="sn-section sn-catalog-section">
+            <div class="sn-section-label"><i data-lucide="layers"></i> Catalog Breakdown</div>
+            <div class="sn-genre-list">
+                ${sortedGenres.map(([k, v], i) => `
+                    <div class="sn-genre-item">
+                        <div class="sn-genre-top">
+                            <span class="sn-genre-name">${k}</span>
+                            <span class="sn-genre-count">${v} <span style="opacity:0.5">vol</span></span>
                         </div>
-                    `).join("")}
-                </div>
+                        <div class="sn-genre-track">
+                            <div class="sn-genre-fill" style="width:${Math.round((v/books.length)*100)}%; background:${getGenreStyle(k).color}; --bar-w:${Math.round((v/books.length)*100)}%;"></div>
+                        </div>
+                    </div>
+                `).join("")}
             </div>
-        `;
-
-        renderIcons();
+        </div>
+    `;
+    renderIcons();
+        
         document.getElementById("stats-modal").style.display = "flex";
         getHelpedCount().then(cnt => {
             const el = document.getElementById('sn-helped-val');
@@ -1502,16 +1503,16 @@ const isLastStep = currentImageIndex === currentImages.length - 1;
         return parseInt(localStorage.getItem('libnav_helped_local') || '0');
     }
 
-  window.showSuccessScreen = async function() {
-        document.getElementById('book-modal').style.display = 'none';
-        document.getElementById('success-modal').style.display = 'flex';
-        if(navigator.vibrate) navigator.vibrate([50, 30, 100, 30, 200]);
-        launchConfetti();
-        
-        if (typeof LibraryDB.incrementHelped === 'function') {
-            await LibraryDB.incrementHelped();
-        }
+window.showSuccessScreen = function() {
+    document.getElementById('book-modal').style.display = 'none';
+    document.getElementById('success-modal').style.display = 'flex';
+    if(navigator.vibrate) navigator.vibrate([50, 30, 100, 30, 200]);
+    launchConfetti();
+    
+    if (typeof LibraryDB.incrementHelped === 'function') {
+        LibraryDB.incrementHelped();
     }
+}
     
     window.closeSuccessScreen = function() {
         document.getElementById('success-modal').style.display = 'none';
