@@ -73,36 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('section-theme-toggle')?.addEventListener('click', toggleThemeAction);
 
-    function showPopup(title, msg, onConfirm, showCancel = false, type = 'info') {
+    function showPopup(title, msg, onConfirm, showCancel = false) {
         document.getElementById('popup-title').innerText = title;
         document.getElementById('popup-message').innerText = msg;
         const pop = document.getElementById('custom-popup');
-        const iconWrap = document.getElementById('popup-icon');
-        const confirmBtn = document.getElementById('popup-confirm');
-
-        // Type-based icon and color
-        const typeMap = {
-            success: { icon: 'check-circle-2', cls: 'popup-icon--success' },
-            error:   { icon: 'x-circle',        cls: 'popup-icon--error'   },
-            warning: { icon: 'alert-triangle',   cls: 'popup-icon--warning' },
-            confirm: { icon: 'help-circle',      cls: 'popup-icon--confirm' },
-            info:    { icon: 'bell',             cls: 'popup-icon--info'    },
-        };
-        const t = typeMap[type] || typeMap.info;
-        iconWrap.className = `popup-icon-wrapper ${t.cls}`;
-        iconWrap.innerHTML = `<i data-lucide="${t.icon}"></i>`;
-
-        // Confirm button label
-        const isDestructive = type === 'warning' || type === 'confirm';
-        confirmBtn.className = isDestructive ? 'btn-popup-danger' : 'btn-popup-confirm';
-        confirmBtn.innerText = showCancel ? 'Yes, continue' : 'OK';
-
         pop.style.display = 'flex';
         const cancelBtn = document.getElementById('popup-cancel');
         cancelBtn.style.display = showCancel ? 'flex' : 'none';
-        confirmBtn.onclick = () => { pop.style.display = 'none'; if(onConfirm) onConfirm(); };
+        document.getElementById('popup-confirm').onclick = () => { pop.style.display = 'none'; if(onConfirm) onConfirm(); };
         cancelBtn.onclick = () => pop.style.display = 'none';
-        renderIcons();
     }
 
     let logoTapCount = 0;
@@ -377,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isValid) {
             const sessionToken = await LibraryDB.createAdminSession();
             if (!sessionToken) {
-                showPopup("Error", "Could not create session. Check your connection.", null, false, 'error');
+                showPopup("Error", "Could not create session. Check your connection.", null, false);
                 btn.innerHTML = 'Login';
                 btn.disabled = false;
                 return;
@@ -393,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateImageInputs();
             renderAdminList();
         } else {
-            showPopup("Access Denied", "Incorrect Security Key.", null, false, 'error');
+            showPopup("Access Denied", "Incorrect Security Key.", null, false);
         }
 
         btn.innerHTML = 'Login';
@@ -485,20 +464,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('add-book-btn').onclick = async () => {
         const title = document.getElementById('new-title').value.trim(); const author = document.getElementById('new-author').value.trim(); const genre = document.getElementById('new-genre').value; const editingId = document.getElementById('edit-book-id').value;
         const isNewBox = document.getElementById('new-arrival-check'); const isNew = isNewBox ? isNewBox.checked : false;
-        if (!title || !author) return showPopup("Missing Info", "Please fill in title and author.", null, false, 'warning');
+        if (!title || !author) return showPopup("Missing Info", "Please fill in title and author.", null, false);
         const imageUrls = Array.from(document.querySelectorAll('.step-url-input')).map((input, i) => input.value.trim() || `https://placehold.co/600x400/121212/db2777?text=${genre}+Step+${i+1}`);
         if (editingId) {
             const books = LibraryDB.getBooks(); const index = books.findIndex(b => String(b.id) === String(editingId));
-            if (index > -1) { books[index].title = title; books[index].author = author; books[index].genre = genre; books[index].images = imageUrls; books[index].isNew = isNew; await LibraryDB.saveToCloud(); showPopup("Book Updated!", "Your changes have been saved to the cloud.", null, false, 'success'); }
+            if (index > -1) { books[index].title = title; books[index].author = author; books[index].genre = genre; books[index].images = imageUrls; books[index].isNew = isNew; await LibraryDB.saveToCloud(); showPopup("Success", "Book Updated!", null, false); }
         } else {
-            await LibraryDB.addBook({ id: Date.now(), title: title, author: author, genre: genre, images: imageUrls, views: 0, isNew: isNew }); showPopup("Book Added!", "The new book is now live in the catalog.", null, false, 'success');
+            await LibraryDB.addBook({ id: Date.now(), title: title, author: author, genre: genre, images: imageUrls, views: 0, isNew: isNew }); showPopup("Success", "Book Added!", null, false);
         }
         document.getElementById('close-form-view-btn').click(); renderAdminList(); performSearch(searchInput.value);
     };
 
     document.getElementById('run-batch-btn').onclick = () => {
         const genre = document.getElementById('batch-genre').value;
-        showPopup("Overwrite Maps?", `This will replace navigation images for ALL books in "${genre}". This cannot be undone.`, async () => {
+        showPopup("Warning", `Overwrite map images for ALL books in "${genre}"?`, async () => {
             const imageUrls = Array.from(document.querySelectorAll('.batch-step-url-input')).map((input, i) => input.value.trim() || `https://placehold.co/600x400/121212/db2777?text=${genre}+Step+${i+1}`);
             const books = LibraryDB.getBooks();
             let count = 0;
@@ -510,13 +489,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (count > 0) {
                 await LibraryDB.saveToCloud();
-                showPopup("Batch Complete!", `Updated navigation maps for ${count} books in ${genre}.`, null, false, 'success');
+                showPopup("Success", `Updated maps for ${count} books in ${genre}!`, null, false);
                 document.getElementById('close-batch-view-btn').click();
                 renderAdminList();
             } else {
-                showPopup("Nothing Updated", `No books found in the "${genre}" category.`, null, false, 'warning');
+                showPopup("Notice", `No books found in ${genre}.`, null, false);
             }
-        }, true, 'warning');
+        }, true);
     };
 
     function renderAdminList() {
@@ -531,58 +510,68 @@ document.addEventListener('DOMContentLoaded', () => {
             listContainer.innerHTML = '<p style="text-align:center;color:var(--text-muted); padding:20px 0;">No books match your search.</p>';
             return;
         }
-
-        // Update admin stats bar
-        const adminStatsCount = document.getElementById('admin-stat-count');
-        if (adminStatsCount) adminStatsCount.textContent = books.length;
-
-        listContainer.innerHTML = filteredBooks.map(b => {
-            const gs = getGenreStyle(b.genre);
-            return `
+        listContainer.innerHTML = filteredBooks.map(b => `
             <div class="admin-list-item">
-                <div class="admin-item-genre-strip" style="background:${gs.color};"></div>
-                <div class="admin-item-body">
-                    <div class="info">
-                        <strong>${b.title}</strong>
-                        <small>${b.author} &nbsp;·&nbsp; <span style="color:${gs.color};">${b.genre}</span></small>
-                    </div>
-                    <div class="actions">
-                        <button onclick="handleEdit('${b.id}')" class="btn-edit"><i data-lucide="edit-2"></i> Edit</button>
-                        <button onclick="handleDelete('${b.id}')" class="btn-delete"><i data-lucide="trash-2"></i> Delete</button>
-                    </div>
+                <div class="info"><strong>${b.title}</strong><small>${b.author}</small></div>
+                <div class="actions">
+                    <button onclick="handleEdit('${b.id}')" class="btn-edit"><i data-lucide="edit-2"></i> Edit</button>
+                    <button onclick="handleDelete('${b.id}')" class="btn-delete"><i data-lucide="trash-2"></i> Delete</button>
                 </div>
-            </div>`;
-        }).join('');
+            </div>`).join('');
         renderIcons();
     }
 
     document.getElementById('admin-search')?.addEventListener('input', renderAdminList);
 
     let undoDeleteTimer = null;
+
     window.handleDelete = function(id) {
         const books = LibraryDB.getBooks();
         const bookToDelete = books.find(b => String(b.id) === String(id));
         if (!bookToDelete) return;
 
-        // Immediately remove from DB in memory and re-render
+        // Remove from in-memory list and re-render immediately
         LibraryDB.books = books.filter(b => String(b.id) !== String(id));
         renderAdminList();
         performSearch(searchInput.value);
 
-        // Cancel any existing undo timer
+        // Clear any previous undo timer
         if (undoDeleteTimer) clearTimeout(undoDeleteTimer);
 
-        // Show undo toast
+        // Show undo bar
         const undoBar = document.getElementById('undo-delete-bar');
-        const undoTitle = document.getElementById('undo-book-title');
+        const undoTitleEl = document.getElementById('undo-book-title');
         if (undoBar) {
-            if (undoTitle) undoTitle.textContent = `"${bookToDelete.title}"`;
+            if (undoTitleEl) undoTitleEl.textContent = `"${bookToDelete.title}"`;
+
+            // Reset and animate the countdown fill
+            const fill = undoBar.querySelector('.undo-bar-fill');
+            if (fill) {
+                fill.style.transition = 'none';
+                fill.style.width = '100%';
+                setTimeout(() => {
+                    fill.style.transition = 'width 5s linear';
+                    fill.style.width = '0%';
+                }, 30);
+            }
+
             undoBar.classList.add('visible');
 
-            // Countdown bar
-            const fill = undoBar.querySelector('.undo-bar-fill');
-            if (fill) { fill.style.transition = 'none'; fill.style.width = '100%'; setTimeout(() => { fill.style.transition = 'width 5s linear'; fill.style.width = '0%'; }, 30); }
+            // Wire the undo button for THIS deletion
+            const undoBtn = document.getElementById('undo-delete-btn');
+            if (undoBtn) {
+                undoBtn.onclick = () => {
+                    clearTimeout(undoDeleteTimer);
+                    undoBar.classList.remove('visible');
+                    // Restore the book back into memory and re-render
+                    LibraryDB.books.push(bookToDelete);
+                    LibraryDB.books.sort((a, b) => a.id - b.id);
+                    renderAdminList();
+                    performSearch(searchInput.value);
+                };
+            }
 
+            // After 5s, commit the delete to Firebase
             undoDeleteTimer = setTimeout(async () => {
                 undoBar.classList.remove('visible');
                 await LibraryDB.saveToCloud();
@@ -590,42 +579,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.undoDelete = function(bookData) {
-        if (undoDeleteTimer) clearTimeout(undoDeleteTimer);
-        const undoBar = document.getElementById('undo-delete-bar');
-        if (undoBar) undoBar.classList.remove('visible');
-        // bookData was baked into the button — re-fetch from DOM
-        // We keep the book in memory since it was never saved; just re-render
-        renderAdminList();
-        performSearch(searchInput.value);
-        showPopup("Restored!", "The book deletion was cancelled.", null, false, 'success');
-    };
-
-    // Wire undo button with current deleted book reference
-    (function() {
-        const undoBtn = document.getElementById('undo-delete-btn');
-        if (undoBtn) {
-            undoBtn.onclick = () => {
-                if (undoDeleteTimer) clearTimeout(undoDeleteTimer);
-                const undoBar = document.getElementById('undo-delete-bar');
-                if (undoBar) undoBar.classList.remove('visible');
-                renderAdminList();
-                performSearch(searchInput.value);
-                showPopup("Restored!", "The book deletion was cancelled.", null, false, 'success');
-            };
-        }
-    })();
-
-    document.getElementById('factory-reset-btn').onclick = async () => { showPopup("Danger Zone", "This will reset ALL stats and views. This cannot be undone!", async () => { await LibraryDB.factoryReset(); window.location.reload(); }, true, 'warning'); };
+    document.getElementById('factory-reset-btn').onclick = async () => { showPopup("Defense Mode", "Reset Stats?", async () => { await LibraryDB.factoryReset(); window.location.reload(); }, true); };
 
     document.getElementById('admin-logout-btn').onclick = async () => {
-        showPopup("End Session", "Are you sure you want to log out of the admin panel?", async () => {
+        showPopup("Logout", "End your admin session?", async () => {
             const token = localStorage.getItem('libnav_admin_token');
             await LibraryDB.destroyAdminSession(token);
             adminModal.style.display = 'none';
             document.getElementById('admin-login-screen').style.display = 'block';
             document.getElementById('admin-dashboard').style.display = 'none';
-        }, true, 'confirm');
+        }, true);
     };
 
     function loadFeaturedBook() {
@@ -945,9 +908,9 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const aa = document.getElementById('mobile-action-area');
         const dotsContainer = document.getElementById('carousel-dots');
         const cWrapper = document.getElementById('carousel-wrapper');
+        const desktopQr = document.querySelector('.bm-desktop-qr');
 
         if (currentImages && currentImages.length > 0) {
-
             if (cWrapper) cWrapper.classList.add('skeleton');
             carouselImg.style.opacity = '0';
             carouselImg.style.transition = 'opacity 0.3s ease, transform 0.1s ease-out';
@@ -970,24 +933,21 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 ).join('');
             }
 
-const isLastStep = currentImageIndex === currentImages.length - 1;
-            const isMobile = document.body.classList.contains('is-mobile-device');
-            
-            if (aa) aa.style.display = isLastStep ? 'flex' : 'none';
-            
-            const desktopQr = document.querySelector('.bm-desktop-qr');
-            if (desktopQr) desktopQr.style.display = 'none';
+            const isLastStep = currentImageIndex === currentImages.length - 1;
 
-            const showQrBtn = document.getElementById('show-qr-btn');
-            if (showQrBtn) {
-                showQrBtn.style.display = isMobile ? 'none' : 'flex';
-            }
+            // Mobile: show action row (QR + Found It) only on last step
+            if (aa) aa.style.display = isLastStep ? 'flex' : 'none';
+
+            // Desktop: show action row (Send to Mobile + Found It) only on last step
+            if (desktopQr) desktopQr.style.display = isLastStep ? 'flex' : 'none';
 
         } else {
+            // No images for this book
             carouselImg.style.display = 'none';
             if(stepCounter) stepCounter.innerText = "No map available";
             if(dotsContainer) dotsContainer.innerHTML = '';
             if (aa && document.body.classList.contains('is-mobile-device')) aa.style.display = 'flex';
+            if (desktopQr) desktopQr.style.display = 'none';
             if (cWrapper) cWrapper.classList.remove('skeleton');
         }
     }
@@ -1374,7 +1334,7 @@ const isLastStep = currentImageIndex === currentImages.length - 1;
 
     let uptimeInterval = null;
   
-        const openStats = () => {
+        const openStats = async () => {
     const books = LibraryDB.getBooks();
     const ratings = LibraryDB.getRatings() || [];
 
@@ -1386,7 +1346,8 @@ const isLastStep = currentImageIndex === currentImages.length - 1;
     const avg = ratings.length > 0 ? (ratings.reduce((a, b) => a + parseInt(b), 0) / ratings.length).toFixed(1) : "0.0";
     const avgNum = parseFloat(avg);
     const avgPct = (avgNum / 5) * 100;
-    const globalHelpedCount = typeof LibraryDB.getHelpedCount === 'function' ? LibraryDB.getHelpedCount() : 0;
+    // Await the live count so it never shows "[object Promise]"
+    const globalHelpedCount = await (typeof LibraryDB.getHelpedCount === 'function' ? LibraryDB.getHelpedCount() : Promise.resolve(0));
     
     document.getElementById("stats-modal").firstElementChild.classList.add("stats-layout");
 
@@ -1421,7 +1382,7 @@ const isLastStep = currentImageIndex === currentImages.length - 1;
             </div>
             <div class="sn-pill sn-pill-accent" id="helped-pill">
                 <i data-lucide="heart-handshake"></i>
-              <span class="sn-pill-val">${globalHelpedCount}</span>
+              <span class="sn-pill-val" id="sn-helped-val">${globalHelpedCount}</span>
                 <span class="sn-pill-lbl" style="color: #10b981;">Helped</span>
             </div>
             <div class="sn-pill">
@@ -1526,10 +1487,10 @@ const isLastStep = currentImageIndex === currentImages.length - 1;
             const combinedMessage = `[User Rating: ${rating}/5 Stars]\n\n${message}`;
             const payload = { name: name, email: email, message: combinedMessage };
             await fetch('/api/send-feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            showPopup("Feedback Sent!", "Thanks for helping make LibNav better. ✨", null, false, 'success');
+            showPopup("Success", "Feedback Sent via Email! Thank you.", null, false);
             fForm.reset(); document.getElementById('feedback-modal').style.display = 'none';
         }
-        catch { showPopup("Couldn't Send", "Your rating was saved, but the message couldn't be sent right now.", null, false, 'error'); document.getElementById('feedback-modal').style.display = 'none';}
+        catch { showPopup("Error", "Message saved locally.", null, false); document.getElementById('feedback-modal').style.display = 'none';}
         finally { btn.innerHTML = '<i data-lucide="send"></i> Send feedback'; btn.disabled = false; renderIcons();}
     };
 
@@ -1688,10 +1649,10 @@ window.showSuccessScreen = function() {
 
     if (saveMaintBtn) {
         saveMaintBtn.onclick = async () => {
-            if (typeof LibraryDB.setMaintenance !== 'function') return showPopup("Error", "Database update missing.", null, false, 'error');
+            if (typeof LibraryDB.setMaintenance !== 'function') return showPopup("Error", "Database update missing.", null, false);
             const newState = maintSwitch ? maintSwitch.checked : false;
             await LibraryDB.setMaintenance(newState);
-            showPopup("Settings Saved", `Maintenance Mode is now ${newState ? '🔴 ON' : '🟢 OFF'}.`, null, false, 'success');
+            showPopup("System Control", `Maintenance Mode is now ${newState ? 'ON' : 'OFF'}.`, null, false);
             if (maintModal) maintModal.style.display = 'none';
         };
     }
@@ -1710,12 +1671,12 @@ window.showSuccessScreen = function() {
             const t = document.getElementById('bc-title')?.value.trim();
             const m = document.getElementById('bc-msg')?.value.trim();
             const theme = document.getElementById('bc-theme')?.value;
-            if(!t || !m) return showPopup("Missing Fields", "Please fill in both the title and message.", null, false, 'warning');
-            if (typeof LibraryDB.setBroadcast !== 'function') return showPopup("Error", "Database update missing.", null, false, 'error');
+            if(!t || !m) return showPopup("Error", "Fill out both fields.", null, false);
+            if (typeof LibraryDB.setBroadcast !== 'function') return showPopup("Error", "Database update missing.", null, false);
 
             const bcObj = { id: 'bc_' + Date.now(), title: t, message: m, theme: theme };
             await LibraryDB.setBroadcast(bcObj);
-            showPopup("Broadcast Sent!", "Your announcement is now live for all users.", null, false, 'success');
+            showPopup("Success", "Broadcast sent to all users!", null, false);
             if (adminBcView) adminBcView.style.display = 'none';
         };
     }
@@ -1724,7 +1685,7 @@ window.showSuccessScreen = function() {
         clearBcBtn.onclick = async () => {
             if (typeof LibraryDB.setBroadcast !== 'function') return;
             await LibraryDB.setBroadcast(null);
-            showPopup("Broadcast Cleared", "The active announcement has been removed.", null, false, 'info');
+            showPopup("Cleared", "Active broadcast removed.", null, false);
             if (adminBcView) adminBcView.style.display = 'none';
         };
     }
