@@ -86,19 +86,24 @@ const LibraryDB = {
 
     incrementHelped: async function() {
         try {
-            const record = { timestamp: Date.now() }; 
+            const res = await fetch(`${this.dbUrl}globalStats/helpedCount.json?t=${Date.now()}`);
+            let current = await res.json();
             
-            this.helpedRecords.push(record);
+            if (typeof current !== 'number') current = 0;
             
-            await fetch(`${this.dbUrl}helped.json`, {
-                method: 'POST', 
+            const newCount = current + 1;
+            
+            await fetch(`${this.dbUrl}globalStats/helpedCount.json`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(record)
+                body: JSON.stringify(newCount)
             });
+            
+            this.helpedCount = newCount;
             return true;
-        } catch (err) { 
-            console.error("Firebase Write Failed:", err);
-            return false; 
+        } catch (err) {
+            console.error("Firebase write failed:", err);
+            return false;
         }
     },
     
