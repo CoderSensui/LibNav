@@ -2,21 +2,14 @@ const LibraryDB = {
     dbUrl: "https://libnav-dc2c8-default-rtdb.firebaseio.com/",
     books: [],
     ratings: [],
-    helpedCount: 0,
-
-    fetchWithTimeout: function(url, options = {}, timeoutMs = 10000) {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeoutMs);
-        return fetch(url, { ...options, signal: controller.signal })
-            .finally(() => clearTimeout(timer));
-    },
-
+    helpedRecords: [], 
+    
     init: async function() {
         try {
             const [booksRes, ratingsRes, helpedRes] = await Promise.all([
-                this.fetchWithTimeout(`${this.dbUrl}books.json`),
-                this.fetchWithTimeout(`${this.dbUrl}ratings.json`),
-                this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`)
+                fetch(`${this.dbUrl}books.json`),
+                fetch(`${this.dbUrl}ratings.json`),
+                fetch(`${this.dbUrl}helped.json`) // Replicated ratings fetch
             ]);
 
             if (!booksRes.ok) throw new Error("Failed to load books");
@@ -39,7 +32,12 @@ const LibraryDB = {
                 this.ratings = [];
             }
 
-            this.helpedCount = (typeof helpedData === 'number') ? helpedData : 0;
+            // Parse helped data exactly like ratings
+            if (helpedData && typeof helpedData === 'object') {
+                this.helpedRecords = Object.values(helpedData);
+            } else {
+                this.helpedRecords = [];
+            }
 
             return true;
         } catch (error) {
@@ -62,36 +60,22 @@ const LibraryDB = {
 
     getBooks: function() { return this.books; },
     getRatings: function() { return this.ratings; },
+    getHelpedCount: function() { return this.helpedRecords.length; }, // Just count the list!
 
-    // Fetches live count from Firebase every time — never stale
-    fetchHelpedCount: async function() {
-        try {
-            const res = await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`);
-            const data = await res.json();
-            const count = (typeof data === 'number') ? data : 0;
-            this.helpedCount = count;
-            return count;
-        } catch(e) {
-            return this.helpedCount;
-        }
-    },
-
-    // Read current value from Firebase → add 1 → write back (atomic read-write)
+    // Exact copy of the submitRating POST logic
     incrementHelped: async function() {
         try {
-            const res = await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`);
-            const data = await res.json();
-            const newCount = (typeof data === 'number' ? data : 0) + 1;
-            const putRes = await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`, {
-                method: 'PUT',
+            const timestamp = Date.now();
+            this.helpedRecords.push(timestamp);
+            await fetch(`${this.dbUrl}helped.json`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newCount)
+                body: JSON.stringify(timestamp)
             });
-            if (putRes.ok) { this.helpedCount = newCount; return newCount; }
-        } catch(e) {}
-        // Offline fallback: at least update in-memory
-        this.helpedCount++;
-        return this.helpedCount;
+            return true;
+        } catch (err) {
+            return false;
+        }
     },
 
     addBook: async function(book) {
@@ -137,14 +121,8 @@ const LibraryDB = {
         await fetch(`${this.dbUrl}ratings.json`, { method: 'DELETE' });
         this.ratings = [];
 
-        this.helpedCount = 0;
-        await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(0)
-        });
-
-        localStorage.removeItem('libnav_helped_people'); 
+        await fetch(`${this.dbUrl}helped.json`, { method: 'DELETE' });
+        this.helpedRecords = [];
 
         return true;
     },
