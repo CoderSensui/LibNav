@@ -1312,11 +1312,11 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     let uptimeInterval = null;
 
-   const openStats = async () => {
+  const openStats = async () => {
         const statsModal = document.getElementById("stats-modal");
         const contentDiv = document.getElementById("stats-content");
         
-        // 1. Show the Loading Screen (Just like Feedback modal!)
+        // Show Loading State
         statsModal.style.display = "flex";
         contentDiv.innerHTML = `
             <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:300px; gap:15px;">
@@ -1328,13 +1328,12 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             </div>
         `;
 
-        // 2. Fetch Fresh Data from Firebase
+        // Fetch Fresh Firebase Data
         await LibraryDB.fetchGlobalStats();
 
-        // 3. Get the fresh numbers
         const books = LibraryDB.getBooks();
         const ratings = LibraryDB.getRatings() || [];
-        const globalHelpedCount = LibraryDB.getHelpedCount(); // This now returns the array length!
+        const globalHelpedCount = LibraryDB.getHelpedCount();
 
         const mostViewed = books.reduce((a, b) => (a.views || 0) > (b.views || 0) ? a : b, { title: "None", views: 0, author: "N/A", genre: "" });
         const newest = books.reduce((a, b) => (a.id > b.id) ? a : b, { title: "None", author: "N/A" });
@@ -1345,7 +1344,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const avgNum = parseFloat(avg);
         const avgPct = (avgNum / 5) * 100;
 
-        // 4. Render the Real Data
         statsModal.firstElementChild.classList.add("stats-layout");
         contentDiv.innerHTML = `
             <div class="sn-header">
@@ -1355,7 +1353,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 </div>
                 <div class="sn-uptime">
                     <span class="sn-live-dot"></span>
-                    <span id="uptime-display">Calculating...</span>
+                    <span id="uptime-display">...</span>
                 </div>
             </div>
 
@@ -1423,13 +1421,11 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 </div>
             </div>
         `;
-        
         renderIcons();
         
-        // Animate the numbers
         setTimeout(() => {
             const helpedEl = document.getElementById('sn-helped-val');
-            if(helpedEl) animateCount(helpedEl, 0, globalHelpedCount, 1200);
+            if(helpedEl) animateCount(helpedEl, 0, globalHelpedCount, 800);
             
             const heroViewsEl = document.querySelector('.sn-hero-views');
             if(heroViewsEl) animateCount(heroViewsEl, 0, mostViewed.views || 0, 1000);
@@ -1438,23 +1434,17 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 const styleAttr = el.getAttribute('style') || '';
                 const match = styleAttr.match(/--bar-w:\s*([\d.]+%)/);
                 const targetW = match ? match[1] : '100%';
-                el.style.animation = 'none';
-                el.offsetHeight; 
+                el.style.animation = 'none'; el.offsetHeight; 
                 el.style.setProperty('--bar-w', targetW);
-                el.style.animationName = 'barGrow';
-                el.style.animationDuration = '0.75s';
-                el.style.animationFillMode = 'both';
-                el.style.animationDelay = (0.1 + i * 0.05) + 's';
+                el.style.animationName = 'barGrow'; el.style.animationDuration = '0.75s';
+                el.style.animationFillMode = 'both'; el.style.animationDelay = (0.08 + i * 0.08) + 's';
             });
-        }, 50);
+        }, 80);
 
-        // Uptime Clock
         const updateUptime = () => {
             const diff = Date.now() - new Date("2026-01-01T00:00:00").getTime();
-            const d = Math.floor(diff / 86400000);
-            const h = Math.floor((diff % 86400000) / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
+            const d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
             const el = document.getElementById("uptime-display");
             if (el) el.innerText = `${d}d ${h}h ${m}m ${s}s`;
         };
@@ -1465,19 +1455,53 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     
     document.getElementById('section-stats-btn')?.addEventListener('click', openStats);
 
-    const openFeedback = () => {
-        const feedbackModal = document.getElementById('feedback-modal');
-        const feedbackBox = feedbackModal?.querySelector('.modal-box');
-        if (!feedbackModal || !feedbackBox) return;
-        const snapshot = feedbackBox.innerHTML;
-        feedbackModal.style.display = 'flex';
-        feedbackBox.innerHTML = `<div class="modal-loading-state"><div class="modal-loader-ring"></div><p>Loading...</p></div>`;
+   const openFeedback = () => {
+        const modal = document.getElementById('feedback-modal');
+        const box = modal.querySelector('.modal-box');
+        const hero = box.querySelector('.feedback-hero');
+        const form = document.getElementById('feedback-form');
+
+        // 1. Create the loading screen if it doesn't exist yet
+        if (!document.getElementById('fb-loader')) {
+            const loader = document.createElement('div');
+            loader.id = 'fb-loader';
+            loader.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:300px; gap:15px;">
+                    <div class="loader-logo-ring" style="width:50px; height:50px;">
+                        <div class="loader-ring r1" style="border-width:3px;"></div>
+                        <div class="loader-ring r2" style="border-width:3px; inset:4px;"></div>
+                    </div>
+                    <p style="color:var(--text-muted); font-weight:bold; letter-spacing:1px; font-size:0.9rem;">LOADING...</p>
+                </div>
+            `;
+            box.appendChild(loader);
+        }
+
+        const loader = document.getElementById('fb-loader');
+
+        // 2. Hide the form content and show the loader
+        loader.style.display = 'flex';
+        hero.style.display = 'none';
+        form.style.display = 'none';
+        modal.style.display = 'flex';
+
+        // 3. Wait a moment, hide the loader, and animate the content in!
         setTimeout(() => {
-            feedbackBox.innerHTML = snapshot;
-            renderIcons();
-            feedbackBox.querySelector('.close-btn')?.addEventListener('click', () => { feedbackModal.style.display = 'none'; });
-        }, 500);
+            loader.style.display = 'none';
+            hero.style.display = 'block';
+            form.style.display = 'flex';
+
+            // Reset and trigger animations so they play every time you open it
+            hero.style.animation = 'none';
+            hero.offsetHeight; // Triggers browser reflow
+            hero.style.animation = 'statsItemIn 0.35s ease both';
+
+            form.style.animation = 'none';
+            form.offsetHeight; 
+            form.style.animation = 'statsItemIn 0.35s ease both 0.1s'; // 0.1s delay creates a cascading effect
+        }, 800); // 800ms loading time
     };
+    
     document.getElementById('section-feedback-btn')?.addEventListener('click', openFeedback);
 
     const fForm = document.getElementById('feedback-form');
@@ -1570,22 +1594,22 @@ async function incrementHelpedCount() {
         return 0;
     }
 
-// 1. Show the success screen (Confetti only, NO database call yet)
-    window.showSuccessScreen = function() {
+window.showSuccessScreen = function() {
         document.getElementById('book-modal').style.display = 'none';
         document.getElementById('success-modal').style.display = 'flex';
         if(navigator.vibrate) navigator.vibrate([50, 30, 100, 30, 200]);
         launchConfetti();
     }
     
-    // 2. "Got it, thanks!" clicked -> Save to Database & Close
     window.closeSuccessScreen = function() {
         document.getElementById('success-modal').style.display = 'none';
         document.body.classList.remove('companion-mode-active');
         switchSection('home');
         
-        // CALL THE DB FUNCTION HERE
-        incrementHelpedCount(); 
+        // This fires the POST request to Firebase!
+        if(typeof LibraryDB.incrementHelped === 'function') {
+            LibraryDB.incrementHelped();
+        }
     }
     
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
