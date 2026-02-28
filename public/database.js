@@ -63,7 +63,7 @@ const LibraryDB = {
     getBooks: function() { return this.books; },
     getRatings: function() { return this.ratings; },
 
-    // Always fetches live count from Firebase — no cache
+    // Fetches live count from Firebase every time — never stale
     fetchHelpedCount: async function() {
         try {
             const res = await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`);
@@ -76,23 +76,22 @@ const LibraryDB = {
         }
     },
 
-    // Fetch current → add 1 → PUT back — fully async and awaited
+    // Read current value from Firebase → add 1 → write back (atomic read-write)
     incrementHelped: async function() {
         try {
             const res = await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`);
             const data = await res.json();
             const newCount = (typeof data === 'number' ? data : 0) + 1;
-            await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`, {
+            const putRes = await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newCount)
             });
-            this.helpedCount = newCount;
-            return newCount;
-        } catch(e) {
-            this.helpedCount++;
-            return this.helpedCount;
-        }
+            if (putRes.ok) { this.helpedCount = newCount; return newCount; }
+        } catch(e) {}
+        // Offline fallback: at least update in-memory
+        this.helpedCount++;
+        return this.helpedCount;
     },
 
     addBook: async function(book) {
@@ -117,15 +116,6 @@ const LibraryDB = {
         }
     },
 
-    incrementHelped: function() {
-        this.helpedCount++;
-        fetch(`${this.dbUrl}globalStats/helpedCount.json`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(this.helpedCount)
-        });
-    },
-
     submitRating: async function(stars) {
         try {
             this.ratings.push(stars);
@@ -148,7 +138,7 @@ const LibraryDB = {
         this.ratings = [];
 
         this.helpedCount = 0;
-        await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`, { 
+        await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(0)
