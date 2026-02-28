@@ -62,16 +62,37 @@ const LibraryDB = {
 
     getBooks: function() { return this.books; },
     getRatings: function() { return this.ratings; },
-    getHelpedCount: async function() {
+
+    // Always fetches live count from Firebase — no cache
+    fetchHelpedCount: async function() {
         try {
             const res = await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`);
             const data = await res.json();
-            if (typeof data === 'number') {
-                this.helpedCount = data;
-                return data;
-            }
-        } catch(e) {}
-        return this.helpedCount;
+            const count = (typeof data === 'number') ? data : 0;
+            this.helpedCount = count;
+            return count;
+        } catch(e) {
+            return this.helpedCount;
+        }
+    },
+
+    // Fetch current → add 1 → PUT back — fully async and awaited
+    incrementHelped: async function() {
+        try {
+            const res = await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`);
+            const data = await res.json();
+            const newCount = (typeof data === 'number' ? data : 0) + 1;
+            await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newCount)
+            });
+            this.helpedCount = newCount;
+            return newCount;
+        } catch(e) {
+            this.helpedCount++;
+            return this.helpedCount;
+        }
     },
 
     addBook: async function(book) {
@@ -127,9 +148,10 @@ const LibraryDB = {
         this.ratings = [];
 
         this.helpedCount = 0;
-        await fetch(`${this.dbUrl}globalStats/helpedCount.json`, { 
-            method: 'PUT', 
-            body: '0' 
+        await this.fetchWithTimeout(`${this.dbUrl}globalStats/helpedCount.json`, { 
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(0)
         });
 
         localStorage.removeItem('libnav_helped_people'); 
