@@ -2,21 +2,19 @@ const LibraryDB = {
     dbUrl: "https://libnav-dc2c8-default-rtdb.firebaseio.com/",
     books: [],
     ratings: [],
-    helpedRecords: [], // Stores the list of helped objects
+    helpedRecords: [],
 
     init: async function() {
-        // Keeps init simple for the main app load
         await this.fetchGlobalStats(); 
         return true;
     },
 
-    // Fetches fresh data when opening the Stats modal
     fetchGlobalStats: async function() {
         try {
             const [booksRes, ratingsRes, helpedRes] = await Promise.all([
                 fetch(`${this.dbUrl}books.json`),
                 fetch(`${this.dbUrl}ratings.json`),
-                fetch(`${this.dbUrl}helped.json`) // Fetching the list of helped events
+                fetch(`${this.dbUrl}helped.json`)
             ]);
 
             if (!booksRes.ok) throw new Error("Failed to load");
@@ -25,7 +23,6 @@ const LibraryDB = {
             const ratingsData = await ratingsRes.json();
             const helpedData = await helpedRes.json();
 
-            // Handle Books
             if (Array.isArray(booksData)) {
                 this.books = booksData.filter(b => b !== null && b !== undefined);
             } else if (booksData && typeof booksData === 'object') {
@@ -34,14 +31,12 @@ const LibraryDB = {
                 this.books = [];
             }
 
-            // Handle Ratings
             if (ratingsData && typeof ratingsData === 'object') {
                 this.ratings = Object.values(ratingsData);
             } else {
                 this.ratings = [];
             }
 
-            // Handle Helped Counts
             if (helpedData && typeof helpedData === 'object') {
                 this.helpedRecords = Object.values(helpedData);
             } else {
@@ -68,19 +63,27 @@ const LibraryDB = {
     getBooks: function() { return this.books; },
     getRatings: function() { return this.ratings; },
     
-    // Returns the length of the array (e.g., 5 people helped)
     getHelpedCount: function() { return this.helpedRecords.length; },
 
-    // MIRRORED LOGIC: Adds a record object to the list, just like reviews
+    fetchHelpedCount: async function() {
+        try {
+            const res = await fetch(`${this.dbUrl}helped.json`);
+            const data = await res.json();
+            if (data && typeof data === 'object') {
+                this.helpedRecords = Object.values(data);
+            } else {
+                this.helpedRecords = [];
+            }
+        } catch(e) {}
+        return this.helpedRecords.length;
+    },
+
     incrementHelped: async function() {
         try {
-            // FIXED: We wrap the timestamp in an object. Firebase prefers objects when creating new list nodes via POST.
             const record = { timestamp: Date.now() }; 
             
-            // Optimistically update local data so it feels fast
             this.helpedRecords.push(record);
             
-            // Send to Firebase
             await fetch(`${this.dbUrl}helped.json`, {
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' },
@@ -139,7 +142,6 @@ const LibraryDB = {
         await fetch(`${this.dbUrl}helped.json`, { method: 'DELETE' });
         this.helpedRecords = [];
 
-        // Clean up any old local storage items
         localStorage.removeItem('libnav_helped_local');
 
         return true;
