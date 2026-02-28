@@ -63,8 +63,14 @@ const LibraryDB = {
     getBooks: function() { return this.books; },
     getRatings: function() { return this.ratings; },
     
-    getHelpedCount: function() { return this.helpedRecords.length; },
-
+   getHelpedCount: async function() {
+        try {
+            const res = await fetch(`${this.dbUrl}helpedCount.json?t=${Date.now()}`);
+            const count = await res.json();
+            return typeof count === 'number' ? count : 0;
+        } catch (err) { return 0; }
+    },
+    
     fetchHelpedCount: async function() {
         try {
             const res = await fetch(`${this.dbUrl}helped.json`);
