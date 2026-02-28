@@ -525,11 +525,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let undoDeleteTimer = null;
     window.handleDelete = function(id) {
-        const books = LibraryDB.getBooks();
-        const bookToDelete = books.find(b => String(b.id) === String(id));
+        const allBooks = LibraryDB.getBooks();
+        const bookToDelete = allBooks.find(b => String(b.id) === String(id));
         if (!bookToDelete) return;
 
-        LibraryDB.books = books.filter(b => String(b.id) !== String(id));
+        LibraryDB.books = allBooks.filter(b => String(b.id) !== String(id));
         renderAdminList();
         performSearch(searchInput.value);
 
@@ -540,22 +540,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (undoTitleEl) undoTitleEl.textContent = `"${bookToDelete.title}"`;
             const fill = undoBar.querySelector('.undo-bar-fill');
             if (fill) {
-                fill.style.transition = 'none';
-                fill.style.width = '100%';
+                fill.style.transition = 'none'; fill.style.width = '100%';
                 setTimeout(() => { fill.style.transition = 'width 5s linear'; fill.style.width = '0%'; }, 30);
             }
             undoBar.classList.add('visible');
             const undoBtn = document.getElementById('undo-delete-btn');
-            if (undoBtn) {
-                undoBtn.onclick = () => {
-                    clearTimeout(undoDeleteTimer);
-                    undoBar.classList.remove('visible');
-                    LibraryDB.books.push(bookToDelete);
-                    LibraryDB.books.sort((a, b) => a.id - b.id);
-                    renderAdminList();
-                    performSearch(searchInput.value);
-                };
-            }
+            if (undoBtn) undoBtn.onclick = () => {
+                clearTimeout(undoDeleteTimer);
+                undoBar.classList.remove('visible');
+                LibraryDB.books.push(bookToDelete);
+                LibraryDB.books.sort((a, b) => a.id - b.id);
+                renderAdminList();
+                performSearch(searchInput.value);
+            };
             undoDeleteTimer = setTimeout(async () => {
                 undoBar.classList.remove('visible');
                 await LibraryDB.saveToCloud();
@@ -773,7 +770,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         }
         const viewsEl = document.getElementById('bm-views-count');
         if(viewsEl) {
-            const viewVal = (book.views || 0) + 1;
+            const viewVal = book.views || 0;
             viewsEl.innerText = viewVal;
             animateCount(viewsEl, 0, viewVal, 800);
         }
@@ -891,7 +888,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const aa = document.getElementById('mobile-action-area');
         const dotsContainer = document.getElementById('carousel-dots');
         const cWrapper = document.getElementById('carousel-wrapper');
-        // Desktop row: CSS keeps it visible on ≥850px, hidden on mobile — JS only controls "I Found It!" inside it
         const foundBtnDesk = document.getElementById('bm-found-btn-desk');
 
         if (currentImages && currentImages.length > 0) {
@@ -902,13 +898,12 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 carouselImg.style.opacity = '1';
                 if (cWrapper) cWrapper.classList.remove('skeleton');
             };
-
             carouselImg.src = currentImages[currentImageIndex];
             carouselImg.style.display = 'block';
 
-            if (stepCounter) stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
-            if (prevBtn) { prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1"; prevBtn.style.pointerEvents = currentImageIndex === 0 ? "none" : "auto"; }
-            if (nextBtn) { nextBtn.style.opacity = currentImageIndex === currentImages.length - 1 ? "0.3" : "1"; nextBtn.style.pointerEvents = currentImageIndex === currentImages.length - 1 ? "none" : "auto"; }
+            if(stepCounter) stepCounter.innerText = `Step ${currentImageIndex + 1} of ${currentImages.length}`;
+            if(prevBtn) { prevBtn.style.opacity = currentImageIndex === 0 ? "0.3" : "1"; prevBtn.style.pointerEvents = currentImageIndex === 0 ? "none" : "auto"; }
+            if(nextBtn) { nextBtn.style.opacity = currentImageIndex === currentImages.length - 1 ? "0.3" : "1"; nextBtn.style.pointerEvents = currentImageIndex === currentImages.length - 1 ? "none" : "auto"; }
 
             if (dotsContainer) {
                 dotsContainer.innerHTML = currentImages.map((_, i) =>
@@ -918,21 +913,20 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
             const isLastStep = currentImageIndex === currentImages.length - 1;
 
-            // MOBILE: show the "I Found It!" row only on last step (CSS hides this row on desktop)
+            // MOBILE: show "I Found It!" row on last step only (CSS hides this whole row on desktop)
             if (aa) aa.style.display = isLastStep ? 'flex' : 'none';
 
-            // DESKTOP: "Send Map to Mobile" is always visible (CSS handles it).
+            // DESKTOP: "Send Map to Mobile" always shows (CSS keeps row visible).
             // Only toggle the "I Found It!" button inside that row.
             if (foundBtnDesk) foundBtnDesk.style.display = isLastStep ? 'flex' : 'none';
 
         } else {
-            // No images — hide all action areas
             carouselImg.style.display = 'none';
-            if (stepCounter) stepCounter.innerText = "No map available";
-            if (dotsContainer) dotsContainer.innerHTML = '';
-            if (aa) aa.style.display = 'none';
-            if (foundBtnDesk) foundBtnDesk.style.display = 'none';
-            if (cWrapper) cWrapper.classList.remove('skeleton');
+            if(stepCounter) stepCounter.innerText = "No map available";
+            if(dotsContainer) dotsContainer.innerHTML = '';
+            if(aa) aa.style.display = 'none';
+            if(foundBtnDesk) foundBtnDesk.style.display = 'none';
+            if(cWrapper) cWrapper.classList.remove('skeleton');
         }
     }
 
@@ -1323,48 +1317,37 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const statsBox = statsModal?.querySelector('.modal-box');
         if (!statsModal || !statsBox) return;
 
-        // Show modal immediately with spinner while fetching live Firebase data
         statsModal.style.display = 'flex';
-        const savedCloseBtn = statsBox.querySelector('.close-btn')?.outerHTML || '';
         statsBox.innerHTML = `
-            ${savedCloseBtn}
+            <button class="close-btn" onclick="document.getElementById('stats-modal').style.display='none'"><i data-lucide="x"></i></button>
             <div class="modal-loading-state">
                 <div class="modal-loader-ring"></div>
                 <p>Fetching live data...</p>
             </div>`;
-        // Re-wire close button
-        statsBox.querySelector('.close-btn')?.addEventListener('click', () => { statsModal.style.display = 'none'; });
+        renderIcons();
 
         const books = LibraryDB.getBooks();
         const ratings = LibraryDB.getRatings() || [];
 
-        // Await the LIVE count from Firebase — this is the only source of truth
+        // Await LIVE count from Firebase — zero localStorage involvement
         const globalHelpedCount = await getHelpedCount();
 
-        const mostViewed = books.reduce((a, b) => (a.views || 0) > (b.views || 0) ? a : b, { title: "None", views: 0, author: "N/A", genre: "" });
-        const newest = books.reduce((a, b) => (a.id > b.id) ? a : b, { title: "None", author: "N/A" });
+        const mostViewed = books.length ? books.reduce((a, b) => (a.views || 0) > (b.views || 0) ? a : b, { title: "None", views: 0, author: "N/A", genre: "" }) : { title: "None", views: 0, author: "N/A", genre: "" };
+        const newest = books.length ? books.reduce((a, b) => (a.id > b.id) ? a : b, { title: "None", author: "N/A" }) : { title: "None", author: "N/A" };
         const genres = {};
         books.forEach(b => genres[b.genre] = (genres[b.genre] || 0) + 1);
         const sortedGenres = Object.entries(genres).sort((a, b) => b[1] - a[1]);
         const avg = ratings.length > 0 ? (ratings.reduce((a, b) => a + parseInt(b), 0) / ratings.length).toFixed(1) : "0.0";
-        const avgNum = parseFloat(avg);
-        const avgPct = (avgNum / 5) * 100;
+        const avgPct = (parseFloat(avg) / 5) * 100;
 
         statsBox.classList.add('stats-layout');
         statsBox.innerHTML = `
-            <button class="close-btn"><i data-lucide="x"></i></button>
+            <button class="close-btn" onclick="document.getElementById('stats-modal').style.display='none'"><i data-lucide="x"></i></button>
             <div id="stats-content">
             <div class="sn-header">
-                <div class="sn-title-block">
-                    <span class="sn-eyebrow">LibNav Analytics</span>
-                    <h2 class="sn-title">Dashboard</h2>
-                </div>
-                <div class="sn-uptime">
-                    <span class="sn-live-dot"></span>
-                    <span id="uptime-display">...</span>
-                </div>
+                <div class="sn-title-block"><span class="sn-eyebrow">LibNav Analytics</span><h2 class="sn-title">Dashboard</h2></div>
+                <div class="sn-uptime"><span class="sn-live-dot"></span><span id="uptime-display">...</span></div>
             </div>
-
             <div class="sn-hero">
                 <div class="sn-hero-label"><i data-lucide="flame"></i> Trending Right Now</div>
                 <div class="sn-hero-views">${mostViewed.views || 0}</div>
@@ -1375,32 +1358,20 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 ${mostViewed.genre ? `<span class="sn-hero-genre">${mostViewed.genre}</span>` : ""}
                 <div class="sn-hero-glow"></div>
             </div>
-
             <div class="sn-pills-row">
-                <div class="sn-pill">
-                    <i data-lucide="library"></i>
-                    <span class="sn-pill-val">${books.length}</span>
-                    <span class="sn-pill-lbl">Books</span>
-                </div>
+                <div class="sn-pill"><i data-lucide="library"></i><span class="sn-pill-val">${books.length}</span><span class="sn-pill-lbl">Books</span></div>
                 <div class="sn-pill sn-pill-accent" id="helped-pill">
                     <i data-lucide="heart-handshake"></i>
                     <span class="sn-pill-val" id="sn-helped-val">${globalHelpedCount}</span>
-                    <span class="sn-pill-lbl" style="color: #10b981;">Helped</span>
+                    <span class="sn-pill-lbl" style="color:#10b981;">Helped</span>
                 </div>
-                <div class="sn-pill">
-                    <i data-lucide="bookmark"></i>
-                    <span class="sn-pill-val">${favorites.length}</span>
-                    <span class="sn-pill-lbl">Saved</span>
-                </div>
+                <div class="sn-pill"><i data-lucide="bookmark"></i><span class="sn-pill-val">${favorites.length}</span><span class="sn-pill-lbl">Saved</span></div>
             </div>
-
             <div class="sn-two-col">
                 <div class="sn-section sn-rating-section">
                     <div class="sn-section-label"><i data-lucide="star"></i> Rating</div>
                     <div class="sn-rating-num">${avg}<span>/5</span></div>
-                    <div class="sn-rating-bar-track">
-                        <div class="sn-rating-bar-fill" style="width:${avgPct}%"></div>
-                    </div>
+                    <div class="sn-rating-bar-track"><div class="sn-rating-bar-fill" style="width:${avgPct}%"></div></div>
                     <p class="sn-rating-reviews">${ratings.length} review${ratings.length !== 1 ? "s" : ""}</p>
                 </div>
                 <div class="sn-section sn-new-section">
@@ -1410,7 +1381,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                     <p class="sn-new-author">${newest.author || ""}</p>
                 </div>
             </div>
-
             <div class="sn-section sn-catalog-section">
                 <div class="sn-section-label"><i data-lucide="layers"></i> Catalog Breakdown</div>
                 <div class="sn-genre-list">
@@ -1429,11 +1399,9 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             </div>
             </div>`;
 
-        // Re-wire close button after innerHTML rebuild
-        statsBox.querySelector('.close-btn')?.addEventListener('click', () => { statsModal.style.display = 'none'; });
         renderIcons();
 
-        // Animate the helped count since we now have the real live value
+        // Animate helped count with the real live value
         const helpedEl = document.getElementById('sn-helped-val');
         if (helpedEl) animateCount(helpedEl, 0, globalHelpedCount, 800);
 
@@ -1441,8 +1409,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             const heroViewsEl = document.querySelector('.sn-hero-views');
             if (heroViewsEl) animateCount(heroViewsEl, 0, mostViewed.views || 0, 1000);
             document.querySelectorAll('.sn-genre-fill').forEach((el, i) => {
-                const styleAttr = el.getAttribute('style') || '';
-                const match = styleAttr.match(/--bar-w:\s*([\d.]+%)/);
+                const match = (el.getAttribute('style') || '').match(/--bar-w:\s*([\d.]+%)/);
                 const targetW = match ? match[1] : '100%';
                 el.style.animation = 'none';
                 el.offsetHeight;
@@ -1457,10 +1424,8 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
         const updateUptime = () => {
             const diff = Date.now() - new Date("2026-01-01T00:00:00").getTime();
-            const d = Math.floor(diff / 86400000);
-            const h = Math.floor((diff % 86400000) / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
+            const d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000),
+                  m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
             const el = document.getElementById("uptime-display");
             if (el) el.innerText = `${d}d ${h}h ${m}m ${s}s`;
         };
@@ -1542,20 +1507,12 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     async function incrementHelpedCount() {
         try {
-            // incrementHelped fetches current count fresh → adds 1 → PUTs back → returns new count
             const newCount = await LibraryDB.incrementHelped();
             const MILESTONES = [10, 25, 50, 100, 200, 500, 1000];
             if (MILESTONES.includes(newCount)) {
                 setTimeout(() => showMilestoneToast(newCount), 2200);
             }
         } catch(e) {}
-    }
-
-    async function getHelpedCount() {
-        try {
-            return await LibraryDB.fetchHelpedCount();
-        } catch(e) {}
-        return 0;
     }
 
     function showMilestoneToast(count) {
@@ -1567,7 +1524,12 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         setTimeout(() => { toast.classList.remove('show', 'toast-milestone'); }, 5000);
     }
 
-
+    async function getHelpedCount() {
+        try {
+            return await LibraryDB.fetchHelpedCount();
+        } catch(e) {}
+        return 0;
+    }
 
 window.showSuccessScreen = function() {
     document.getElementById('book-modal').style.display = 'none';
