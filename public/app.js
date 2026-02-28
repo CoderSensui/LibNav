@@ -1,14 +1,13 @@
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('Service Worker Registered!', reg))
-            .catch(err => console.error('Service Worker Registration Failed!', err));
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
     });
 }
 document.addEventListener('DOMContentLoaded', () => {
 
     function renderIcons() { if(typeof lucide !== 'undefined') lucide.createIcons(); }
+    window.renderIcons = renderIcons;
 
     const searchInput = document.getElementById('search-input');
     const autocompleteDropdown = document.getElementById('autocomplete-dropdown');
@@ -20,13 +19,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const micBtn = document.getElementById('mic-btn');
     const screensaver = document.getElementById('screensaver');
     const adminModal = document.getElementById('admin-modal');
+    const authModal = document.getElementById('auth-modal');
+    const profileModal = document.getElementById('profile-modal');
     const bookModal = document.getElementById('book-modal');
     const qrModal = document.getElementById('qr-modal');
     const carouselImg = document.getElementById('carousel-img');
     const stepCounter = document.getElementById('step-counter');
 
     let selectedGenres = new Set();
-    let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
+    let favorites = [];
     const IDLE_LIMIT = 120000;
     let idleTimeout;
     const coverCache = {};
@@ -112,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('hero-title')?.addEventListener('click', triggerEasterEgg);
     document.getElementById('desktop-logo')?.addEventListener('click', triggerEasterEgg);
 
-    document.getElementById('secret-admin-btn').addEventListener('click', () => { adminModal.style.display = 'flex'; });
+    document.getElementById('profile-btn').addEventListener('click', () => { openProfileModal(); });
 
     const imageObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
@@ -346,44 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-  document.getElementById('admin-password').addEventListener('keydown', (e) => {
-        if(e.key === 'Enter') document.getElementById('admin-auth-btn').click();
-    });
 
-  document.getElementById('admin-auth-btn').onclick = async () => {
-        const btn = document.getElementById('admin-auth-btn');
-        const passInput = document.getElementById('admin-password').value;
-
-        btn.innerHTML = 'Verifying...';
-        btn.disabled = true;
-
-        const isValid = await LibraryDB.verifyAdminPassword(passInput);
-
-        if (isValid) {
-            const sessionToken = await LibraryDB.createAdminSession();
-            if (!sessionToken) {
-                showPopup("Error", "Could not create session. Check your connection.", null, false);
-                btn.innerHTML = 'Login';
-                btn.disabled = false;
-                return;
-            }
-            localStorage.setItem('libnav_admin_token', sessionToken);
-
-            const maintOverlay = document.getElementById('maintenance-overlay');
-            if (maintOverlay) maintOverlay.style.display = 'none';
-
-            document.getElementById('admin-login-screen').style.display = 'none';
-            document.getElementById('admin-dashboard').style.display = 'block';
-            document.getElementById('admin-password').value = '';
-            updateImageInputs();
-            renderAdminList();
-        } else {
-            showPopup("Access Denied", "Incorrect Security Key.", null, false);
-        }
-
-        btn.innerHTML = 'Login';
-        btn.disabled = false;
-    };
 
     const adminMainView = document.getElementById('admin-main-view');
     const adminFormView = document.getElementById('admin-form-view');
@@ -424,8 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateImageInputs() {
         const container = document.getElementById('image-inputs-container');
+        if (!container) return;
         container.innerHTML = '';
-        const count = parseInt(document.getElementById('step-count-select').value) || 2;
+        const count = parseInt(document.getElementById('step-count-select')?.value) || 2;
         for (let i = 1; i <= count; i++) {
             const input = document.createElement('input');
             input.type = 'url';
@@ -434,12 +399,13 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(input);
         }
     }
-    document.getElementById('step-count-select').onchange = updateImageInputs;
+    document.getElementById('step-count-select')?.addEventListener('change', updateImageInputs);
 
     function updateBatchImageInputs() {
         const container = document.getElementById('batch-image-inputs-container');
+        if (!container) return;
         container.innerHTML = '';
-        const count = parseInt(document.getElementById('batch-step-count').value) || 2;
+        const count = parseInt(document.getElementById('batch-step-count')?.value) || 2;
         for (let i = 1; i <= count; i++) {
             const input = document.createElement('input');
             input.type = 'url';
@@ -448,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(input);
         }
     }
-    document.getElementById('batch-step-count').onchange = updateBatchImageInputs;
+    document.getElementById('batch-step-count')?.addEventListener('change', updateBatchImageInputs);
 
     window.handleEdit = function(id) {
         const book = LibraryDB.getBooks().find(b => String(b.id) === String(id)); if (!book) return;
@@ -524,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button onclick="handleDelete('${b.id}')" class="btn-delete"><i data-lucide="trash-2"></i> Delete</button>
                 </div>
             </div>`).join('');
-        renderIcons();
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
     document.getElementById('admin-search')?.addEventListener('input', renderAdminList);
@@ -567,15 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     document.getElementById('factory-reset-btn').onclick = async () => { showPopup("Defense Mode", "Reset Stats?", async () => { await LibraryDB.factoryReset(); window.location.reload(); }, true); };
 
-    document.getElementById('admin-logout-btn').onclick = async () => {
-        showPopup("Logout", "End your admin session?", async () => {
-            const token = localStorage.getItem('libnav_admin_token');
-            await LibraryDB.destroyAdminSession(token);
-            adminModal.style.display = 'none';
-            document.getElementById('admin-login-screen').style.display = 'block';
-            document.getElementById('admin-dashboard').style.display = 'none';
-        }, true);
-    };
+    document.getElementById('admin-logout-btn').onclick = () => { adminModal.style.display = 'none'; };
 
     function loadFeaturedBook() {
         const books = LibraryDB.getBooks(); if (books.length === 0) return;
@@ -1103,6 +1061,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     }
 
     document.getElementById('quick-bookmark-btn')?.addEventListener('click', () => {
+        if (!LibraryDB.currentUser) { showAuthModal(); return; }
         const btn = document.getElementById('quick-bookmark-btn');
         if (selectedGenres.has('Favorites')) {
             searchInput.value = '';
@@ -1232,7 +1191,10 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             if(navigator.vibrate) navigator.vibrate(30);
         }
 
-        localStorage.setItem('libnav_favs', JSON.stringify(favorites));
+        if (LibraryDB.currentUser) {
+            if (index === -1) LibraryDB.addToBackpack(String(bookId));
+            else LibraryDB.removeFromBackpack(String(bookId));
+        }
 
         if (selectedGenres.has('Favorites') && index !== -1) {
             const card = btn.closest('.book-card');
@@ -1729,7 +1691,7 @@ window.showSuccessScreen = function() {
         setInterval(tick, 1000);
     }
 
-setTimeout(() => {
+setTimeout(async () => {
         const maintSource = new EventSource(`${LibraryDB.dbUrl}maintenance.json`);
         
         maintSource.addEventListener('put', async (e) => {
@@ -1737,8 +1699,7 @@ setTimeout(() => {
             const isMaint = payload.data; 
             
             if (isMaint !== null) {
-                const savedToken = localStorage.getItem('libnav_admin_token');
-                const isVIP = await LibraryDB.verifyAdminSession(savedToken);
+                const isVIP = LibraryDB.currentUser && (await LibraryDB.isAdmin());
                 const maintOverlay = document.getElementById('maintenance-overlay');
                 
                 if (isMaint && !isVIP) {
@@ -1920,4 +1881,347 @@ setTimeout(() => {
     }
 
     init();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    function showAuthModal(tab = 'login') {
+        const authModal = document.getElementById('auth-modal');
+        if (!authModal) return;
+        switchAuthTab(tab);
+        authModal.style.display = 'flex';
+    }
+    window.showAuthModal = showAuthModal;
+
+    function switchAuthTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+        document.getElementById('auth-login-panel').style.display = tab === 'login' ? 'block' : 'none';
+        document.getElementById('auth-signup-panel').style.display = tab === 'signup' ? 'block' : 'none';
+        document.getElementById('auth-verify-panel').style.display = 'none';
+    }
+
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+        tab.addEventListener('click', () => switchAuthTab(tab.dataset.tab));
+    });
+
+    function setAuthBtnLoading(btnId, loading, label) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.disabled = loading;
+        btn.innerHTML = loading ? '<i data-lucide="loader-2" style="animation:spin 1s linear infinite"></i> Please wait...' : label;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    const authLoginBtn = document.getElementById('auth-login-btn');
+    if (authLoginBtn) {
+        authLoginBtn.addEventListener('click', async () => {
+            const email = document.getElementById('auth-email')?.value.trim();
+            const password = document.getElementById('auth-password')?.value;
+            if (!email || !password) return showPopupGlobal('Missing Info', 'Please enter your email and password.');
+            setAuthBtnLoading('auth-login-btn', true, '<i data-lucide="log-in"></i> Sign In');
+            try {
+                await LibraryDB.signInWithEmail(email, password);
+                document.getElementById('auth-modal').style.display = 'none';
+                document.getElementById('auth-email').value = '';
+                document.getElementById('auth-password').value = '';
+            } catch (err) {
+                const msg = err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found'
+                    ? 'Incorrect email or password.'
+                    : err.code === 'auth/too-many-requests'
+                    ? 'Too many attempts. Please try again later.'
+                    : 'Sign in failed. Please try again.';
+                showPopupGlobal('Sign In Failed', msg);
+            }
+            setAuthBtnLoading('auth-login-btn', false, '<i data-lucide="log-in"></i> Sign In');
+        });
+    }
+
+    document.getElementById('auth-email')?.addEventListener('keydown', e => { if (e.key === 'Enter') authLoginBtn?.click(); });
+    document.getElementById('auth-password')?.addEventListener('keydown', e => { if (e.key === 'Enter') authLoginBtn?.click(); });
+
+    const authSignupBtn = document.getElementById('auth-signup-btn');
+    if (authSignupBtn) {
+        authSignupBtn.addEventListener('click', async () => {
+            const name = document.getElementById('auth-name')?.value.trim();
+            const email = document.getElementById('auth-signup-email')?.value.trim();
+            const password = document.getElementById('auth-signup-password')?.value;
+            if (!name || !email || !password) return showPopupGlobal('Missing Info', 'Please fill in all fields.');
+            if (password.length < 6) return showPopupGlobal('Weak Password', 'Password must be at least 6 characters.');
+            setAuthBtnLoading('auth-signup-btn', true, '<i data-lucide="user-plus"></i> Create Account');
+            try {
+                await LibraryDB.signUpWithEmail(email, password, name);
+                document.getElementById('auth-login-panel').style.display = 'none';
+                document.getElementById('auth-signup-panel').style.display = 'none';
+                document.getElementById('auth-verify-panel').style.display = 'block';
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            } catch (err) {
+                const msg = err.code === 'auth/email-already-in-use'
+                    ? 'This email is already registered. Try signing in instead.'
+                    : err.code === 'auth/invalid-email'
+                    ? 'Please enter a valid email address.'
+                    : 'Sign up failed. Please try again.';
+                showPopupGlobal('Sign Up Failed', msg);
+            }
+            setAuthBtnLoading('auth-signup-btn', false, '<i data-lucide="user-plus"></i> Create Account');
+        });
+    }
+
+    document.getElementById('auth-resend-btn')?.addEventListener('click', async () => {
+        try {
+            await LibraryDB.sendVerificationEmail();
+            showPopupGlobal('Email Sent', 'Verification email resent. Check your inbox.');
+        } catch (e) {
+            showPopupGlobal('Error', 'Could not resend. Please wait a moment and try again.');
+        }
+    });
+
+    document.getElementById('auth-verified-btn')?.addEventListener('click', async () => {
+        if (LibraryDB.currentUser) {
+            await LibraryDB.currentUser.reload();
+        }
+        document.getElementById('auth-modal').style.display = 'none';
+        document.getElementById('auth-verify-panel').style.display = 'none';
+    });
+
+    document.getElementById('auth-forgot-link')?.addEventListener('click', async () => {
+        const email = document.getElementById('auth-email')?.value.trim();
+        if (!email) return showPopupGlobal('Enter Email', 'Please type your email address first, then click Forgot Password.');
+        try {
+            await LibraryDB.sendPasswordReset(email);
+            showPopupGlobal('Email Sent', `Password reset link sent to ${email}.`);
+        } catch (e) {
+            showPopupGlobal('Error', 'Could not send reset email. Check that the address is correct.');
+        }
+    });
+
+    document.getElementById('auth-guest-btn')?.addEventListener('click', () => {
+        document.getElementById('auth-modal').style.display = 'none';
+    });
+    document.getElementById('auth-guest-btn-2')?.addEventListener('click', () => {
+        document.getElementById('auth-modal').style.display = 'none';
+    });
+
+    async function openProfileModal() {
+        const profileModal = document.getElementById('profile-modal');
+        if (!profileModal) return;
+        profileModal.style.display = 'flex';
+        const user = LibraryDB.currentUser;
+        const guestView = document.getElementById('profile-guest-view');
+        const userView = document.getElementById('profile-user-view');
+
+        if (!user) {
+            if (guestView) guestView.style.display = 'block';
+            if (userView) userView.style.display = 'none';
+        } else {
+            if (guestView) guestView.style.display = 'none';
+            if (userView) userView.style.display = 'block';
+
+            const data = LibraryDB.currentUserData;
+            const name = data?.displayName || user.displayName || 'Student';
+            const email = user.email || '';
+            const bookmarkCount = data?.bookmarkCount || 0;
+            const rank = getRank(bookmarkCount);
+
+            const avatarCircle = document.getElementById('profile-avatar-circle');
+            if (avatarCircle) {
+                avatarCircle.textContent = name.charAt(0).toUpperCase();
+            }
+            const nameEl = document.getElementById('profile-display-name');
+            if (nameEl) nameEl.textContent = name;
+            const emailEl = document.getElementById('profile-email-text');
+            if (emailEl) emailEl.textContent = email;
+            const rankBadge = document.getElementById('profile-rank-badge');
+            if (rankBadge) rankBadge.innerHTML = `${rank.icon} ${rank.title}`;
+            const bookmarkCountEl = document.getElementById('profile-bookmark-count');
+            if (bookmarkCountEl) bookmarkCountEl.textContent = bookmarkCount;
+
+            const leaderboard = await LibraryDB.getLeaderboard();
+            const myRank = leaderboard.findIndex(u => u.uid === user.uid);
+            const rankNumEl = document.getElementById('profile-rank-num');
+            if (rankNumEl) rankNumEl.textContent = myRank >= 0 ? `#${myRank + 1}` : '—';
+
+            const isAdmin = await LibraryDB.isAdmin();
+            const adminBtnWrap = document.getElementById('profile-admin-btn-wrap');
+            if (adminBtnWrap) adminBtnWrap.style.display = isAdmin ? 'block' : 'none';
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }
+    window.openProfileModal = openProfileModal;
+
+    document.getElementById('profile-signin-btn')?.addEventListener('click', () => {
+        document.getElementById('profile-modal').style.display = 'none';
+        showAuthModal('login');
+    });
+
+    document.getElementById('profile-signout-btn')?.addEventListener('click', async () => {
+        await LibraryDB.signOut();
+        favorites = [];
+        document.getElementById('profile-modal').style.display = 'none';
+        const resultsArea = document.getElementById('results-area');
+        if (resultsArea) resultsArea.innerHTML = '';
+    });
+
+    document.getElementById('profile-open-admin-btn')?.addEventListener('click', () => {
+        document.getElementById('profile-modal').style.display = 'none';
+        const adminModal = document.getElementById('admin-modal');
+        if (adminModal) {
+            adminModal.style.display = 'flex';
+            updateImageInputs();
+            renderAdminList();
+        }
+    });
+
+    document.getElementById('profile-leaderboard-btn')?.addEventListener('click', async () => {
+        document.getElementById('profile-modal').style.display = 'none';
+        openLeaderboard();
+    });
+
+    async function openLeaderboard() {
+        const modal = document.getElementById('leaderboard-modal');
+        if (!modal) return;
+        modal.style.display = 'flex';
+        const listEl = document.getElementById('leaderboard-list');
+        if (listEl) listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;">Loading...</div>';
+
+        const data = await LibraryDB.getLeaderboard();
+        if (!listEl) return;
+
+        if (data.length === 0) {
+            listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;">No data yet. Start saving books!</div>';
+            return;
+        }
+
+        const medals = ['🥇','🥈','🥉'];
+        listEl.innerHTML = data.map((u, i) => `
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border-radius:14px;border:1px solid var(--border-color);">
+                <span style="font-size:1.5rem;width:32px;text-align:center;">${medals[i] || `#${i+1}`}</span>
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;flex-shrink:0;">${u.displayName.charAt(0).toUpperCase()}</div>
+                <div style="flex:1;">
+                    <div style="font-weight:bold;color:var(--text-main);">${u.displayName}</div>
+                    <div style="font-size:0.8rem;color:var(--primary);">${u.rank.icon} ${u.rank.title}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-weight:bold;font-size:1.1rem;color:var(--text-main);">${u.bookmarkCount}</div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);">saved</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    LibraryDB.onAuthStateChanged(async (user) => {
+        if (user) {
+            favorites = LibraryDB.getBackpack();
+            const bookmarkBtn = document.getElementById('quick-bookmark-btn');
+            if (bookmarkBtn) bookmarkBtn.title = 'My Backpack';
+        } else {
+            favorites = [];
+        }
+        document.querySelectorAll('.book-card, .featured-card').forEach(card => {
+            const favBtn = card.querySelector('.fav-btn');
+            if (favBtn) {
+                const bookId = favBtn.getAttribute('onclick')?.match(/'([^']+)'\s*\)/)?.[1];
+                if (bookId) {
+                    favBtn.classList.toggle('active', favorites.includes(String(bookId)));
+                }
+            }
+        });
+    });
+
+    let socialProofData = {};
+    LibraryDB.getBookSocialProof().then(data => { socialProofData = data; });
+
+    const origRenderResults = window._origRenderResults;
+
+    const styleEl = document.createElement('style');
+    styleEl.textContent = `
+        .auth-layout { max-width: 380px; }
+        .auth-logo-wrap { text-align: center; margin-bottom: 20px; }
+        .auth-logo-wrap h2 { font-family: var(--font-head); color: var(--primary); font-size: 1.8rem; margin-top: 10px; }
+        .auth-logo-wrap p { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+        .auth-tabs { display: flex; gap: 0; background: var(--surface-lighter); border-radius: 12px; padding: 4px; margin-bottom: 20px; }
+        .auth-tab { flex: 1; padding: 10px; border: none; background: transparent; color: var(--text-muted); border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 0.95rem; transition: 0.2s; }
+        .auth-tab.active { background: var(--surface); color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .profile-layout { max-width: 380px; }
+        .social-proof-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; color: var(--text-muted); background: var(--surface-lighter); border: 1px solid var(--border-color); padding: 3px 8px; border-radius: 20px; margin-top: 4px; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    `;
+    document.head.appendChild(styleEl);
+
+    function showPopupGlobal(title, msg) {
+        const t = document.getElementById('popup-title');
+        const m = document.getElementById('popup-message');
+        const pop = document.getElementById('custom-popup');
+        if (!t || !m || !pop) return;
+        t.innerText = title;
+        m.innerText = msg;
+        pop.style.display = 'flex';
+        const cancelBtn = document.getElementById('popup-cancel');
+        if (cancelBtn) cancelBtn.style.display = 'none';
+        document.getElementById('popup-confirm').onclick = () => { pop.style.display = 'none'; };
+    }
+
+    const _origUpdateFeatured = window._featuredLoaded;
+    const _observeSocialProof = () => {
+        document.querySelectorAll('.book-card, .featured-card').forEach(card => {
+            const bookId = card.querySelector('[id^="img-"]')?.id?.replace('img-', '') ||
+                           card.getAttribute('onclick')?.match(/openModalById\('([^']+)'\)/)?.[1];
+            if (bookId && socialProofData[bookId] > 0 && !card.querySelector('.social-proof-badge')) {
+                const info = card.querySelector('.book-info') || card.querySelector('.feat-info');
+                if (info) {
+                    const badge = document.createElement('div');
+                    badge.className = 'social-proof-badge';
+                    badge.innerHTML = `👤 ${socialProofData[bookId]} student${socialProofData[bookId] > 1 ? 's' : ''} saved this`;
+                    info.appendChild(badge);
+                }
+            }
+        });
+    };
+
+    const mutObs = new MutationObserver(() => {
+        if (Object.keys(socialProofData).length > 0) _observeSocialProof();
+    });
+    mutObs.observe(document.getElementById('results-area') || document.body, { childList: true, subtree: true });
+    mutObs.observe(document.getElementById('featured-container') || document.body, { childList: true, subtree: true });
+
+
+
+    const showFirst = !localStorage.getItem('libnav_auth_shown');
+    if (showFirst) {
+        setTimeout(() => {
+            if (!LibraryDB.currentUser) {
+                showAuthModal('login');
+                localStorage.setItem('libnav_auth_shown', '1');
+            }
+        }, 3000);
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('maint-admin-login-btn')?.addEventListener('click', () => {
+        if (LibraryDB.currentUser) {
+            LibraryDB.isAdmin().then(isAdmin => {
+                if (isAdmin) {
+                    const maintOverlay = document.getElementById('maintenance-overlay');
+                    if (maintOverlay) maintOverlay.style.display = 'none';
+                } else {
+                    window.showAuthModal && window.showAuthModal('login');
+                }
+            });
+        } else {
+            window.showAuthModal && window.showAuthModal('login');
+        }
+    });
+
+    LibraryDB.onAuthStateChanged(async (user) => {
+        if (user) {
+            const maintOverlay = document.getElementById('maintenance-overlay');
+            if (maintOverlay && maintOverlay.style.display === 'flex') {
+                const isAdmin = await LibraryDB.isAdmin();
+                if (isAdmin) {
+                    maintOverlay.style.display = 'none';
+                }
+            }
+        }
+    });
 });
