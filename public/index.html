@@ -238,15 +238,12 @@
         </div>
     </div>
 
-    <!-- Undo Delete Bar -->
     <div id="undo-delete-bar" class="undo-bar">
         <div class="undo-bar-fill"></div>
         <div class="undo-bar-content">
             <i data-lucide="trash-2"></i>
             <span>Deleted <strong id="undo-book-title"></strong></span>
-            <button id="undo-delete-btn" class="undo-btn">
-                <i data-lucide="rotate-ccw"></i> Undo
-            </button>
+            <button id="undo-delete-btn" class="undo-btn"><i data-lucide="rotate-ccw"></i> Undo</button>
         </div>
     </div>
 
@@ -308,20 +305,19 @@
                         <button id="next-img-btn" class="nav-control-btn"><i data-lucide="chevron-right"></i></button>
                     </div>
 
+                    <!-- MOBILE ONLY: I Found It appears on last step (CSS hides this on desktop) -->
                     <div class="bm-action-row" id="mobile-action-area" style="display:none;">
-                        <button id="show-qr-btn" class="bm-qr-btn">
-                            <i data-lucide="qr-code"></i> Send to Mobile
-                        </button>
                         <button class="bm-found-btn" onclick="showSuccessScreen()">
                             <i data-lucide="check-circle-2"></i> I Found It!
                         </button>
                     </div>
 
+                    <!-- DESKTOP ONLY: Send Map always visible; I Found It appears on last step (CSS hides this on mobile) -->
                     <div class="bm-action-row bm-desktop-qr">
                         <button id="show-qr-btn-desk" class="bm-qr-btn">
                             <i data-lucide="qr-code"></i> Send Map to Mobile
                         </button>
-                        <button class="bm-found-btn" onclick="showSuccessScreen()">
+                        <button id="bm-found-btn-desk" class="bm-found-btn" style="display:none;" onclick="showSuccessScreen()">
                             <i data-lucide="check-circle-2"></i> I Found It!
                         </button>
                     </div>
