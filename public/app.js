@@ -522,40 +522,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('admin-search')?.addEventListener('input', renderAdminList);
-    let undoDeleteTimer = null;
 
+    let undoDeleteTimer = null;
     window.handleDelete = function(id) {
         const books = LibraryDB.getBooks();
         const bookToDelete = books.find(b => String(b.id) === String(id));
         if (!bookToDelete) return;
 
-        // Remove from memory immediately and re-render
         LibraryDB.books = books.filter(b => String(b.id) !== String(id));
         renderAdminList();
         performSearch(searchInput.value);
 
-        // Cancel any pending undo from a previous deletion
         if (undoDeleteTimer) clearTimeout(undoDeleteTimer);
-
         const undoBar = document.getElementById('undo-delete-bar');
         const undoTitleEl = document.getElementById('undo-book-title');
         if (undoBar) {
             if (undoTitleEl) undoTitleEl.textContent = `"${bookToDelete.title}"`;
-
-            // Reset and start the countdown fill animation
             const fill = undoBar.querySelector('.undo-bar-fill');
             if (fill) {
                 fill.style.transition = 'none';
                 fill.style.width = '100%';
-                setTimeout(() => {
-                    fill.style.transition = 'width 5s linear';
-                    fill.style.width = '0%';
-                }, 30);
+                setTimeout(() => { fill.style.transition = 'width 5s linear'; fill.style.width = '0%'; }, 30);
             }
-
             undoBar.classList.add('visible');
-
-            // Wire undo button for this specific deletion
             const undoBtn = document.getElementById('undo-delete-btn');
             if (undoBtn) {
                 undoBtn.onclick = () => {
@@ -567,8 +556,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     performSearch(searchInput.value);
                 };
             }
-
-            // After 5s, commit the deletion to Firebase
             undoDeleteTimer = setTimeout(async () => {
                 undoBar.classList.remove('visible');
                 await LibraryDB.saveToCloud();
@@ -904,9 +891,8 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const aa = document.getElementById('mobile-action-area');
         const dotsContainer = document.getElementById('carousel-dots');
         const cWrapper = document.getElementById('carousel-wrapper');
-        const desktopQr = document.querySelector('.bm-desktop-qr');
-        const showQrBtn = document.getElementById('show-qr-btn');
-        const isMobile = document.body.classList.contains('is-mobile-device');
+        // Desktop row: CSS keeps it visible on ≥850px, hidden on mobile — JS only controls "I Found It!" inside it
+        const foundBtnDesk = document.getElementById('bm-found-btn-desk');
 
         if (currentImages && currentImages.length > 0) {
             if (cWrapper) cWrapper.classList.add('skeleton');
@@ -916,6 +902,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 carouselImg.style.opacity = '1';
                 if (cWrapper) cWrapper.classList.remove('skeleton');
             };
+
             carouselImg.src = currentImages[currentImageIndex];
             carouselImg.style.display = 'block';
 
@@ -931,22 +918,20 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
             const isLastStep = currentImageIndex === currentImages.length - 1;
 
-            // --- MOBILE action row (Send to Mobile + I Found It!) ---
-            // Show whole row only on last step; also hide "Send to Mobile" on mobile devices
+            // MOBILE: show the "I Found It!" row only on last step (CSS hides this row on desktop)
             if (aa) aa.style.display = isLastStep ? 'flex' : 'none';
-            if (showQrBtn) showQrBtn.style.display = isMobile ? 'none' : 'flex';
 
-            // --- DESKTOP action row (Send Map to Mobile + I Found It!) ---
-            // JS inline style beats CSS even with !important via setProperty trick
-            if (desktopQr) desktopQr.style.setProperty('display', isLastStep ? 'flex' : 'none', 'important');
+            // DESKTOP: "Send Map to Mobile" is always visible (CSS handles it).
+            // Only toggle the "I Found It!" button inside that row.
+            if (foundBtnDesk) foundBtnDesk.style.display = isLastStep ? 'flex' : 'none';
 
         } else {
-            // No map images for this book
+            // No images — hide all action areas
             carouselImg.style.display = 'none';
             if (stepCounter) stepCounter.innerText = "No map available";
             if (dotsContainer) dotsContainer.innerHTML = '';
             if (aa) aa.style.display = 'none';
-            if (desktopQr) desktopQr.style.setProperty('display', 'none', 'important');
+            if (foundBtnDesk) foundBtnDesk.style.display = 'none';
             if (cWrapper) cWrapper.classList.remove('skeleton');
         }
     }
@@ -1333,43 +1318,27 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     let uptimeInterval = null;
 
-    function showModalLoader(modalId) {
-        const modal = document.getElementById(modalId);
-        if (!modal) return;
-        modal.style.display = 'flex';
-        const box = modal.querySelector('.modal-box');
-        if (!box) return;
-        box.dataset.prevContent = box.innerHTML;
-        box.innerHTML = `
-            <div class="modal-loading-state">
-                <div class="modal-loader-ring"></div>
-                <p>Loading...</p>
-            </div>`;
-    }
-
-    function hideModalLoader(modalId, restoreContent) {
-        const modal = document.getElementById(modalId);
-        if (!modal) return;
-        const box = modal.querySelector('.modal-box');
-        if (!box) return;
-        if (restoreContent) box.innerHTML = restoreContent;
-    }
-
     const openStats = async () => {
-        // Show modal with loading spinner immediately
         const statsModal = document.getElementById('stats-modal');
         const statsBox = statsModal?.querySelector('.modal-box');
-        if (statsModal) statsModal.style.display = 'flex';
-        if (statsBox) statsBox.innerHTML = `
+        if (!statsModal || !statsBox) return;
+
+        // Show modal immediately with spinner while fetching live Firebase data
+        statsModal.style.display = 'flex';
+        const savedCloseBtn = statsBox.querySelector('.close-btn')?.outerHTML || '';
+        statsBox.innerHTML = `
+            ${savedCloseBtn}
             <div class="modal-loading-state">
                 <div class="modal-loader-ring"></div>
                 <p>Fetching live data...</p>
             </div>`;
+        // Re-wire close button
+        statsBox.querySelector('.close-btn')?.addEventListener('click', () => { statsModal.style.display = 'none'; });
 
         const books = LibraryDB.getBooks();
         const ratings = LibraryDB.getRatings() || [];
 
-        // Await the LIVE count from Firebase — no localStorage fallback
+        // Await the LIVE count from Firebase — this is the only source of truth
         const globalHelpedCount = await getHelpedCount();
 
         const mostViewed = books.reduce((a, b) => (a.views || 0) > (b.views || 0) ? a : b, { title: "None", views: 0, author: "N/A", genre: "" });
@@ -1381,9 +1350,8 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const avgNum = parseFloat(avg);
         const avgPct = (avgNum / 5) * 100;
 
-        if (statsBox) {
-            statsBox.classList.add('stats-layout');
-            statsBox.innerHTML = `
+        statsBox.classList.add('stats-layout');
+        statsBox.innerHTML = `
             <button class="close-btn"><i data-lucide="x"></i></button>
             <div id="stats-content">
             <div class="sn-header">
@@ -1435,7 +1403,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                     </div>
                     <p class="sn-rating-reviews">${ratings.length} review${ratings.length !== 1 ? "s" : ""}</p>
                 </div>
-
                 <div class="sn-section sn-new-section">
                     <div class="sn-section-label"><i data-lucide="sparkles"></i> New Arrival</div>
                     <div class="sn-new-badge-inline">NEW</div>
@@ -1461,16 +1428,12 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 </div>
             </div>
             </div>`;
-        }
 
-        // Re-wire close button since we rebuilt the HTML
-        statsBox?.querySelector('.close-btn')?.addEventListener('click', () => {
-            if (statsModal) statsModal.style.display = 'none';
-        });
-
+        // Re-wire close button after innerHTML rebuild
+        statsBox.querySelector('.close-btn')?.addEventListener('click', () => { statsModal.style.display = 'none'; });
         renderIcons();
 
-        // Animate helped count since we now have the real value
+        // Animate the helped count since we now have the real live value
         const helpedEl = document.getElementById('sn-helped-val');
         if (helpedEl) animateCount(helpedEl, 0, globalHelpedCount, 800);
 
@@ -1512,23 +1475,14 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const feedbackModal = document.getElementById('feedback-modal');
         const feedbackBox = feedbackModal?.querySelector('.modal-box');
         if (!feedbackModal || !feedbackBox) return;
-
-        // Show spinner briefly then reveal form
+        const snapshot = feedbackBox.innerHTML;
         feedbackModal.style.display = 'flex';
-        const originalContent = feedbackBox.innerHTML;
-        feedbackBox.innerHTML = `
-            <div class="modal-loading-state">
-                <div class="modal-loader-ring"></div>
-                <p>Loading...</p>
-            </div>`;
+        feedbackBox.innerHTML = `<div class="modal-loading-state"><div class="modal-loader-ring"></div><p>Loading...</p></div>`;
         setTimeout(() => {
-            feedbackBox.innerHTML = originalContent;
+            feedbackBox.innerHTML = snapshot;
             renderIcons();
-            // Re-wire close button
-            feedbackBox.querySelector('.close-btn')?.addEventListener('click', () => {
-                feedbackModal.style.display = 'none';
-            });
-        }, 600);
+            feedbackBox.querySelector('.close-btn')?.addEventListener('click', () => { feedbackModal.style.display = 'none'; });
+        }, 500);
     };
     document.getElementById('section-feedback-btn')?.addEventListener('click', openFeedback);
 
@@ -1588,19 +1542,20 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     async function incrementHelpedCount() {
         try {
-            if (typeof LibraryDB.incrementHelped === 'function') {
-                await LibraryDB.incrementHelped();
-            }
-            // Refresh the cached count so stats show correctly after incrementing
-            if (typeof LibraryDB.getHelpedCount === 'function') {
-                LibraryDB.helpedCount = await LibraryDB.getHelpedCount();
-            }
-            const count = LibraryDB.helpedCount;
+            // incrementHelped fetches current count fresh → adds 1 → PUTs back → returns new count
+            const newCount = await LibraryDB.incrementHelped();
             const MILESTONES = [10, 25, 50, 100, 200, 500, 1000];
-            if (MILESTONES.includes(count)) {
-                setTimeout(() => showMilestoneToast(count), 2200);
+            if (MILESTONES.includes(newCount)) {
+                setTimeout(() => showMilestoneToast(newCount), 2200);
             }
         } catch(e) {}
+    }
+
+    async function getHelpedCount() {
+        try {
+            return await LibraryDB.fetchHelpedCount();
+        } catch(e) {}
+        return 0;
     }
 
     function showMilestoneToast(count) {
@@ -1612,14 +1567,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         setTimeout(() => { toast.classList.remove('show', 'toast-milestone'); }, 5000);
     }
 
-    async function getHelpedCount() {
-        try {
-            if (typeof LibraryDB.getHelpedCount === 'function') {
-                return await LibraryDB.getHelpedCount();
-            }
-        } catch(e) {}
-        return 0;
-    }
+
 
 window.showSuccessScreen = function() {
     document.getElementById('book-modal').style.display = 'none';
