@@ -487,6 +487,7 @@ body.light-mode .ss-clock { color: var(--text-main); }
 
 .stats-layout {
     max-width: 480px !important; width: 88%;
+    display: flex; flex-direction: column; align-items: stretch;
     background: var(--surface) !important;
     border: 1px solid rgba(255,255,255,0.1);
     box-shadow: var(--shadow), 0 0 0 1px rgba(255,158,181,0.04);
@@ -500,6 +501,10 @@ body.light-mode .ss-clock { color: var(--text-main); }
 #stats-modal .modal-box {
     position: relative;
     padding-top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
 }
 #stats-modal .close-btn {
     position: sticky !important;
@@ -897,8 +902,6 @@ body.light-mode .app-header.top-nav, body.light-mode .bottom-nav {
     }
         }
 
-
-
 .map-carousel {
     width: 100%;
     height: auto;
@@ -1156,8 +1159,6 @@ input:checked + .slider:before { transform: translateX(26px); }
 .welcome-layout h2, .broadcast-layout h2 { color: var(--text-main); font-family: var(--font-head); font-size: 2rem; margin-bottom: 15px; }
 .welcome-icon-wrap { width: 80px; height: 80px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; box-shadow: 0 0 30px rgba(219, 39, 119, 0.3); }
 .welcome-icon-wrap svg { width: 40px; height: 40px; }
-
-
 
 .modal-box.book-layout {
     background: var(--surface) !important;
@@ -2043,7 +2044,6 @@ body.light-mode .ss-title { text-shadow: none; }
     .ss-fact-card { padding: 14px 16px; }
 }
 
-/* ==================== LOADING SCREEN ==================== */
 .app-loader {
     position: fixed; inset: 0;
     background: var(--bg-main);
@@ -2148,7 +2148,6 @@ body.light-mode .ss-title { text-shadow: none; }
     letter-spacing: 2px; color: var(--text-muted); opacity: 0.4;
 }
 
-/* ==================== RELATED SHELF SCROLL ==================== */
 .bm-shelf { position: relative; }
 
 .related-scroll-wrap {
@@ -2205,7 +2204,6 @@ body.light-mode .ss-title { text-shadow: none; }
     margin-left: 8px; vertical-align: middle;
 }
 
-/* ==================== CLICKABLE AUTHOR / GENRE ==================== */
 .clickable-author {
     text-decoration: underline; text-decoration-style: dotted;
     text-underline-offset: 3px;
@@ -2221,14 +2219,12 @@ body.light-mode .ss-title { text-shadow: none; }
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-/* ==================== TOAST MILESTONE ==================== */
 .toast-milestone {
     background: linear-gradient(135deg, #1e1e20, #2a1a2e) !important;
     border-color: var(--primary) !important;
     box-shadow: 0 0 30px rgba(255,158,181,0.3) !important;
 }
 
-/* ==================== UNDO DELETE BAR ==================== */
 .undo-bar {
     position: fixed; bottom: 90px; left: 50%;
     transform: translateX(-50%) translateY(20px);
@@ -2259,7 +2255,6 @@ body.light-mode .ss-title { text-shadow: none; }
 .undo-btn:hover { background: rgba(239,68,68,0.28); }
 .undo-btn svg { width: 14px; height: 14px; }
 
-/* ==================== MODAL LOADING SPINNER ==================== */
 .modal-loading-state {
     display: flex; flex-direction: column; align-items: center;
     justify-content: center; gap: 18px; padding: 60px 20px; min-height: 220px; width: 100%;
@@ -2272,22 +2267,20 @@ body.light-mode .ss-title { text-shadow: none; }
 }
 @keyframes loaderSpin { to { transform: rotate(360deg); } }
 
-/* ==================== HELPED PILL ==================== */
-#helped-pill .sn-pill-val { color: var(--primary); }
+#helped-pill .sn-pill-val { color: #10b981; }
+#helped-pill svg { color: #10b981; }
+#helped-pill { background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); }
+#helped-pill:hover { border-color: rgba(16, 185, 129, 0.5) !important; }
 
-/* ==================== FEATURED CARD GLOW FIX ==================== */
 .feat-info { position: relative; z-index: 1; }
 .feat-img-wrap { position: relative; z-index: 1; }
 
-/* ==================== ENTER KEY VISUAL FEEDBACK ==================== */
 .input-field:focus { 
     border-color: var(--primary); 
     box-shadow: 0 0 0 3px var(--primary-light);
     outline: none;
 }
 
-/* ==================== RELATED SHELF IMPROVED ==================== */
 .virtual-shelf-footer h3 {
     display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
 }
-
