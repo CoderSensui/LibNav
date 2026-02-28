@@ -1,13 +1,14 @@
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Service Worker Registered!', reg))
+            .catch(err => console.error('Service Worker Registration Failed!', err));
     });
 }
 document.addEventListener('DOMContentLoaded', () => {
 
     function renderIcons() { if(typeof lucide !== 'undefined') lucide.createIcons(); }
-    window.renderIcons = renderIcons;
 
     const searchInput = document.getElementById('search-input');
     const autocompleteDropdown = document.getElementById('autocomplete-dropdown');
@@ -19,17 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const micBtn = document.getElementById('mic-btn');
     const screensaver = document.getElementById('screensaver');
     const adminModal = document.getElementById('admin-modal');
-    const authModal = document.getElementById('auth-modal');
-    const profileModal = document.getElementById('profile-modal');
     const bookModal = document.getElementById('book-modal');
     const qrModal = document.getElementById('qr-modal');
     const carouselImg = document.getElementById('carousel-img');
     const stepCounter = document.getElementById('step-counter');
 
     let selectedGenres = new Set();
-    let favorites = [];
-    window._favorites = favorites;
-    Object.defineProperty(window, '_favoritesRef', { get: () => favorites, set: v => { favorites = v; } });
+    let favorites = JSON.parse(localStorage.getItem('libnav_favs')) || [];
     const IDLE_LIMIT = 120000;
     let idleTimeout;
     const coverCache = {};
@@ -115,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('hero-title')?.addEventListener('click', triggerEasterEgg);
     document.getElementById('desktop-logo')?.addEventListener('click', triggerEasterEgg);
 
-    document.getElementById('profile-btn').addEventListener('click', () => { openProfileModal(); });
+    document.getElementById('secret-admin-btn').addEventListener('click', () => { adminModal.style.display = 'flex'; });
 
     const imageObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
@@ -349,7 +346,44 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
+  document.getElementById('admin-password').addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') document.getElementById('admin-auth-btn').click();
+    });
 
+  document.getElementById('admin-auth-btn').onclick = async () => {
+        const btn = document.getElementById('admin-auth-btn');
+        const passInput = document.getElementById('admin-password').value;
+
+        btn.innerHTML = 'Verifying...';
+        btn.disabled = true;
+
+        const isValid = await LibraryDB.verifyAdminPassword(passInput);
+
+        if (isValid) {
+            const sessionToken = await LibraryDB.createAdminSession();
+            if (!sessionToken) {
+                showPopup("Error", "Could not create session. Check your connection.", null, false);
+                btn.innerHTML = 'Login';
+                btn.disabled = false;
+                return;
+            }
+            localStorage.setItem('libnav_admin_token', sessionToken);
+
+            const maintOverlay = document.getElementById('maintenance-overlay');
+            if (maintOverlay) maintOverlay.style.display = 'none';
+
+            document.getElementById('admin-login-screen').style.display = 'none';
+            document.getElementById('admin-dashboard').style.display = 'block';
+            document.getElementById('admin-password').value = '';
+            updateImageInputs();
+            renderAdminList();
+        } else {
+            showPopup("Access Denied", "Incorrect Security Key.", null, false);
+        }
+
+        btn.innerHTML = 'Login';
+        btn.disabled = false;
+    };
 
     const adminMainView = document.getElementById('admin-main-view');
     const adminFormView = document.getElementById('admin-form-view');
@@ -390,9 +424,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateImageInputs() {
         const container = document.getElementById('image-inputs-container');
-        if (!container) return;
         container.innerHTML = '';
-        const count = parseInt(document.getElementById('step-count-select')?.value) || 2;
+        const count = parseInt(document.getElementById('step-count-select').value) || 2;
         for (let i = 1; i <= count; i++) {
             const input = document.createElement('input');
             input.type = 'url';
@@ -401,14 +434,12 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(input);
         }
     }
-    document.getElementById('step-count-select')?.addEventListener('change', updateImageInputs);
-    window.updateImageInputs = updateImageInputs;
+    document.getElementById('step-count-select').onchange = updateImageInputs;
 
     function updateBatchImageInputs() {
         const container = document.getElementById('batch-image-inputs-container');
-        if (!container) return;
         container.innerHTML = '';
-        const count = parseInt(document.getElementById('batch-step-count')?.value) || 2;
+        const count = parseInt(document.getElementById('batch-step-count').value) || 2;
         for (let i = 1; i <= count; i++) {
             const input = document.createElement('input');
             input.type = 'url';
@@ -417,7 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(input);
         }
     }
-    document.getElementById('batch-step-count')?.addEventListener('change', updateBatchImageInputs);
+    document.getElementById('batch-step-count').onchange = updateBatchImageInputs;
 
     window.handleEdit = function(id) {
         const book = LibraryDB.getBooks().find(b => String(b.id) === String(id)); if (!book) return;
@@ -493,9 +524,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button onclick="handleDelete('${b.id}')" class="btn-delete"><i data-lucide="trash-2"></i> Delete</button>
                 </div>
             </div>`).join('');
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+        renderIcons();
     }
-    window.renderAdminList = renderAdminList;
 
     document.getElementById('admin-search')?.addEventListener('input', renderAdminList);
 
@@ -537,7 +567,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     document.getElementById('factory-reset-btn').onclick = async () => { showPopup("Defense Mode", "Reset Stats?", async () => { await LibraryDB.factoryReset(); window.location.reload(); }, true); };
 
-    document.getElementById('admin-logout-btn').onclick = () => { adminModal.style.display = 'none'; };
+    document.getElementById('admin-logout-btn').onclick = async () => {
+        showPopup("Logout", "End your admin session?", async () => {
+            const token = localStorage.getItem('libnav_admin_token');
+            await LibraryDB.destroyAdminSession(token);
+            adminModal.style.display = 'none';
+            document.getElementById('admin-login-screen').style.display = 'block';
+            document.getElementById('admin-dashboard').style.display = 'none';
+        }, true);
+    };
 
     function loadFeaturedBook() {
         const books = LibraryDB.getBooks(); if (books.length === 0) return;
@@ -1065,7 +1103,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     }
 
     document.getElementById('quick-bookmark-btn')?.addEventListener('click', () => {
-        if (!LibraryDB.currentUser) { showAuthModal(); return; }
         const btn = document.getElementById('quick-bookmark-btn');
         if (selectedGenres.has('Favorites')) {
             searchInput.value = '';
@@ -1180,7 +1217,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     };
 
     window.toggleFavorite = function(e, bookId) {
-        if (!LibraryDB.currentUser) { e.stopPropagation(); showAuthModal(); return; }
         e.stopPropagation();
         const btn = e.target.closest('.fav-btn');
         btn.classList.toggle('active');
@@ -1196,10 +1232,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             if(navigator.vibrate) navigator.vibrate(30);
         }
 
-        if (LibraryDB.currentUser) {
-            if (index === -1) LibraryDB.addToBackpack(String(bookId));
-            else LibraryDB.removeFromBackpack(String(bookId));
-        }
+        localStorage.setItem('libnav_favs', JSON.stringify(favorites));
 
         if (selectedGenres.has('Favorites') && index !== -1) {
             const card = btn.closest('.book-card');
@@ -1696,7 +1729,7 @@ window.showSuccessScreen = function() {
         setInterval(tick, 1000);
     }
 
-setTimeout(async () => {
+setTimeout(() => {
         const maintSource = new EventSource(`${LibraryDB.dbUrl}maintenance.json`);
         
         maintSource.addEventListener('put', async (e) => {
@@ -1704,7 +1737,8 @@ setTimeout(async () => {
             const isMaint = payload.data; 
             
             if (isMaint !== null) {
-                const isVIP = LibraryDB.currentUser && (await LibraryDB.isAdmin());
+                const savedToken = localStorage.getItem('libnav_admin_token');
+                const isVIP = await LibraryDB.verifyAdminSession(savedToken);
                 const maintOverlay = document.getElementById('maintenance-overlay');
                 
                 if (isMaint && !isVIP) {
@@ -1886,289 +1920,4 @@ setTimeout(async () => {
     }
 
     init();
-
-function showAuthModal(tab) {
-    const m = document.getElementById('auth-modal');
-    if (!m) return;
-    switchAuthTab(tab || 'login');
-    m.style.display = 'flex';
-}
-window.showAuthModal = showAuthModal;
-
-function switchAuthTab(tab) {
-    document.querySelectorAll('.auth-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-    document.getElementById('auth-login-panel').style.display = tab === 'login' ? 'block' : 'none';
-    document.getElementById('auth-signup-panel').style.display = tab === 'signup' ? 'block' : 'none';
-    document.getElementById('auth-verify-panel').style.display = 'none';
-}
-
-async function openProfileModal() {
-    const m = document.getElementById('profile-modal');
-    if (!m) return;
-    m.style.display = 'flex';
-    const user = LibraryDB.currentUser;
-    const guestView = document.getElementById('profile-guest-view');
-    const userView = document.getElementById('profile-user-view');
-    if (!user) {
-        if (guestView) guestView.style.display = 'block';
-        if (userView) userView.style.display = 'none';
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-        return;
-    }
-    if (guestView) guestView.style.display = 'none';
-    if (userView) userView.style.display = 'block';
-    const data = LibraryDB.currentUserData;
-    const name = data?.displayName || user.displayName || 'Student';
-    const email = user.email || '';
-    const bookmarkCount = data?.bookmarkCount || 0;
-    const rank = getRank(bookmarkCount);
-    const avatarEl = document.getElementById('profile-avatar-circle');
-    if (avatarEl) { avatarEl.textContent = name.charAt(0).toUpperCase(); }
-    const nameEl = document.getElementById('profile-display-name');
-    if (nameEl) nameEl.textContent = name;
-    const emailEl = document.getElementById('profile-email-text');
-    if (emailEl) emailEl.textContent = email;
-    const rankBadge = document.getElementById('profile-rank-badge');
-    if (rankBadge) rankBadge.innerHTML = `<span class="rank-icon">${rank.icon}</span> ${rank.title}`;
-    const bmCount = document.getElementById('profile-bookmark-count');
-    if (bmCount) bmCount.textContent = bookmarkCount;
-    const leaderboard = await LibraryDB.getLeaderboard();
-    const myRank = leaderboard.findIndex(u => u.uid === user.uid);
-    const rankNumEl = document.getElementById('profile-rank-num');
-    if (rankNumEl) rankNumEl.textContent = myRank >= 0 ? `#${myRank + 1}` : '—';
-    const isAdmin = await LibraryDB.isAdmin();
-    const adminWrap = document.getElementById('profile-admin-btn-wrap');
-    if (adminWrap) adminWrap.style.display = isAdmin ? 'block' : 'none';
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-}
-window.openProfileModal = openProfileModal;
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    document.querySelectorAll('.auth-tab').forEach(tab => {
-        tab.addEventListener('click', () => switchAuthTab(tab.dataset.tab));
-    });
-
-    function setAuthLoading(btnId, loading, label) {
-        const btn = document.getElementById(btnId);
-        if (!btn) return;
-        btn.disabled = loading;
-        btn.innerHTML = loading ? '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;width:18px;height:18px;"></i> Please wait...' : label;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
-
-    document.getElementById('auth-login-btn')?.addEventListener('click', async () => {
-        const email = document.getElementById('auth-email')?.value.trim();
-        const pass = document.getElementById('auth-password')?.value;
-        if (!email || !pass) { showPopupSafe('Missing Info', 'Please enter your email and password.'); return; }
-        setAuthLoading('auth-login-btn', true, '<i data-lucide="log-in"></i> Sign In');
-        try {
-            await LibraryDB.signIn(email, pass);
-            document.getElementById('auth-modal').style.display = 'none';
-            document.getElementById('auth-email').value = '';
-            document.getElementById('auth-password').value = '';
-        } catch(err) {
-            const msg = (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential')
-                ? 'Incorrect email or password.'
-                : err.code === 'auth/too-many-requests' ? 'Too many attempts. Try again later.'
-                : 'Sign in failed. Please try again.';
-            showPopupSafe('Sign In Failed', msg);
-        }
-        setAuthLoading('auth-login-btn', false, '<i data-lucide="log-in"></i> Sign In');
-    });
-
-    document.getElementById('auth-email')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('auth-login-btn')?.click(); });
-    document.getElementById('auth-password')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('auth-login-btn')?.click(); });
-
-    document.getElementById('auth-signup-btn')?.addEventListener('click', async () => {
-        const name = document.getElementById('auth-name')?.value.trim();
-        const email = document.getElementById('auth-signup-email')?.value.trim();
-        const pass = document.getElementById('auth-signup-password')?.value;
-        if (!name || !email || !pass) { showPopupSafe('Missing Info', 'Please fill in all fields.'); return; }
-        if (pass.length < 6) { showPopupSafe('Weak Password', 'Password must be at least 6 characters.'); return; }
-        setAuthLoading('auth-signup-btn', true, '<i data-lucide="user-plus"></i> Create Account');
-        try {
-            await LibraryDB.signUp(email, pass, name);
-            document.getElementById('auth-login-panel').style.display = 'none';
-            document.getElementById('auth-signup-panel').style.display = 'none';
-            document.getElementById('auth-verify-panel').style.display = 'block';
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-        } catch(err) {
-            const msg = err.code === 'auth/email-already-in-use' ? 'Email already registered. Try signing in.'
-                : err.code === 'auth/invalid-email' ? 'Enter a valid email address.'
-                : 'Sign up failed. Please try again.';
-            showPopupSafe('Sign Up Failed', msg);
-        }
-        setAuthLoading('auth-signup-btn', false, '<i data-lucide="user-plus"></i> Create Account');
-    });
-
-    document.getElementById('auth-resend-btn')?.addEventListener('click', async () => {
-        try { await LibraryDB.sendVerificationEmail(); showPopupSafe('Email Sent', 'Verification email resent!'); }
-        catch(e) { showPopupSafe('Error', 'Could not resend. Wait a moment and try again.'); }
-    });
-
-    document.getElementById('auth-verified-btn')?.addEventListener('click', async () => {
-        if (LibraryDB.currentUser) await LibraryDB.currentUser.reload().catch(() => {});
-        document.getElementById('auth-modal').style.display = 'none';
-        document.getElementById('auth-verify-panel').style.display = 'none';
-    });
-
-    document.getElementById('auth-forgot-link')?.addEventListener('click', async () => {
-        const email = document.getElementById('auth-email')?.value.trim();
-        if (!email) { showPopupSafe('Enter Email', 'Type your email address first, then click Forgot Password.'); return; }
-        try { await LibraryDB.sendPasswordReset(email); showPopupSafe('Email Sent', `Reset link sent to ${email}.`); }
-        catch(e) { showPopupSafe('Error', 'Could not send reset email. Check the address is correct.'); }
-    });
-
-    document.getElementById('auth-guest-btn')?.addEventListener('click', () => { document.getElementById('auth-modal').style.display = 'none'; });
-    document.getElementById('auth-guest-btn-2')?.addEventListener('click', () => { document.getElementById('auth-modal').style.display = 'none'; });
-
-    document.getElementById('profile-signin-btn')?.addEventListener('click', () => {
-        document.getElementById('profile-modal').style.display = 'none';
-        showAuthModal('login');
-    });
-
-    document.getElementById('profile-signout-btn')?.addEventListener('click', async () => {
-        await LibraryDB.signOut();
-        window._favorites = [];
-        document.getElementById('profile-modal').style.display = 'none';
-    });
-
-    document.getElementById('profile-open-admin-btn')?.addEventListener('click', () => {
-        document.getElementById('profile-modal').style.display = 'none';
-        const adminModal = document.getElementById('admin-modal');
-        if (adminModal) {
-            adminModal.style.display = 'flex';
-            if (typeof updateImageInputs === 'function') updateImageInputs();
-            if (typeof renderAdminList === 'function') renderAdminList();
-        }
-    });
-
-    document.getElementById('profile-leaderboard-btn')?.addEventListener('click', () => {
-        document.getElementById('profile-modal').style.display = 'none';
-        openLeaderboard();
-    });
-
-    async function openLeaderboard() {
-        const modal = document.getElementById('leaderboard-modal');
-        if (!modal) return;
-        modal.style.display = 'flex';
-        const listEl = document.getElementById('leaderboard-list');
-        if (listEl) listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;">Loading...</div>';
-        const data = await LibraryDB.getLeaderboard();
-        if (!listEl) return;
-        if (data.length === 0) {
-            listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;">No data yet. Start saving books!</div>';
-            return;
-        }
-        const medals = ['🥇','🥈','🥉'];
-        const currentUid = LibraryDB.currentUser?.uid;
-        listEl.innerHTML = data.map((u, i) => `
-            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:${u.uid === currentUid ? 'var(--primary-light)' : 'var(--surface)'};border-radius:14px;border:1px solid ${u.uid === currentUid ? 'var(--primary)' : 'var(--border-color)'};">
-                <span style="font-size:1.4rem;width:32px;text-align:center;">${medals[i] || `#${i+1}`}</span>
-                <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;flex-shrink:0;">${u.displayName.charAt(0).toUpperCase()}</div>
-                <div style="flex:1;min-width:0;">
-                    <div style="font-weight:bold;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.displayName}${u.uid === currentUid ? ' <span style="color:var(--primary);font-size:0.75rem;">(You)</span>' : ''}</div>
-                    <div style="font-size:0.8rem;color:var(--primary);">${u.rank.icon} ${u.rank.title}</div>
-                </div>
-                <div style="text-align:right;flex-shrink:0;">
-                    <div style="font-weight:bold;font-size:1.1rem;color:var(--text-main);">${u.bookmarkCount}</div>
-                    <div style="font-size:0.75rem;color:var(--text-muted);">saved</div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    LibraryDB.onAuthStateChanged(async (user) => {
-        if (user) {
-            window._favorites = LibraryDB.getBackpack();
-            if (typeof window._favoritesRef !== 'undefined') window._favoritesRef = window._favorites;
-        } else {
-            window._favorites = [];
-        }
-        document.querySelectorAll('.fav-btn').forEach(btn => {
-            const match = btn.getAttribute('onclick')?.match(/'([^']+)'\s*\)/);
-            if (match) btn.classList.toggle('active', (window._favorites || []).includes(match[1]));
-        });
-    });
-
-    LibraryDB.getBookSocialProof().then(proof => {
-        window._socialProof = proof;
-        applySocialProof();
-    });
-
-    function applySocialProof() {
-        if (!window._socialProof) return;
-        document.querySelectorAll('.book-card, .featured-card').forEach(card => {
-            if (card.querySelector('.social-proof-badge')) return;
-            const img = card.querySelector('img[id^="img-"]');
-            const bookId = img ? img.id.replace('img-', '') : null;
-            if (bookId && window._socialProof[bookId] > 1) {
-                const info = card.querySelector('.book-info') || card.querySelector('.feat-info');
-                if (info) {
-                    const badge = document.createElement('div');
-                    badge.className = 'social-proof-badge';
-                    badge.innerHTML = `👤 ${window._socialProof[bookId]} students saved this`;
-                    info.appendChild(badge);
-                }
-            }
-        });
-    }
-
-    const rObs = new MutationObserver(() => { if (window._socialProof) applySocialProof(); });
-    const ra = document.getElementById('results-area');
-    const fc = document.getElementById('featured-container');
-    if (ra) rObs.observe(ra, { childList: true, subtree: false });
-    if (fc) rObs.observe(fc, { childList: true, subtree: false });
-
-    document.getElementById('maint-admin-login-btn')?.addEventListener('click', async () => {
-        if (LibraryDB.currentUser) {
-            const isAdmin = await LibraryDB.isAdmin();
-            if (isAdmin) {
-                const mo = document.getElementById('maintenance-overlay');
-                if (mo) mo.style.display = 'none';
-            } else {
-                showAuthModal('login');
-            }
-        } else {
-            showAuthModal('login');
-        }
-    });
-
-    LibraryDB.onAuthStateChanged(async (user) => {
-        if (user) {
-            const mo = document.getElementById('maintenance-overlay');
-            if (mo && mo.style.display === 'flex') {
-                const isAdmin = await LibraryDB.isAdmin();
-                if (isAdmin) mo.style.display = 'none';
-            }
-        }
-    });
-
-    function showPopupSafe(title, msg) {
-        const t = document.getElementById('popup-title');
-        const m = document.getElementById('popup-message');
-        const p = document.getElementById('custom-popup');
-        const c = document.getElementById('popup-cancel');
-        const ok = document.getElementById('popup-confirm');
-        if (!t || !m || !p) return;
-        t.innerText = title; m.innerText = msg;
-        if (c) c.style.display = 'none';
-        if (ok) ok.onclick = () => { p.style.display = 'none'; };
-        p.style.display = 'flex';
-    }
-
-    const showFirst = !localStorage.getItem('libnav_auth_shown');
-    if (showFirst) {
-        setTimeout(() => {
-            if (!LibraryDB.currentUser) {
-                showAuthModal('login');
-                localStorage.setItem('libnav_auth_shown', '1');
-            }
-        }, 3000);
-    }
-});
-
-window.addEventListener('_favoritesUpdated', () => {
-    window._favorites = LibraryDB.getBackpack();
 });
