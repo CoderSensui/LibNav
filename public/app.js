@@ -1532,19 +1532,20 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     }
 
 window.showSuccessScreen = function() {
-    document.getElementById('book-modal').style.display = 'none';
-    document.getElementById('success-modal').style.display = 'flex';
-    if(navigator.vibrate) navigator.vibrate([50, 30, 100, 30, 200]);
-    launchConfetti();
-    incrementHelpedCount();
-}
+        document.getElementById('book-modal').style.display = 'none';
+        document.getElementById('success-modal').style.display = 'flex';
+        if(navigator.vibrate) navigator.vibrate([50, 30, 100, 30, 200]);
+        launchConfetti();
+    }
     
     window.closeSuccessScreen = function() {
         document.getElementById('success-modal').style.display = 'none';
         document.body.classList.remove('companion-mode-active');
         switchSection('home');
+        
+        incrementHelpedCount();
     }
-
+    
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; const recognition = new SpeechRecognition(); recognition.lang = 'en-US';
         micBtn.onclick = () => { if (micBtn.classList.contains('active-mic')) recognition.stop(); else recognition.start(); };
