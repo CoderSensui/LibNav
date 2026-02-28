@@ -1312,42 +1312,53 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
     let uptimeInterval = null;
 
-    const openStats = async () => {
-        const statsModal = document.getElementById('stats-modal');
-        const statsBox = statsModal?.querySelector('.modal-box');
-        if (!statsModal || !statsBox) return;
+   const openStats = async () => {
+        const statsModal = document.getElementById("stats-modal");
+        const contentDiv = document.getElementById("stats-content");
+        
+        // 1. Show the Loading Screen (Just like Feedback modal!)
+        statsModal.style.display = "flex";
+        contentDiv.innerHTML = `
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:300px; gap:15px;">
+                <div class="loader-logo-ring" style="width:50px; height:50px;">
+                    <div class="loader-ring r1" style="border-width:3px;"></div>
+                    <div class="loader-ring r2" style="border-width:3px; inset:4px;"></div>
+                </div>
+                <p style="color:var(--text-muted); font-weight:bold; letter-spacing:1px; font-size:0.9rem;">LOADING STATISTICS...</p>
+            </div>
+        `;
 
-        statsModal.style.display = 'flex';
-        statsBox.innerHTML = `
-            <button class="close-btn" onclick="document.getElementById('stats-modal').style.display='none'"><i data-lucide="x"></i></button>
-            <div class="modal-loading-state">
-                <div class="modal-loader-ring"></div>
-                <p>Fetching live data...</p>
-            </div>`;
-        renderIcons();
+        // 2. Fetch Fresh Data from Firebase
+        await LibraryDB.fetchGlobalStats();
 
+        // 3. Get the fresh numbers
         const books = LibraryDB.getBooks();
         const ratings = LibraryDB.getRatings() || [];
+        const globalHelpedCount = LibraryDB.getHelpedCount(); // This now returns the array length!
 
-        // Await LIVE count from Firebase — zero localStorage involvement
-        const globalHelpedCount = await getHelpedCount();
-
-        const mostViewed = books.length ? books.reduce((a, b) => (a.views || 0) > (b.views || 0) ? a : b, { title: "None", views: 0, author: "N/A", genre: "" }) : { title: "None", views: 0, author: "N/A", genre: "" };
-        const newest = books.length ? books.reduce((a, b) => (a.id > b.id) ? a : b, { title: "None", author: "N/A" }) : { title: "None", author: "N/A" };
+        const mostViewed = books.reduce((a, b) => (a.views || 0) > (b.views || 0) ? a : b, { title: "None", views: 0, author: "N/A", genre: "" });
+        const newest = books.reduce((a, b) => (a.id > b.id) ? a : b, { title: "None", author: "N/A" });
         const genres = {};
         books.forEach(b => genres[b.genre] = (genres[b.genre] || 0) + 1);
         const sortedGenres = Object.entries(genres).sort((a, b) => b[1] - a[1]);
         const avg = ratings.length > 0 ? (ratings.reduce((a, b) => a + parseInt(b), 0) / ratings.length).toFixed(1) : "0.0";
-        const avgPct = (parseFloat(avg) / 5) * 100;
+        const avgNum = parseFloat(avg);
+        const avgPct = (avgNum / 5) * 100;
 
-        statsBox.classList.add('stats-layout');
-        statsBox.innerHTML = `
-            <button class="close-btn" onclick="document.getElementById('stats-modal').style.display='none'"><i data-lucide="x"></i></button>
-            <div id="stats-content">
+        // 4. Render the Real Data
+        statsModal.firstElementChild.classList.add("stats-layout");
+        contentDiv.innerHTML = `
             <div class="sn-header">
-                <div class="sn-title-block"><span class="sn-eyebrow">LibNav Analytics</span><h2 class="sn-title">Dashboard</h2></div>
-                <div class="sn-uptime"><span class="sn-live-dot"></span><span id="uptime-display">...</span></div>
+                <div class="sn-title-block">
+                    <span class="sn-eyebrow">LibNav Analytics</span>
+                    <h2 class="sn-title">Dashboard</h2>
+                </div>
+                <div class="sn-uptime">
+                    <span class="sn-live-dot"></span>
+                    <span id="uptime-display">Calculating...</span>
+                </div>
             </div>
+
             <div class="sn-hero">
                 <div class="sn-hero-label"><i data-lucide="flame"></i> Trending Right Now</div>
                 <div class="sn-hero-views">${mostViewed.views || 0}</div>
@@ -1358,22 +1369,35 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 ${mostViewed.genre ? `<span class="sn-hero-genre">${mostViewed.genre}</span>` : ""}
                 <div class="sn-hero-glow"></div>
             </div>
+
             <div class="sn-pills-row">
-                <div class="sn-pill"><i data-lucide="library"></i><span class="sn-pill-val">${books.length}</span><span class="sn-pill-lbl">Books</span></div>
+                <div class="sn-pill">
+                    <i data-lucide="library"></i>
+                    <span class="sn-pill-val">${books.length}</span>
+                    <span class="sn-pill-lbl">Books</span>
+                </div>
                 <div class="sn-pill sn-pill-accent" id="helped-pill">
                     <i data-lucide="heart-handshake"></i>
                     <span class="sn-pill-val" id="sn-helped-val">${globalHelpedCount}</span>
-                    <span class="sn-pill-lbl" style="color:#10b981;">Helped</span>
+                    <span class="sn-pill-lbl" style="color: #10b981;">Helped</span>
                 </div>
-                <div class="sn-pill"><i data-lucide="bookmark"></i><span class="sn-pill-val">${favorites.length}</span><span class="sn-pill-lbl">Saved</span></div>
+                <div class="sn-pill">
+                    <i data-lucide="bookmark"></i>
+                    <span class="sn-pill-val">${favorites.length}</span>
+                    <span class="sn-pill-lbl">Saved</span>
+                </div>
             </div>
+
             <div class="sn-two-col">
                 <div class="sn-section sn-rating-section">
                     <div class="sn-section-label"><i data-lucide="star"></i> Rating</div>
                     <div class="sn-rating-num">${avg}<span>/5</span></div>
-                    <div class="sn-rating-bar-track"><div class="sn-rating-bar-fill" style="width:${avgPct}%"></div></div>
+                    <div class="sn-rating-bar-track">
+                        <div class="sn-rating-bar-fill" style="width:${avgPct}%"></div>
+                    </div>
                     <p class="sn-rating-reviews">${ratings.length} review${ratings.length !== 1 ? "s" : ""}</p>
                 </div>
+
                 <div class="sn-section sn-new-section">
                     <div class="sn-section-label"><i data-lucide="sparkles"></i> New Arrival</div>
                     <div class="sn-new-badge-inline">NEW</div>
@@ -1381,6 +1405,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                     <p class="sn-new-author">${newest.author || ""}</p>
                 </div>
             </div>
+
             <div class="sn-section sn-catalog-section">
                 <div class="sn-section-label"><i data-lucide="layers"></i> Catalog Breakdown</div>
                 <div class="sn-genre-list">
@@ -1397,35 +1422,39 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                     `).join("")}
                 </div>
             </div>
-            </div>`;
-
+        `;
+        
         renderIcons();
-
-        // Animate helped count with the real live value
-        const helpedEl = document.getElementById('sn-helped-val');
-        if (helpedEl) animateCount(helpedEl, 0, globalHelpedCount, 800);
-
+        
+        // Animate the numbers
         setTimeout(() => {
+            const helpedEl = document.getElementById('sn-helped-val');
+            if(helpedEl) animateCount(helpedEl, 0, globalHelpedCount, 1200);
+            
             const heroViewsEl = document.querySelector('.sn-hero-views');
-            if (heroViewsEl) animateCount(heroViewsEl, 0, mostViewed.views || 0, 1000);
+            if(heroViewsEl) animateCount(heroViewsEl, 0, mostViewed.views || 0, 1000);
+            
             document.querySelectorAll('.sn-genre-fill').forEach((el, i) => {
-                const match = (el.getAttribute('style') || '').match(/--bar-w:\s*([\d.]+%)/);
+                const styleAttr = el.getAttribute('style') || '';
+                const match = styleAttr.match(/--bar-w:\s*([\d.]+%)/);
                 const targetW = match ? match[1] : '100%';
                 el.style.animation = 'none';
-                el.offsetHeight;
+                el.offsetHeight; 
                 el.style.setProperty('--bar-w', targetW);
-                el.style.animationDelay = (0.08 + i * 0.08) + 's';
                 el.style.animationName = 'barGrow';
                 el.style.animationDuration = '0.75s';
-                el.style.animationTimingFunction = 'cubic-bezier(0.4,0,0.2,1)';
                 el.style.animationFillMode = 'both';
+                el.style.animationDelay = (0.1 + i * 0.05) + 's';
             });
-        }, 80);
+        }, 50);
 
+        // Uptime Clock
         const updateUptime = () => {
             const diff = Date.now() - new Date("2026-01-01T00:00:00").getTime();
-            const d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000),
-                  m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+            const d = Math.floor(diff / 86400000);
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
             const el = document.getElementById("uptime-display");
             if (el) el.innerText = `${d}d ${h}h ${m}m ${s}s`;
         };
@@ -1433,7 +1462,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         updateUptime();
         uptimeInterval = setInterval(updateUptime, 1000);
     };
-
+    
     document.getElementById('section-stats-btn')?.addEventListener('click', openStats);
 
     const openFeedback = () => {
@@ -1505,16 +1534,26 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         draw();
     }
 
-    async function incrementHelpedCount() {
+async function incrementHelpedCount() {
         try {
-            const newCount = await LibraryDB.incrementHelped();
+            // Local storage for your own milestones (optional)
+            let count = parseInt(localStorage.getItem('libnav_helped_local') || '0');
+            count++;
+            localStorage.setItem('libnav_helped_local', String(count));
+            
+            // THE IMPORTANT PART: Send to Firebase
+            if(typeof LibraryDB.incrementHelped === 'function') {
+                await LibraryDB.incrementHelped();
+            }
+
+            // Show Toast
             const MILESTONES = [10, 25, 50, 100, 200, 500, 1000];
-            if (MILESTONES.includes(newCount)) {
-                setTimeout(() => showMilestoneToast(newCount), 2200);
+            if(MILESTONES.includes(count)) {
+                setTimeout(() => showMilestoneToast(count), 1500);
             }
         } catch(e) {}
     }
-
+    
     function showMilestoneToast(count) {
         const toast = document.getElementById('toast-notification');
         if(!toast) return;
@@ -1531,19 +1570,22 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         return 0;
     }
 
-window.showSuccessScreen = function() {
+// 1. Show the success screen (Confetti only, NO database call yet)
+    window.showSuccessScreen = function() {
         document.getElementById('book-modal').style.display = 'none';
         document.getElementById('success-modal').style.display = 'flex';
         if(navigator.vibrate) navigator.vibrate([50, 30, 100, 30, 200]);
         launchConfetti();
     }
     
+    // 2. "Got it, thanks!" clicked -> Save to Database & Close
     window.closeSuccessScreen = function() {
         document.getElementById('success-modal').style.display = 'none';
         document.body.classList.remove('companion-mode-active');
         switchSection('home');
         
-        incrementHelpedCount();
+        // CALL THE DB FUNCTION HERE
+        incrementHelpedCount(); 
     }
     
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
