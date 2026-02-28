@@ -2,8 +2,8 @@ const LibraryDB = {
     dbUrl: "https://libnav-dc2c8-default-rtdb.firebaseio.com/",
     books: [],
     ratings: [],
-    helpedCount: 0, // Stores the count locally so app.js doesn't get NaN
-
+    helpedCount: 0, 
+    
     init: async function() {
         await this.fetchGlobalStats(); 
         return true;
@@ -14,7 +14,6 @@ const LibraryDB = {
             const [booksRes, ratingsRes, helpedRes] = await Promise.all([
                 fetch(`${this.dbUrl}books.json`),
                 fetch(`${this.dbUrl}ratings.json`),
-                // FIXED: Pointing to the correct folder!
                 fetch(`${this.dbUrl}globalStats/helpedCount.json?t=${Date.now()}`) 
             ]);
 
@@ -23,7 +22,6 @@ const LibraryDB = {
             const booksData = await booksRes.json();
             const ratingsData = await ratingsRes.json();
             
-            // Safely parse the helped count to guarantee it never crashes
             let helpedData = 0;
             if (helpedRes.ok) {
                 try { helpedData = await helpedRes.json(); } catch(e) { helpedData = 0; }
@@ -43,7 +41,6 @@ const LibraryDB = {
                 this.ratings = [];
             }
 
-            // Lock in the real number
             this.helpedCount = (typeof helpedData === 'number') ? helpedData : 0;
             return true;
         } catch (error) {
@@ -66,31 +63,25 @@ const LibraryDB = {
     getBooks: function() { return this.books; },
     getRatings: function() { return this.ratings; },
     
-    // FIXED: Synchronous function guarantees app.js gets a real number, NO MORE NaN!
     getHelpedCount: function() { 
         return this.helpedCount || 0; 
     },
 
     incrementHelped: async function() {
         try {
-            // 1. Fetch the exact live number from Firebase
             const res = await fetch(`${this.dbUrl}globalStats/helpedCount.json?t=${Date.now()}`);
             let current = await res.json();
             
-            // 2. Fallback to 0 if it doesn't exist yet
             if (typeof current !== 'number') current = 0;
             
-            // 3. Add 1
             const newCount = current + 1;
             
-            // 4. Save the new number back to Firebase
             await fetch(`${this.dbUrl}globalStats/helpedCount.json`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newCount)
             });
             
-            // 5. Update the local variable so the stats screen updates instantly
             this.helpedCount = newCount;
             return true;
         } catch (err) {
@@ -158,8 +149,11 @@ const LibraryDB = {
         try { await fetch(`${this.dbUrl}broadcast.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(broadcastObj) }); return true; } catch(e) { return false; }
     },
 
-    getMaintenance: async function() {
-        try { const res = await fetch(`${this.dbUrl}maintenance.json`); return await res.json(); } catch(e) { return false; }
+   getMaintenance: async function() {
+        try { 
+            const res = await fetch(`${this.dbUrl}maintenance.json?t=${Date.now()}`); 
+            return await res.json(); 
+        } catch(e) { return false; }
     },
     setMaintenance: async function(status) {
         try { await fetch(`${this.dbUrl}maintenance.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(status) }); return true; } catch(e) { return false; }
