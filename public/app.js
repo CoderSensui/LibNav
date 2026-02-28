@@ -1721,87 +1721,109 @@ window.showSuccessScreen = function() {
         setInterval(tick, 1000);
     }
 
-  setTimeout(async () => {
-        if (typeof LibraryDB.getMaintenance === 'function') {
-            const isMaint = await LibraryDB.getMaintenance();
-            const savedToken = localStorage.getItem('libnav_admin_token');
-            const isVIP = await LibraryDB.verifyAdminSession(savedToken);
+setTimeout(() => {
+        const maintSource = new EventSource(`${LibraryDB.dbUrl}maintenance.json`);
+        
+        maintSource.addEventListener('put', async (e) => {
+            const payload = JSON.parse(e.data);
+            const isMaint = payload.data; 
             
-            if (isMaint && !isVIP) {
+            if (isMaint !== null) {
+                const savedToken = localStorage.getItem('libnav_admin_token');
+                const isVIP = await LibraryDB.verifyAdminSession(savedToken);
                 const maintOverlay = document.getElementById('maintenance-overlay');
-                if (maintOverlay) {
-                    maintOverlay.style.display = 'flex';
-                    if (typeof lucide !== 'undefined') lucide.createIcons();
-                    startMaintClock();
-                    
-                    const maintCheckInterval = setInterval(async () => {
-                        const stillDown = await LibraryDB.getMaintenance();
-                        if (!stillDown) {
-                            clearInterval(maintCheckInterval); // Stop checking
-                            maintOverlay.style.animation = 'sectionFadeOut 0.5s ease both'; 
+                
+                if (isMaint && !isVIP) {
+                    if (maintOverlay && maintOverlay.style.display !== 'flex') {
+                        maintOverlay.style.display = 'flex';
+                        maintOverlay.style.animation = 'fadeIn 0.4s ease';
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                        if (typeof startMaintClock === 'function') startMaintClock();
+                    }
+                } 
+                else {
+                    if (maintOverlay && maintOverlay.style.display === 'flex') {
+                        maintOverlay.style.animation = 'sectionFadeOut 0.5s ease both'; 
+                        
+                        setTimeout(() => {
+                            maintOverlay.style.display = 'none';
+                            maintOverlay.style.animation = ''; 
                             
-                            setTimeout(() => {
-                                maintOverlay.style.display = 'none';
-                                maintOverlay.style.animation = ''; 
-                                
-                                if(typeof launchConfetti === 'function') launchConfetti();
-                                if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                                
-                                const welcomeBackHtml = `
-                                    <div id="welcome-back-modal" class="modal-overlay" style="display: flex; z-index: 999999; animation: fadeIn 0.3s ease;">
-                                        <div class="popup-box" style="border: 2px solid var(--primary); box-shadow: 0 0 50px rgba(219,39,119,0.25);">
-                                            <div class="success-icon" style="background: rgba(219, 39, 119, 0.15); color: var(--primary); box-shadow: 0 0 40px rgba(219, 39, 119, 0.4);">
-                                                <i data-lucide="sparkles" style="width: 45px; height: 45px;"></i>
-                                            </div>
-                                            <h2 style="font-family: var(--font-head); font-size: 2.2rem; color: var(--text-main); margin-bottom: 5px;">We're Back!</h2>
-                                            <p style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; font-size: 0.95rem;">The system update is complete. Thank you for your patience!</p>
-                                            <button class="btn-primary full-width" onclick="document.getElementById('welcome-back-modal').remove()">Let's Go!</button>
+                            // Welcome Back Animation
+                            if(typeof launchConfetti === 'function') launchConfetti();
+                            if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                            
+                            const welcomeBackHtml = `
+                                <div id="welcome-back-modal" class="modal-overlay" style="display: flex; z-index: 999999; animation: fadeIn 0.3s ease;">
+                                    <div class="popup-box" style="border: 2px solid var(--primary); box-shadow: 0 0 50px rgba(219,39,119,0.25);">
+                                        <div class="success-icon" style="background: rgba(219, 39, 119, 0.15); color: var(--primary); box-shadow: 0 0 40px rgba(219, 39, 119, 0.4);">
+                                            <i data-lucide="sparkles" style="width: 45px; height: 45px;"></i>
                                         </div>
+                                        <h2 style="font-family: var(--font-head); font-size: 2.2rem; color: var(--text-main); margin-bottom: 5px;">We're Back!</h2>
+                                        <p style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; font-size: 0.95rem;">The system update is complete. Thank you for your patience!</p>
+                                        <button class="btn-primary full-width" onclick="document.getElementById('welcome-back-modal').remove()">Let's Go!</button>
                                     </div>
-                                `;
-                                document.body.insertAdjacentHTML('beforeend', welcomeBackHtml);
-                                if (typeof lucide !== 'undefined') lucide.createIcons();
-                                
-                            }, 450);
-                        }
-                    }, 30000); 
-                }
-                return; 
-            }
-        }
-
-        if (typeof LibraryDB.getBroadcast === 'function') {
-            const activeBc = await LibraryDB.getBroadcast();
-            if (activeBc && activeBc.id) {
-                const seenBc = localStorage.getItem('libnav_seen_broadcast');
-                if (seenBc !== activeBc.id) {
-                    const ubModal = document.getElementById('user-broadcast-modal');
-                    if (ubModal) {
-                        const box = ubModal.querySelector('.modal-box');
-                        const iconWrap = ubModal.querySelector('.welcome-icon-wrap');
-                        box.className = `modal-box broadcast-layout theme-${activeBc.theme || 'info'}`;
-                        let iconStr = 'bell-ring';
-                        if(activeBc.theme === 'success') iconStr = 'check-circle';
-                        if(activeBc.theme === 'warning') iconStr = 'alert-triangle';
-                        if(activeBc.theme === 'alert') iconStr = 'shield-alert';
-                        iconWrap.innerHTML = `<i data-lucide="${iconStr}"></i>`;
-                        if(typeof lucide !== 'undefined') lucide.createIcons();
-                        const titleEl = document.getElementById('ub-title');
-                        const msgEl = document.getElementById('ub-msg');
-                        if (titleEl) titleEl.innerText = activeBc.title;
-                        if (msgEl) msgEl.innerText = activeBc.message;
-                        ubModal.style.display = 'flex';
-                        const gotItBtn = document.getElementById('ub-got-it-btn');
-                        if (gotItBtn) {
-                            gotItBtn.onclick = () => {
-                                localStorage.setItem('libnav_seen_broadcast', activeBc.id);
-                                ubModal.style.display = 'none';
-                            };
-                        }
+                                </div>
+                            `;
+                            document.body.insertAdjacentHTML('beforeend', welcomeBackHtml);
+                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                        }, 450);
                     }
                 }
             }
-        }
+        });
+
+        const bcSource = new EventSource(`${LibraryDB.dbUrl}broadcast.json`);
+        
+        bcSource.addEventListener('put', (e) => {
+            const payload = JSON.parse(e.data);
+            const activeBc = payload.data;
+            
+            const ubModal = document.getElementById('user-broadcast-modal');
+            
+            if (activeBc && activeBc.id) {
+                const seenBc = localStorage.getItem('libnav_seen_broadcast');
+                if (seenBc !== activeBc.id && ubModal) {
+                    const box = ubModal.querySelector('.modal-box');
+                    const iconWrap = ubModal.querySelector('.welcome-icon-wrap');
+                    
+                    box.className = `modal-box broadcast-layout theme-${activeBc.theme || 'info'}`;
+                    
+                    let iconStr = 'bell-ring';
+                    if(activeBc.theme === 'success') iconStr = 'check-circle';
+                    if(activeBc.theme === 'warning') iconStr = 'alert-triangle';
+                    if(activeBc.theme === 'alert') iconStr = 'shield-alert';
+                    
+                    iconWrap.innerHTML = `<i data-lucide="${iconStr}"></i>`;
+                    if(typeof lucide !== 'undefined') lucide.createIcons();
+                    
+                    const titleEl = document.getElementById('ub-title');
+                    const msgEl = document.getElementById('ub-msg');
+                    if (titleEl) titleEl.innerText = activeBc.title;
+                    if (msgEl) msgEl.innerText = activeBc.message;
+                    
+                    ubModal.style.display = 'flex';
+                    ubModal.style.animation = 'fadeIn 0.3s ease';
+                    if(navigator.vibrate) navigator.vibrate([50, 100, 50]);
+                    
+                    const gotItBtn = document.getElementById('ub-got-it-btn');
+                    if (gotItBtn) {
+                        gotItBtn.onclick = () => {
+                            localStorage.setItem('libnav_seen_broadcast', activeBc.id);
+                            ubModal.style.display = 'none';
+                        };
+                    }
+                }
+            } 
+            else if (activeBc === null && ubModal && ubModal.style.display === 'flex') {
+                ubModal.style.animation = 'sectionFadeOut 0.3s ease both';
+                setTimeout(() => {
+                    ubModal.style.display = 'none';
+                    ubModal.style.animation = '';
+                }, 300);
+            }
+        });
+
     }, 1500);
     
     const zoomImageElement = document.getElementById('zoomed-image');
