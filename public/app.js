@@ -1459,7 +1459,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
             const loader = document.createElement('div');
             loader.id = 'fb-loader';
             loader.innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:300px; gap:15px;">
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:300px; gap:15px; width:100%;">
                     <div class="loader-logo-ring" style="width:50px; height:50px;">
                         <div class="loader-ring r1" style="border-width:3px;"></div>
                         <div class="loader-ring r2" style="border-width:3px; inset:4px;"></div>
