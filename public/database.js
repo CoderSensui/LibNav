@@ -18,11 +18,9 @@ const RANKS = [
     { min: 100, title: "Library Legend",   icon: "🏆" }
 ];
 
-function getRank(bookmarkCount) {
+function getRank(count) {
     let rank = RANKS[0];
-    for (const r of RANKS) {
-        if (bookmarkCount >= r.min) rank = r;
-    }
+    for (const r of RANKS) { if (count >= r.min) rank = r; }
     return rank;
 }
 
@@ -34,93 +32,46 @@ const LibraryDB = {
     currentUser: null,
     currentUserData: null,
     _authStateListeners: [],
-    _firebaseLoaded: false,
+    _sdkLoaded: false,
 
-    _loadFirebaseSDK: function() {
-        if (this._firebaseLoaded) return Promise.resolve();
+    _loadSDK: function() {
+        if (this._sdkLoaded) return Promise.resolve();
         return new Promise((resolve, reject) => {
-            const scripts = [
+            const urls = [
                 "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js",
                 "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"
             ];
-            let loaded = 0;
-            scripts.forEach(src => {
+            let done = 0;
+            urls.forEach(src => {
                 const s = document.createElement('script');
                 s.src = src;
-                s.onload = () => { loaded++; if (loaded === scripts.length) { this._firebaseLoaded = true; resolve(); } };
+                s.onload = () => { done++; if (done === urls.length) { this._sdkLoaded = true; resolve(); } };
                 s.onerror = reject;
                 document.head.appendChild(s);
             });
         });
     },
 
-    _initFirebaseAuth: async function() {
-        await this._loadFirebaseSDK();
-        if (!firebase.apps.length) {
-            firebase.initializeApp(FIREBASE_CONFIG);
-        }
-        firebase.auth().onAuthStateChanged(async (user) => {
-            if (user) {
-                this.currentUser = user;
-                await this._loadUserData(user.uid);
-            } else {
-                this.currentUser = null;
-                this.currentUserData = null;
-            }
-            this._authStateListeners.forEach(fn => fn(user));
+    _initAuth: async function() {
+        await this._loadSDK();
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+        return new Promise(resolve => {
+            firebase.auth().onAuthStateChanged(async (user) => {
+                if (user) {
+                    this.currentUser = user;
+                    await this._loadUserData(user.uid);
+                } else {
+                    this.currentUser = null;
+                    this.currentUserData = null;
+                }
+                this._authStateListeners.forEach(fn => fn(user));
+                resolve();
+            });
         });
     },
 
-    onAuthStateChanged: function(callback) {
-        this._authStateListeners.push(callback);
-    },
-
-    signUpWithEmail: async function(email, password, displayName) {
-        await this._loadFirebaseSDK();
-        const cred = await firebase.auth().createUserWithEmailAndPassword(email, password);
-        await cred.user.updateProfile({ displayName });
-        await cred.user.sendEmailVerification();
-        const uid = cred.user.uid;
-        const userData = {
-            displayName,
-            email,
-            bookmarkCount: 0,
-            backpack: [],
-            createdAt: Date.now()
-        };
-        await fetch(`${this.dbUrl}users/${uid}.json`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData)
-        });
-        this.currentUserData = userData;
-        return cred.user;
-    },
-
-    signInWithEmail: async function(email, password) {
-        await this._loadFirebaseSDK();
-        const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
-        this.currentUser = cred.user;
-        await this._loadUserData(cred.user.uid);
-        return cred.user;
-    },
-
-    sendVerificationEmail: async function() {
-        if (this.currentUser && !this.currentUser.emailVerified) {
-            await this.currentUser.sendEmailVerification();
-        }
-    },
-
-    sendPasswordReset: async function(email) {
-        await this._loadFirebaseSDK();
-        await firebase.auth().sendPasswordResetEmail(email);
-    },
-
-    signOut: async function() {
-        await this._loadFirebaseSDK();
-        await firebase.auth().signOut();
-        this.currentUser = null;
-        this.currentUserData = null;
+    onAuthStateChanged: function(cb) {
+        this._authStateListeners.push(cb);
     },
 
     _loadUserData: async function(uid) {
@@ -130,7 +81,7 @@ const LibraryDB = {
             if (data) {
                 this.currentUserData = data;
             } else {
-                const newData = {
+                const fresh = {
                     displayName: this.currentUser?.displayName || 'Student',
                     email: this.currentUser?.email || '',
                     bookmarkCount: 0,
@@ -140,86 +91,99 @@ const LibraryDB = {
                 await fetch(`${this.dbUrl}users/${uid}.json`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newData)
+                    body: JSON.stringify(fresh)
                 });
-                this.currentUserData = newData;
+                this.currentUserData = fresh;
             }
-        } catch (e) {
-            this.currentUserData = null;
+        } catch(e) { this.currentUserData = null; }
+    },
+
+    signUp: async function(email, password, displayName) {
+        await this._loadSDK();
+        const cred = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        await cred.user.updateProfile({ displayName });
+        await cred.user.sendEmailVerification();
+        const fresh = { displayName, email, bookmarkCount: 0, backpack: [], createdAt: Date.now() };
+        await fetch(`${this.dbUrl}users/${cred.user.uid}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fresh)
+        });
+        this.currentUserData = fresh;
+        return cred.user;
+    },
+
+    signIn: async function(email, password) {
+        await this._loadSDK();
+        const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
+        this.currentUser = cred.user;
+        await this._loadUserData(cred.user.uid);
+        return cred.user;
+    },
+
+    signOut: async function() {
+        await this._loadSDK();
+        await firebase.auth().signOut();
+        this.currentUser = null;
+        this.currentUserData = null;
+    },
+
+    sendVerificationEmail: async function() {
+        if (this.currentUser && !this.currentUser.emailVerified) {
+            await this.currentUser.sendEmailVerification();
         }
+    },
+
+    sendPasswordReset: async function(email) {
+        await this._loadSDK();
+        await firebase.auth().sendPasswordResetEmail(email);
     },
 
     isAdmin: async function() {
         if (!this.currentUser) return false;
         try {
-            const tokenResult = await this.currentUser.getIdTokenResult(true);
-            return tokenResult.claims.admin === true;
-        } catch (e) {
-            return false;
-        }
+            const res = await fetch(`${this.dbUrl}admins/${this.currentUser.uid}.json`);
+            const val = await res.json();
+            return val === true;
+        } catch(e) { return false; }
     },
 
     getBackpack: function() {
-        if (!this.currentUserData) return [];
-        return this.currentUserData.backpack || [];
+        return (this.currentUserData?.backpack) || [];
     },
 
     addToBackpack: async function(bookId) {
         if (!this.currentUser || !this.currentUserData) return false;
-        const backpack = this.getBackpack();
-        if (backpack.includes(String(bookId))) return true;
-        backpack.push(String(bookId));
-        this.currentUserData.backpack = backpack;
+        const bp = this.getBackpack();
+        if (bp.includes(String(bookId))) return true;
+        bp.push(String(bookId));
+        this.currentUserData.backpack = bp;
+        const newCount = (this.currentUserData.bookmarkCount || 0) + 1;
+        this.currentUserData.bookmarkCount = newCount;
         try {
-            await fetch(`${this.dbUrl}users/${this.currentUser.uid}/backpack.json`, {
-                method: 'PUT',
+            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json`, {
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(backpack)
+                body: JSON.stringify({ backpack: bp, bookmarkCount: newCount })
             });
-            await this.incrementUserBookmarkCount();
             return true;
-        } catch (e) { return false; }
+        } catch(e) { return false; }
     },
 
     removeFromBackpack: async function(bookId) {
         if (!this.currentUser || !this.currentUserData) return false;
-        let backpack = this.getBackpack().filter(id => id !== String(bookId));
-        this.currentUserData.backpack = backpack;
-        try {
-            await fetch(`${this.dbUrl}users/${this.currentUser.uid}/backpack.json`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(backpack)
-            });
-            await this.decrementUserBookmarkCount();
-            return true;
-        } catch (e) { return false; }
-    },
-
-    incrementUserBookmarkCount: async function() {
-        if (!this.currentUser || !this.currentUserData) return;
-        const newCount = (this.currentUserData.bookmarkCount || 0) + 1;
-        this.currentUserData.bookmarkCount = newCount;
-        try {
-            await fetch(`${this.dbUrl}users/${this.currentUser.uid}/bookmarkCount.json`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newCount)
-            });
-        } catch (e) {}
-    },
-
-    decrementUserBookmarkCount: async function() {
-        if (!this.currentUser || !this.currentUserData) return;
+        const bp = this.getBackpack().filter(id => id !== String(bookId));
+        this.currentUserData.backpack = bp;
         const newCount = Math.max(0, (this.currentUserData.bookmarkCount || 0) - 1);
         this.currentUserData.bookmarkCount = newCount;
         try {
-            await fetch(`${this.dbUrl}users/${this.currentUser.uid}/bookmarkCount.json`, {
-                method: 'PUT',
+            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json`, {
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newCount)
+                body: JSON.stringify({ backpack: bp, bookmarkCount: newCount })
             });
-        } catch (e) {}
+            return true;
+        } catch(e) { return false; }
     },
 
     getLeaderboard: async function() {
@@ -237,7 +201,7 @@ const LibraryDB = {
                 }))
                 .sort((a, b) => b.bookmarkCount - a.bookmarkCount)
                 .slice(0, 10);
-        } catch (e) { return []; }
+        } catch(e) { return []; }
     },
 
     getBookSocialProof: async function() {
@@ -247,18 +211,16 @@ const LibraryDB = {
             if (!data) return {};
             const proof = {};
             Object.values(data).forEach(u => {
-                if (u && u.backpack) {
-                    u.backpack.forEach(bookId => {
-                        proof[bookId] = (proof[bookId] || 0) + 1;
-                    });
+                if (u?.backpack) {
+                    u.backpack.forEach(id => { proof[id] = (proof[id] || 0) + 1; });
                 }
             });
             return proof;
-        } catch (e) { return {}; }
+        } catch(e) { return {}; }
     },
 
     init: async function() {
-        await this._initFirebaseAuth();
+        await this._initAuth();
         await this.fetchGlobalStats();
         return true;
     },
@@ -270,17 +232,11 @@ const LibraryDB = {
                 fetch(`${this.dbUrl}ratings.json`),
                 fetch(`${this.dbUrl}globalStats/helpedCount.json?t=${Date.now()}`)
             ]);
-
-            if (!booksRes.ok) throw new Error("Failed to load");
-
+            if (!booksRes.ok) throw new Error("Failed");
             const booksData = await booksRes.json();
             const ratingsData = await ratingsRes.json();
-
             let helpedData = 0;
-            if (helpedRes.ok) {
-                try { helpedData = await helpedRes.json(); } catch(e) { helpedData = 0; }
-            }
-
+            if (helpedRes.ok) { try { helpedData = await helpedRes.json(); } catch(e) {} }
             if (Array.isArray(booksData)) {
                 this.books = booksData.filter(b => b !== null && b !== undefined);
             } else if (booksData && typeof booksData === 'object') {
@@ -288,18 +244,10 @@ const LibraryDB = {
             } else {
                 this.books = [];
             }
-
-            if (ratingsData && typeof ratingsData === 'object') {
-                this.ratings = Object.values(ratingsData);
-            } else {
-                this.ratings = [];
-            }
-
+            this.ratings = (ratingsData && typeof ratingsData === 'object') ? Object.values(ratingsData) : [];
             this.helpedCount = (typeof helpedData === 'number') ? helpedData : 0;
             return true;
-        } catch (error) {
-            return false;
-        }
+        } catch(e) { return false; }
     },
 
     saveToCloud: async function() {
@@ -310,7 +258,7 @@ const LibraryDB = {
                 body: JSON.stringify(this.books)
             });
             return true;
-        } catch (error) { return false; }
+        } catch(e) { return false; }
     },
 
     getBooks: function() { return this.books; },
@@ -330,7 +278,7 @@ const LibraryDB = {
             });
             this.helpedCount = newCount;
             return true;
-        } catch (err) { return false; }
+        } catch(e) { return false; }
     },
 
     addBook: async function(book) {
@@ -364,7 +312,7 @@ const LibraryDB = {
                 body: JSON.stringify(stars)
             });
             return true;
-        } catch (err) { return false; }
+        } catch(e) { return false; }
     },
 
     factoryReset: async function() {
@@ -384,23 +332,22 @@ const LibraryDB = {
     getBroadcast: async function() {
         try { const res = await fetch(`${this.dbUrl}broadcast.json`); return await res.json(); } catch(e) { return null; }
     },
-    setBroadcast: async function(broadcastObj) {
+
+    setBroadcast: async function(obj) {
         try {
             await fetch(`${this.dbUrl}broadcast.json`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(broadcastObj)
+                body: JSON.stringify(obj)
             });
             return true;
         } catch(e) { return false; }
     },
 
     getMaintenance: async function() {
-        try {
-            const res = await fetch(`${this.dbUrl}maintenance.json?t=${Date.now()}`);
-            return await res.json();
-        } catch(e) { return false; }
+        try { const res = await fetch(`${this.dbUrl}maintenance.json?t=${Date.now()}`); return await res.json(); } catch(e) { return false; }
     },
+
     setMaintenance: async function(status) {
         try {
             await fetch(`${this.dbUrl}maintenance.json`, {
