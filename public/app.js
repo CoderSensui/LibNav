@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSort = 'default';
     let recentSearches = JSON.parse(localStorage.getItem('libnav_recent')) || [];
 
-
     const GENRE_COLORS = {
         'Fiction': { bg: 'rgba(167,139,250,0.18)', color: '#a78bfa', border: 'rgba(167,139,250,0.3)' },
         'Filipiniana': { bg: 'rgba(251,191,36,0.15)', color: '#fbbf24', border: 'rgba(251,191,36,0.3)' },
@@ -198,7 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
             gif.src = 'https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif';
         }, 5000);
     }
-
 
     function animateCount(el, from, to, duration) {
         const start = performance.now();
@@ -707,7 +705,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
     document.getElementById('close-zoom-btn').onclick = () => { zoomModal.style.display = 'none'; resetFullScreenZoom(); };
     zoomModal.onclick = (e) => { if(e.target === zoomModal || e.target === zoomedImage) { zoomModal.style.display = 'none'; resetFullScreenZoom(); } };
 
-
     async function openModal(book) {
         bookModal.style.display = 'flex'; LibraryDB.incrementView(book.id);
         document.getElementById('modal-book-id').innerText = book.id;
@@ -913,11 +910,8 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
             const isLastStep = currentImageIndex === currentImages.length - 1;
 
-            // MOBILE: show "I Found It!" row on last step only (CSS hides this whole row on desktop)
             if (aa) aa.style.display = isLastStep ? 'flex' : 'none';
 
-            // DESKTOP: "Send Map to Mobile" always shows (CSS keeps row visible).
-            // Only toggle the "I Found It!" button inside that row.
             if (foundBtnDesk) foundBtnDesk.style.display = isLastStep ? 'flex' : 'none';
 
         } else {
@@ -1315,20 +1309,20 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
   const openStats = async () => {
         const statsModal = document.getElementById("stats-modal");
         const contentDiv = document.getElementById("stats-content");
-        
-        // Show Loading State
+        const modalBox = statsModal.firstElementChild;
+
         statsModal.style.display = "flex";
+        if(modalBox) modalBox.classList.add("stats-layout");
         contentDiv.innerHTML = `
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:300px; gap:15px;">
-                <div class="loader-logo-ring" style="width:50px; height:50px;">
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:320px; gap:15px; width:100%;">
+                <div class="loader-logo-ring" style="width:54px; height:54px;">
                     <div class="loader-ring r1" style="border-width:3px;"></div>
-                    <div class="loader-ring r2" style="border-width:3px; inset:4px;"></div>
+                    <div class="loader-ring r2" style="border-width:3px; inset:5px;"></div>
                 </div>
-                <p style="color:var(--text-muted); font-weight:bold; letter-spacing:1px; font-size:0.9rem;">LOADING STATISTICS...</p>
+                <p style="color:var(--text-muted); font-weight:bold; letter-spacing:1.5px; font-size:0.85rem; text-transform:uppercase;">Loading Statistics...</p>
             </div>
         `;
 
-        // Fetch Fresh Firebase Data
         await LibraryDB.fetchGlobalStats();
 
         const books = LibraryDB.getBooks();
@@ -1344,7 +1338,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const avgNum = parseFloat(avg);
         const avgPct = (avgNum / 5) * 100;
 
-        statsModal.firstElementChild.classList.add("stats-layout");
         contentDiv.innerHTML = `
             <div class="sn-header">
                 <div class="sn-title-block">
@@ -1437,6 +1430,7 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
                 el.style.animation = 'none'; el.offsetHeight; 
                 el.style.setProperty('--bar-w', targetW);
                 el.style.animationName = 'barGrow'; el.style.animationDuration = '0.75s';
+                el.style.animationTimingFunction = 'cubic-bezier(0.4, 0, 0.2, 1)';
                 el.style.animationFillMode = 'both'; el.style.animationDelay = (0.08 + i * 0.08) + 's';
             });
         }, 80);
@@ -1461,7 +1455,6 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
         const hero = box.querySelector('.feedback-hero');
         const form = document.getElementById('feedback-form');
 
-        // 1. Create the loading screen if it doesn't exist yet
         if (!document.getElementById('fb-loader')) {
             const loader = document.createElement('div');
             loader.id = 'fb-loader';
@@ -1479,27 +1472,24 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
         const loader = document.getElementById('fb-loader');
 
-        // 2. Hide the form content and show the loader
         loader.style.display = 'flex';
         hero.style.display = 'none';
         form.style.display = 'none';
         modal.style.display = 'flex';
 
-        // 3. Wait a moment, hide the loader, and animate the content in!
         setTimeout(() => {
             loader.style.display = 'none';
             hero.style.display = 'block';
             form.style.display = 'flex';
 
-            // Reset and trigger animations so they play every time you open it
             hero.style.animation = 'none';
-            hero.offsetHeight; // Triggers browser reflow
+            hero.offsetHeight;
             hero.style.animation = 'statsItemIn 0.35s ease both';
 
             form.style.animation = 'none';
             form.offsetHeight; 
-            form.style.animation = 'statsItemIn 0.35s ease both 0.1s'; // 0.1s delay creates a cascading effect
-        }, 800); // 800ms loading time
+            form.style.animation = 'statsItemIn 0.35s ease both 0.1s';
+        }, 800);
     };
     
     document.getElementById('section-feedback-btn')?.addEventListener('click', openFeedback);
@@ -1560,17 +1550,14 @@ window.openModalById = function(id) { const b = LibraryDB.getBooks().find(x => S
 
 async function incrementHelpedCount() {
         try {
-            // Local storage for your own milestones (optional)
             let count = parseInt(localStorage.getItem('libnav_helped_local') || '0');
             count++;
             localStorage.setItem('libnav_helped_local', String(count));
             
-            // THE IMPORTANT PART: Send to Firebase
             if(typeof LibraryDB.incrementHelped === 'function') {
                 await LibraryDB.incrementHelped();
             }
 
-            // Show Toast
             const MILESTONES = [10, 25, 50, 100, 200, 500, 1000];
             if(MILESTONES.includes(count)) {
                 setTimeout(() => showMilestoneToast(count), 1500);
@@ -1599,17 +1586,13 @@ window.showSuccessScreen = function() {
         document.getElementById('success-modal').style.display = 'flex';
         if(navigator.vibrate) navigator.vibrate([50, 30, 100, 30, 200]);
         launchConfetti();
+        incrementHelpedCount();
     }
-    
+
     window.closeSuccessScreen = function() {
         document.getElementById('success-modal').style.display = 'none';
         document.body.classList.remove('companion-mode-active');
         switchSection('home');
-        
-        // This fires the POST request to Firebase!
-        if(typeof LibraryDB.incrementHelped === 'function') {
-            LibraryDB.incrementHelped();
-        }
     }
     
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -1786,7 +1769,7 @@ window.showSuccessScreen = function() {
                 }
             }
         }
-    }, 1500);
+    }, 2500);
 
     const zoomImageElement = document.getElementById('zoomed-image');
     const zoomModalContainer = document.getElementById('zoom-modal');
@@ -1861,7 +1844,7 @@ window.showSuccessScreen = function() {
     const welcomeModal = document.getElementById('welcome-modal');
     const startLibnavBtn = document.getElementById('start-libnav-btn');
     if (welcomeModal && !localStorage.getItem('libnav_onboarded')) {
-        setTimeout(() => { welcomeModal.style.display = 'flex'; }, 1000);
+        setTimeout(() => { welcomeModal.style.display = 'flex'; }, 2200);
     }
     if (startLibnavBtn) {
         startLibnavBtn.onclick = () => {
