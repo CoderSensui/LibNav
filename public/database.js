@@ -2,15 +2,15 @@ const LibraryDB = {
     dbUrl: "https://libnav-dc2c8-default-rtdb.firebaseio.com/",
     books: [],
     ratings: [],
-    helpedRecords: [], // This will store the list of timestamps, just like ratings
+    helpedRecords: [], // Stores the list of helped objects
 
     init: async function() {
-        // We keep init simple for the main app load
+        // Keeps init simple for the main app load
         await this.fetchGlobalStats(); 
         return true;
     },
 
-    // NEW: Call this when opening the Stats modal to get fresh data
+    // Fetches fresh data when opening the Stats modal
     fetchGlobalStats: async function() {
         try {
             const [booksRes, ratingsRes, helpedRes] = await Promise.all([
@@ -34,14 +34,14 @@ const LibraryDB = {
                 this.books = [];
             }
 
-            // Handle Ratings (List)
+            // Handle Ratings
             if (ratingsData && typeof ratingsData === 'object') {
                 this.ratings = Object.values(ratingsData);
             } else {
                 this.ratings = [];
             }
 
-            // Handle Helped Counts (List - Just like Ratings!)
+            // Handle Helped Counts
             if (helpedData && typeof helpedData === 'object') {
                 this.helpedRecords = Object.values(helpedData);
             } else {
@@ -68,24 +68,29 @@ const LibraryDB = {
     getBooks: function() { return this.books; },
     getRatings: function() { return this.ratings; },
     
-    // NOW IT WORKS: Returns the length of the array (e.g., 5 people helped)
+    // Returns the length of the array (e.g., 5 people helped)
     getHelpedCount: function() { return this.helpedRecords.length; },
 
-    // MIRRORED LOGIC: Adds a timestamp to the list, just like reviews
+    // MIRRORED LOGIC: Adds a record object to the list, just like reviews
     incrementHelped: async function() {
         try {
-            const timestamp = Date.now();
+            // FIXED: We wrap the timestamp in an object. Firebase prefers objects when creating new list nodes via POST.
+            const record = { timestamp: Date.now() }; 
+            
             // Optimistically update local data so it feels fast
-            this.helpedRecords.push(timestamp);
+            this.helpedRecords.push(record);
             
             // Send to Firebase
             await fetch(`${this.dbUrl}helped.json`, {
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(timestamp)
+                body: JSON.stringify(record)
             });
             return true;
-        } catch (err) { return false; }
+        } catch (err) { 
+            console.error("Firebase Write Failed:", err);
+            return false; 
+        }
     },
     
     addBook: async function(book) {
@@ -133,6 +138,9 @@ const LibraryDB = {
 
         await fetch(`${this.dbUrl}helped.json`, { method: 'DELETE' });
         this.helpedRecords = [];
+
+        // Clean up any old local storage items
+        localStorage.removeItem('libnav_helped_local');
 
         return true;
     },
