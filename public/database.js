@@ -2,22 +2,30 @@ const LibraryDB = {
     dbUrl: "https://libnav-dc2c8-default-rtdb.firebaseio.com/",
     books: [],
     ratings: [],
-    helpedRecords: [], 
-    
+    helpedRecords: [], // This will store the list of timestamps, just like ratings
+
     init: async function() {
+        // We keep init simple for the main app load
+        await this.fetchGlobalStats(); 
+        return true;
+    },
+
+    // NEW: Call this when opening the Stats modal to get fresh data
+    fetchGlobalStats: async function() {
         try {
             const [booksRes, ratingsRes, helpedRes] = await Promise.all([
                 fetch(`${this.dbUrl}books.json`),
                 fetch(`${this.dbUrl}ratings.json`),
-                fetch(`${this.dbUrl}helped.json`) // Replicated ratings fetch
+                fetch(`${this.dbUrl}helped.json`) // Fetching the list of helped events
             ]);
 
-            if (!booksRes.ok) throw new Error("Failed to load books");
+            if (!booksRes.ok) throw new Error("Failed to load");
 
             const booksData = await booksRes.json();
             const ratingsData = await ratingsRes.json();
             const helpedData = await helpedRes.json();
 
+            // Handle Books
             if (Array.isArray(booksData)) {
                 this.books = booksData.filter(b => b !== null && b !== undefined);
             } else if (booksData && typeof booksData === 'object') {
@@ -26,58 +34,60 @@ const LibraryDB = {
                 this.books = [];
             }
 
+            // Handle Ratings (List)
             if (ratingsData && typeof ratingsData === 'object') {
-                this.ratings = Object.values(ratingsData).filter(r => r !== null && r !== undefined && typeof r === 'number');
+                this.ratings = Object.values(ratingsData);
             } else {
                 this.ratings = [];
             }
 
-            // Parse helped data exactly like ratings
+            // Handle Helped Counts (List - Just like Ratings!)
             if (helpedData && typeof helpedData === 'object') {
                 this.helpedRecords = Object.values(helpedData);
             } else {
                 this.helpedRecords = [];
             }
-
             return true;
         } catch (error) {
+            console.error("DB Error", error);
             return false;
         }
     },
 
     saveToCloud: async function() {
         try {
-            const response = await fetch(`${this.dbUrl}books.json`, {
+            await fetch(`${this.dbUrl}books.json`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(this.books)
             });
-            return response.ok;
-        } catch (error) {
-            return false;
-        }
+            return true;
+        } catch (error) { return false; }
     },
 
     getBooks: function() { return this.books; },
     getRatings: function() { return this.ratings; },
-    getHelpedCount: function() { return this.helpedRecords.length; }, // Just count the list!
+    
+    // NOW IT WORKS: Returns the length of the array (e.g., 5 people helped)
+    getHelpedCount: function() { return this.helpedRecords.length; },
 
-    // Exact copy of the submitRating POST logic
+    // MIRRORED LOGIC: Adds a timestamp to the list, just like reviews
     incrementHelped: async function() {
         try {
             const timestamp = Date.now();
+            // Optimistically update local data so it feels fast
             this.helpedRecords.push(timestamp);
+            
+            // Send to Firebase
             await fetch(`${this.dbUrl}helped.json`, {
-                method: 'POST',
+                method: 'POST', 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(timestamp)
             });
             return true;
-        } catch (err) {
-            return false;
-        }
+        } catch (err) { return false; }
     },
-
+    
     addBook: async function(book) {
         this.books.push(book);
         return await this.saveToCloud();
