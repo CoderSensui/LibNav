@@ -294,30 +294,69 @@
         <div class="modal-box feedback-layout">
             <button class="close-btn"><i data-lucide="x"></i></button>
             <div class="feedback-hero">
-                <div class="feedback-header">
-                    <div class="feedback-icon-wrap"><i data-lucide="message-circle-heart"></i></div>
-                    <h2>Share Your Thoughts</h2>
-                    <p>Your feedback helps make LibNav better for every student on campus.</p>
-                </div>
+                <div class="feedback-icon-wrap"><i data-lucide="message-circle-heart"></i></div>
+                <h2>Rate LibNav</h2>
+                <p>Tell us what you think. Your review helps every student on campus.</p>
             </div>
-            <form id="feedback-form" class="feedback-form">
+            <div id="fb-loading" style="display:none;padding:30px;text-align:center;">
+                <div style="width:36px;height:36px;border:3px solid var(--border-color);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px;"></div>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Loading reviews...</p>
+            </div>
+            <div id="fb-guest-notice" style="display:none;text-align:center;padding:20px 0;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">📝</div>
+                <p style="color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Sign in to leave a review and see what others think of LibNav.</p>
+                <button id="fb-signin-btn" class="btn-primary" style="width:100%;"><i data-lucide="log-in"></i> Sign In to Review</button>
+            </div>
+            <div id="fb-existing-review" style="display:none;">
+                <div class="fb-existing-card">
+                    <div class="fb-existing-header">
+                        <div id="fb-existing-avatar" class="fb-reviewer-avatar"></div>
+                        <div>
+                            <div id="fb-existing-name" style="font-weight:700;font-size:0.95rem;color:var(--text-main);"></div>
+                            <div id="fb-existing-stars" class="fb-star-display"></div>
+                        </div>
+                        <div class="fb-existing-actions">
+                            <button id="fb-edit-btn" class="fb-action-btn" title="Edit"><i data-lucide="edit-2"></i></button>
+                            <button id="fb-delete-btn" class="fb-action-btn fb-action-btn--danger" title="Delete"><i data-lucide="trash-2"></i></button>
+                        </div>
+                    </div>
+                    <p id="fb-existing-message" class="fb-existing-text"></p>
+                </div>
+                <div class="fb-reviews-divider"><span>All Reviews</span></div>
+                <div id="fb-reviews-list" class="fb-reviews-list"></div>
+            </div>
+            <div id="fb-write-form" style="display:none;">
+                <p id="fb-write-label" style="font-weight:700;margin-bottom:14px;color:var(--text-main);">Write a review</p>
                 <div class="star-rating-input">
-                    <p>How would you rate LibNav?</p>
                     <div class="stars">
-                        <input type="radio" name="rating" id="star5" value="5" checked><label for="star5"><i data-lucide="star"></i></label>
-                        <input type="radio" name="rating" id="star4" value="4"><label for="star4"><i data-lucide="star"></i></label>
-                        <input type="radio" name="rating" id="star3" value="3"><label for="star3"><i data-lucide="star"></i></label>
-                        <input type="radio" name="rating" id="star2" value="2"><label for="star2"><i data-lucide="star"></i></label>
-                        <input type="radio" name="rating" id="star1" value="1"><label for="star1"><i data-lucide="star"></i></label>
+                        <input type="radio" name="fbrating" id="fbs5" value="5" checked><label for="fbs5"><i data-lucide="star"></i></label>
+                        <input type="radio" name="fbrating" id="fbs4" value="4"><label for="fbs4"><i data-lucide="star"></i></label>
+                        <input type="radio" name="fbrating" id="fbs3" value="3"><label for="fbs3"><i data-lucide="star"></i></label>
+                        <input type="radio" name="fbrating" id="fbs2" value="2"><label for="fbs2"><i data-lucide="star"></i></label>
+                        <input type="radio" name="fbrating" id="fbs1" value="1"><label for="fbs1"><i data-lucide="star"></i></label>
                     </div>
                 </div>
-                <div class="fb-name-row">
-                    <input type="text" id="fb-name" class="input-field" placeholder="Your Name (Optional)">
-                    <input type="email" id="fb-email" class="input-field" placeholder="Email (Optional)">
+                <textarea id="fb-message" class="input-field" rows="4" placeholder="Bug report, feature idea, or just say hi — we read everything!" style="margin-top:12px;"></textarea>
+                <div style="display:flex;gap:10px;margin-top:12px;">
+                    <button id="fb-cancel-btn" class="btn-secondary" style="flex:1;"><i data-lucide="x"></i> Cancel</button>
+                    <button id="fb-submit-btn" class="btn-primary" style="flex:2;"><i data-lucide="send"></i> Post Review</button>
                 </div>
-                <textarea id="fb-message" class="input-field" rows="4" placeholder="Bug report, feature idea, or just say hi — we read everything!" required></textarea>
-                <button type="submit" id="fb-submit-btn" class="btn-primary"><i data-lucide="send"></i> Send Feedback</button>
-            </form>
+            </div>
+            <div id="fb-new-user-form" style="display:none;">
+                <div class="star-rating-input">
+                    <div class="stars">
+                        <input type="radio" name="fbrating" id="fbn5" value="5" checked><label for="fbn5"><i data-lucide="star"></i></label>
+                        <input type="radio" name="fbrating" id="fbn4" value="4"><label for="fbn4"><i data-lucide="star"></i></label>
+                        <input type="radio" name="fbrating" id="fbn3" value="3"><label for="fbn3"><i data-lucide="star"></i></label>
+                        <input type="radio" name="fbrating" id="fbn2" value="2"><label for="fbn2"><i data-lucide="star"></i></label>
+                        <input type="radio" name="fbrating" id="fbn1" value="1"><label for="fbn1"><i data-lucide="star"></i></label>
+                    </div>
+                </div>
+                <textarea id="fb-new-message" class="input-field" rows="4" placeholder="Bug report, feature idea, or just say hi — we read everything!" style="margin-top:12px;"></textarea>
+                <button id="fb-new-submit-btn" class="btn-primary" style="width:100%;margin-top:12px;"><i data-lucide="send"></i> Post Review</button>
+                <div class="fb-reviews-divider" style="margin-top:20px;"><span>All Reviews</span></div>
+                <div id="fb-all-reviews-list" class="fb-reviews-list"></div>
+            </div>
         </div>
     </div>
 
@@ -423,7 +462,7 @@
                 <button id="profile-signin-btn" class="btn-primary full-width" style="margin-top:5px;"><i data-lucide="log-in"></i> Sign In / Sign Up</button>
             </div>
             <div id="profile-user-view" style="display:none;">
-                <!-- MAIN PROFILE VIEW -->
+                
                 <div id="profile-main-view">
                     <div class="profile-hero-wrap">
                         <div class="profile-hero-bg"></div>
@@ -470,7 +509,6 @@
                     <button id="profile-signout-btn" class="profile-signout-btn"><i data-lucide="log-out"></i> Sign Out</button>
                 </div>
 
-                <!-- EDIT PROFILE VIEW -->
                 <div id="profile-edit-view" style="display:none;">
                     <div class="edit-profile-header">
                         <button id="profile-edit-back-btn" class="edit-back-btn"><i data-lucide="arrow-left"></i></button>
@@ -478,18 +516,16 @@
                         <div style="width:36px;"></div>
                     </div>
 
-                    <!-- Avatar Preset Picker -->
                     <div class="edit-avatar-section">
                         <div class="edit-avatar-preview-wrap">
                             <div id="edit-avatar-preview" class="edit-avatar-preview"></div>
                         </div>
                         <p class="edit-avatar-picker-label">Choose your avatar style</p>
                         <div class="avatar-preset-grid" id="avatar-preset-grid">
-                            <!-- Filled by JS -->
+                            
                         </div>
                     </div>
 
-                    <!-- Display Name -->
                     <div class="edit-field-group">
                         <label class="edit-field-label"><i data-lucide="user" style="width:14px;height:14px;"></i> Display Name</label>
                         <div class="auth-input-group" style="margin-bottom:0;">
