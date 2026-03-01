@@ -40,7 +40,8 @@ const LibraryDB = {
         this._sdkLoading = new Promise((resolve, reject) => {
             const urls = [
                 "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js",
-                "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"
+                "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js",
+                "https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"
             ];
             let done = 0;
             const timeout = setTimeout(() => reject(new Error('Firebase SDK load timeout')), 8000);
@@ -135,6 +136,22 @@ const LibraryDB = {
     signIn: async function(email, password) {
         await this._loadSDK();
         const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
+        if (!cred.user.emailVerified) {
+            await firebase.auth().signOut();
+            const err = new Error('Email not verified.');
+            err.code = 'auth/email-not-verified';
+            throw err;
+        }
+        this.currentUser = cred.user;
+        await this._loadUserData(cred.user.uid);
+        return cred.user;
+    },
+
+    signInWithGoogle: async function() {
+        await this._loadSDK();
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        const cred = await firebase.auth().signInWithPopup(provider);
         this.currentUser = cred.user;
         await this._loadUserData(cred.user.uid);
         return cred.user;
@@ -205,6 +222,20 @@ const LibraryDB = {
         } catch(e) { return false; }
     },
 
+    incrementUserHelped: async function() {
+        if (!this.currentUser || !this.currentUserData) return false;
+        const newCount = (this.currentUserData.helpedCount || 0) + 1;
+        this.currentUserData.helpedCount = newCount;
+        try {
+            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ helpedCount: newCount })
+            });
+            return newCount;
+        } catch(e) { return false; }
+    },
+
     getLeaderboard: async function() {
         try {
             const res = await fetch(`${this.dbUrl}users.json`);
@@ -215,10 +246,11 @@ const LibraryDB = {
                 .map(([uid, u]) => ({
                     uid,
                     displayName: u.displayName,
+                    helpedCount: u.helpedCount || 0,
                     bookmarkCount: u.bookmarkCount || 0,
-                    rank: getRank(u.bookmarkCount || 0)
+                    rank: getRank(u.helpedCount || 0)
                 }))
-                .sort((a, b) => b.bookmarkCount - a.bookmarkCount)
+                .sort((a, b) => b.helpedCount - a.helpedCount)
                 .slice(0, 10);
         } catch(e) { return []; }
     },
@@ -346,6 +378,28 @@ const LibraryDB = {
         });
         this.helpedCount = 0;
         return true;
+    },
+
+    updateUserProfile: async function(displayName, avatarDataUrl) {
+        if (!this.currentUser || !this.currentUserData) return false;
+        const updates = {};
+        if (displayName && displayName.trim()) {
+            updates.displayName = displayName.trim();
+            this.currentUserData.displayName = displayName.trim();
+            try { await this.currentUser.updateProfile({ displayName: displayName.trim() }); } catch(e) {}
+        }
+        if (avatarDataUrl !== undefined) {
+            updates.avatarUrl = avatarDataUrl; // null to remove, string to set
+            this.currentUserData.avatarUrl = avatarDataUrl;
+        }
+        try {
+            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates)
+            });
+            return true;
+        } catch(e) { return false; }
     },
 
     getBroadcast: async function() {
