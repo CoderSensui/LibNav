@@ -2,11 +2,9 @@
 <html lang="en">
 <head>
     <link rel="manifest" href="manifest.json">
-    
     <link rel="apple-touch-icon" href="https://i.imgur.com/gmJh9bn.jpeg">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#131314">
@@ -15,7 +13,6 @@
     <meta property="og:description" content="Navigate the Notre Dame - Siena College library with ease. Find books, explore the catalog, and never get lost in the shelves again!">
     <meta property="og:image" content="https://i.imgur.com/gmJh9bn.jpeg">
     <meta property="og:type" content="website">
-
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="LibNav | Smart Library">
     <meta name="twitter:description" content="Navigate the Notre Dame - Siena College library with ease.">
@@ -23,12 +20,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    
     <div id="app-loader" class="app-loader">
         <div class="loader-bg-orb loader-orb1"></div>
         <div class="loader-bg-orb loader-orb2"></div>
@@ -41,36 +36,19 @@
             <h1 class="loader-title">LibNav</h1>
             <p class="loader-subtitle">Smart Library Navigation</p>
             <div class="loader-steps">
-                <div class="loader-step active" id="ls-1">
-                    <div class="ls-dot"></div>
-                    <span>Connecting to Firebase...</span>
-                </div>
-                <div class="loader-step" id="ls-2">
-                    <div class="ls-dot"></div>
-                    <span>Loading book catalog...</span>
-                </div>
-                <div class="loader-step" id="ls-3">
-                    <div class="ls-dot"></div>
-                    <span>Preparing navigation maps...</span>
-                </div>
-                <div class="loader-step" id="ls-4">
-                    <div class="ls-dot"></div>
-                    <span>Almost ready...</span>
-                </div>
+                <div class="loader-step active" id="ls-1"><div class="ls-dot"></div><span>Connecting to Firebase...</span></div>
+                <div class="loader-step" id="ls-2"><div class="ls-dot"></div><span>Loading book catalog...</span></div>
+                <div class="loader-step" id="ls-3"><div class="ls-dot"></div><span>Preparing navigation maps...</span></div>
+                <div class="loader-step" id="ls-4"><div class="ls-dot"></div><span>Almost ready...</span></div>
             </div>
-            <div class="loader-bar-track">
-                <div class="loader-bar-fill" id="loader-bar"></div>
-            </div>
+            <div class="loader-bar-track"><div class="loader-bar-fill" id="loader-bar"></div></div>
             <p class="loader-footer">Notre Dame - Siena College &nbsp;·&nbsp; GenSan</p>
         </div>
     </div>
 
     <div id="offline-banner" class="offline-banner">
         <div class="wifi-icon-anim"><i data-lucide="wifi-off"></i></div>
-        <div class="offline-text">
-            <strong>You are offline</strong>
-            <span>Browsing cached library version</span>
-        </div>
+        <div class="offline-text"><strong>You are offline</strong><span>Browsing cached library version</span></div>
     </div>
 
     <div id="toast-notification" class="toast">
@@ -88,7 +66,7 @@
                 <a href="#" class="desk-nav-item" data-section="tools"><i data-lucide="wrench"></i> Tools</a>
                 <a href="#" class="desk-nav-item" data-section="about"><i data-lucide="info"></i> About</a>
             </nav>
-            <button id="secret-admin-btn" class="icon-btn" style="border:none; background:transparent;"><i data-lucide="shield" style="opacity:0.3;"></i></button>
+            <button id="profile-btn" class="icon-btn profile-icon-btn" title="My Profile"><i data-lucide="user"></i></button>
         </div>
     </header>
 
@@ -110,27 +88,23 @@
     </div>
 
     <main class="main-container">
-        
         <section id="home-section" class="content-section active">
             <div id="hero" class="hero">
                 <div id="minion-container"><img id="minion-sprite" src="https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif"></div>
                 <h1 id="hero-title" class="hero-title mobile-only-logo">LibNav</h1>
                 <p class="hero-subtitle">Find your way to the story</p>
             </div>
-
             <div class="search-wrapper">
                 <i data-lucide="search" class="search-icon"></i>
                 <input type="text" id="search-input" placeholder="Search title or author..." autocomplete="off">
-               <div class="search-actions">
+                <div class="search-actions">
                     <button id="search-clear-btn" class="icon-btn search-clear-btn" style="display:none;" title="Clear"><i data-lucide="x"></i></button>
-                    <button id="quick-bookmark-btn" class="icon-btn" title="My Reading List"><i data-lucide="bookmark"></i></button>
+                    <button id="quick-bookmark-btn" class="icon-btn" title="My Backpack"><i data-lucide="bookmark"></i></button>
                     <button id="mic-btn" class="icon-btn mobile-only"><i data-lucide="mic"></i></button>
                     <button id="filter-toggle" class="icon-btn"><i data-lucide="sliders-horizontal"></i></button>
                 </div>
-                
                 <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
                 <div id="recent-searches-dropdown" class="autocomplete-dropdown"></div>
-                
                 <div id="filter-menu" class="filter-dropdown">
                     <label class="filter-option highlight"><input type="checkbox" value="All"><span class="checkmark"></span><span>All Genres</span></label>
                     <div class="divider"></div>
@@ -141,7 +115,6 @@
                     <label class="filter-option"><input type="checkbox" value="Religion"><span class="checkmark"></span><span>Religion</span></label>
                 </div>
             </div>
-
             <div id="featured-container"></div>
             <div id="results-area" class="shelf-grid"></div>
         </section>
@@ -154,34 +127,22 @@
             <div class="tool-grid">
                 <button id="section-theme-toggle" class="tool-card">
                     <div class="tool-card-icon tc-purple"><i id="theme-btn-icon" data-lucide="sun"></i></div>
-                    <div class="tool-card-body">
-                        <strong id="theme-btn-text">Switch to Light Mode</strong>
-                        <span>Toggle app appearance</span>
-                    </div>
+                    <div class="tool-card-body"><strong id="theme-btn-text">Switch to Light Mode</strong><span>Toggle app appearance</span></div>
                     <i data-lucide="chevron-right" class="tool-card-arrow"></i>
                 </button>
                 <button id="section-stats-btn" class="tool-card">
                     <div class="tool-card-icon tc-pink"><i data-lucide="bar-chart-2"></i></div>
-                    <div class="tool-card-body">
-                        <strong>Live Statistics</strong>
-                        <span>Views, trends &amp; catalog data</span>
-                    </div>
+                    <div class="tool-card-body"><strong>Live Statistics</strong><span>Views, trends &amp; catalog data</span></div>
                     <i data-lucide="chevron-right" class="tool-card-arrow"></i>
                 </button>
                 <button id="section-feedback-btn" class="tool-card">
                     <div class="tool-card-icon tc-green"><i data-lucide="message-square-heart"></i></div>
-                    <div class="tool-card-body">
-                        <strong>Send Feedback</strong>
-                        <span>Bug reports &amp; feature ideas</span>
-                    </div>
+                    <div class="tool-card-body"><strong>Send Feedback</strong><span>Bug reports &amp; feature ideas</span></div>
                     <i data-lucide="chevron-right" class="tool-card-arrow"></i>
                 </button>
             </div>
             <div class="tip-feature-card">
-                <div class="tip-fc-top">
-                    <i data-lucide="sparkles"></i>
-                    <span>Tip of the moment</span>
-                </div>
+                <div class="tip-fc-top"><i data-lucide="sparkles"></i><span>Tip of the moment</span></div>
                 <p id="dynamic-tip">Loading tip...</p>
             </div>
         </section>
@@ -199,36 +160,22 @@
                 <div class="how-label"><i data-lucide="book-open-check"></i> How to Use</div>
                 <div class="timeline">
                     <div class="tl-item">
-                        <div class="tl-node">1</div>
-                        <div class="tl-line"></div>
-                        <div class="tl-content">
-                            <strong>Search</strong>
-                            <span>Find your desired book via text input or voice recognition.</span>
-                        </div>
+                        <div class="tl-node">1</div><div class="tl-line"></div>
+                        <div class="tl-content"><strong>Search</strong><span>Find your desired book via text input or voice recognition.</span></div>
                     </div>
                     <div class="tl-item">
-                        <div class="tl-node">2</div>
-                        <div class="tl-line"></div>
-                        <div class="tl-content">
-                            <strong>Navigate</strong>
-                            <span>Tap a book cover to view the step-by-step visual map to its exact shelf.</span>
-                        </div>
+                        <div class="tl-node">2</div><div class="tl-line"></div>
+                        <div class="tl-content"><strong>Navigate</strong><span>Tap a book cover to view the step-by-step visual map to its exact shelf.</span></div>
                     </div>
                     <div class="tl-item tl-last">
                         <div class="tl-node">3</div>
-                        <div class="tl-content">
-                            <strong>Companion Mode</strong>
-                            <span>On a PC, scan the QR code to take the map with you on your phone.</span>
-                        </div>
+                        <div class="tl-content"><strong>Companion Mode</strong><span>On a PC, scan the QR code to take the map with you on your phone.</span></div>
                     </div>
                 </div>
             </div>
             <div class="reminder-banner">
                 <div class="reminder-icon"><i data-lucide="alert-triangle"></i></div>
-                <div class="reminder-text">
-                    <strong>Important Reminder</strong>
-                    <span>Don't forget to formally check out the book at the front desk before leaving the library!</span>
-                </div>
+                <div class="reminder-text"><strong>Important Reminder</strong><span>Don't forget to formally check out the book at the front desk before leaving the library!</span></div>
             </div>
         </section>
 
@@ -265,19 +212,15 @@
     <div id="book-modal" class="modal-overlay">
         <div class="modal-box book-layout">
             <span id="modal-book-id" style="display:none;"></span>
-
             <div class="bm-float-btns">
                 <button id="top-share-btn" class="bm-float-btn"><i data-lucide="share-2"></i></button>
                 <button class="close-btn bm-float-btn"><i data-lucide="x"></i></button>
             </div>
-
             <div class="book-modal-grid">
                 <div class="book-left">
                     <div class="bm-cover-hero">
                         <div class="bm-cover-bg"></div>
-                        <div class="umh-cover-wrap skeleton">
-                            <img id="umh-book-cover" src="" style="opacity:0;">
-                        </div>
+                        <div class="umh-cover-wrap skeleton"><img id="umh-book-cover" src="" style="opacity:0;"></div>
                     </div>
                     <div class="bm-info-strip">
                         <div class="bm-badge-row">
@@ -286,57 +229,32 @@
                         </div>
                         <h2 class="bm-book-title" id="umh-title">Title</h2>
                         <div class="bm-author-row">
-                            <div class="bm-author-avatar skeleton">
-                                <img id="umh-author-pic" src="">
-                            </div>
-                            <div>
-                                <div class="bm-author-label">Author</div>
-                                <div class="bm-author-name" id="umh-author-name">Name</div>
-                            </div>
+                            <div class="bm-author-avatar skeleton"><img id="umh-author-pic" src=""></div>
+                            <div><div class="bm-author-label">Author</div><div class="bm-author-name" id="umh-author-name">Name</div></div>
                         </div>
                     </div>
                 </div>
-
                 <div class="book-right">
-                    <div class="bm-map-label">
-                        <i data-lucide="map-pin"></i> Navigation Map
-                    </div>
-
+                    <div class="bm-map-label"><i data-lucide="map-pin"></i> Navigation Map</div>
                     <div id="carousel-wrapper" class="map-carousel">
-                        <div id="swipe-hint" class="swipe-hint mobile-only-flex">
-                            <i data-lucide="move-horizontal"></i> <span>Swipe to navigate</span>
-                        </div>
-                        <div id="tap-hint" class="swipe-hint mobile-only-flex" style="display:none;">
-                            <i data-lucide="maximize-2"></i> <span>Tap map to zoom</span>
-                        </div>
+                        <div id="swipe-hint" class="swipe-hint mobile-only-flex"><i data-lucide="move-horizontal"></i> <span>Swipe to navigate</span></div>
+                        <div id="tap-hint" class="swipe-hint mobile-only-flex" style="display:none;"><i data-lucide="maximize-2"></i> <span>Tap map to zoom</span></div>
                         <img id="carousel-img" src="" alt="Navigation Map" style="cursor:pointer;">
                         <button id="zoom-trigger-btn" class="zoom-badge"><i data-lucide="maximize-2"></i></button>
                         <div id="carousel-dots" class="carousel-dots"></div>
                     </div>
-
                     <div class="carousel-controls">
                         <button id="prev-img-btn" class="nav-control-btn"><i data-lucide="chevron-left"></i></button>
                         <div id="step-counter" class="step-pill">Step 1</div>
                         <button id="next-img-btn" class="nav-control-btn"><i data-lucide="chevron-right"></i></button>
                     </div>
-
-                    
                     <div class="bm-action-row" id="mobile-action-area" style="display:none;">
-                        <button class="bm-found-btn" onclick="showSuccessScreen()">
-                            <i data-lucide="check-circle-2"></i> I Found It!
-                        </button>
+                        <button class="bm-found-btn" onclick="showSuccessScreen()"><i data-lucide="check-circle-2"></i> I Found It!</button>
                     </div>
-
-                    
                     <div class="bm-action-row bm-desktop-qr">
-                        <button id="show-qr-btn-desk" class="bm-qr-btn">
-                            <i data-lucide="qr-code"></i> Send Map to Mobile
-                        </button>
-                        <button id="bm-found-btn-desk" class="bm-found-btn" style="display:none;" onclick="showSuccessScreen()">
-                            <i data-lucide="check-circle-2"></i> I Found It!
-                        </button>
+                        <button id="show-qr-btn-desk" class="bm-qr-btn"><i data-lucide="qr-code"></i> Send Map to Mobile</button>
+                        <button id="bm-found-btn-desk" class="bm-found-btn" style="display:none;" onclick="showSuccessScreen()"><i data-lucide="check-circle-2"></i> I Found It!</button>
                     </div>
-
                     <div class="virtual-shelf-footer bm-shelf">
                         <h3>Also in this section</h3>
                         <div class="related-scroll-wrap" id="related-scroll-wrap">
@@ -357,10 +275,7 @@
             <button class="close-btn"><i data-lucide="x"></i></button>
             <div class="icon-box" style="margin: 0 auto 15px; width: 60px; height: 60px;"><i data-lucide="smartphone"></i></div>
             <h2 style="margin-bottom: 15px;">Scan to Mobile</h2>
-            <div class="qr-scanner-box" style="margin-bottom: 20px;">
-                <div id="qrcode"></div>
-                <div class="scanner-line"></div> 
-            </div>
+            <div class="qr-scanner-box" style="margin-bottom: 20px;"><div id="qrcode"></div><div class="scanner-line"></div></div>
             <div class="tip-box" style="margin-bottom: 0; text-align: left;">
                 <div class="tip-header"><i data-lucide="lightbulb"></i> Quick Tip</div>
                 <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0;">Open your phone's camera app and point it at this QR code to seamlessly take the navigation map with you on the go!</p>
@@ -368,123 +283,7 @@
         </div>
     </div>
 
-    <div id="admin-modal" class="modal-overlay">
-        <div class="modal-box admin-layout">
-            <button class="close-btn"><i data-lucide="x"></i></button>
-            <div class="card-header" style="border:none;"><div class="icon-box"><i data-lucide="shield"></i></div><h2>Admin Panel</h2></div>
-            
-            <div id="admin-login-screen">
-                <p class="input-label">Enter Access Key</p>
-                <div class="input-with-icon">
-                    <i data-lucide="lock"></i>
-                    <input type="password" id="admin-password" class="input-field" placeholder="Password">
-                </div>
-                <button id="admin-auth-btn" class="btn-primary full-width">Login</button>
-            </div>
-            
-          <div id="admin-dashboard" style="display:none;">
-                
-                <div id="admin-main-view">
-                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                        <button id="open-add-view-btn" class="btn-primary" style="padding: 15px; font-size: 0.95rem;"><i data-lucide="plus-circle"></i> Add</button>
-                        <button id="open-batch-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.95rem;"><i data-lucide="layers"></i> Batch</button>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
-                        <button id="open-broadcast-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.95rem; background: var(--primary-light); color: var(--primary); border: none;"><i data-lucide="radio"></i> Broadcast</button>
-                        <button id="open-maint-view-btn" class="btn-secondary" style="padding: 15px; font-size: 0.95rem; background: rgba(245,158,11,0.1); color: var(--warning); border: none;"><i data-lucide="construction"></i> System</button>
-                    </div>
-                    
-                    <h3 class="sub-title warning"><i data-lucide="database"></i> System Data</h3>
-                    <div class="input-with-icon" style="margin-bottom: 15px;">
-                        <i data-lucide="search"></i>
-                        <input type="text" id="admin-search" class="input-field" style="padding: 15px 15px 15px 55px; font-size: 1rem; margin-bottom: 0;" placeholder="Search admin books...">
-                    </div>
-                    <div id="admin-book-list" class="admin-list"></div>
-                    <button id="factory-reset-btn" class="btn-outline-warning full-width mt"><i data-lucide="alert-octagon"></i> Factory Reset</button>
-                    <button id="admin-logout-btn" class="btn-secondary full-width mt" style="color: #ef4444; border-color: rgba(239,68,68,0.3); margin-top: 10px;"><i data-lucide="log-out"></i> Logout</button>
-                </div>
-
-                <div id="admin-form-view" style="display:none;">
-                    <button id="close-form-view-btn" class="btn-secondary" style="margin-bottom: 20px; padding: 10px;"><i data-lucide="arrow-left"></i> Back to Menu</button>
-                    <h3 id="admin-form-title" class="sub-title">Add New Book</h3>
-                    <input type="hidden" id="edit-book-id" value="">
-                    
-                    <input type="text" id="new-title" class="input-field" placeholder="Book Title">
-                    <input type="text" id="new-author" class="input-field" placeholder="Author Name">
-                    
-                    <div class="form-grid">
-                        <div>
-                            <label class="input-label">Genre</label>
-                            <select id="new-genre" class="input-field" style="padding-left:15px;">
-                                <option value="Fiction">Fiction</option>
-                                <option value="Filipiniana">Filipiniana</option>
-                                <option value="Filipiniana Reference">Filipiniana Reference</option>
-                                <option value="Science/Math">Science/Math</option>
-                                <option value="Religion">Religion</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="input-label">Nav Steps</label>
-                            <select id="step-count-select" class="input-field" style="padding-left:15px;">
-                                <option value="2">2 Steps</option>
-                                <option value="3">3 Steps</option>
-                                <option value="4">4 Steps</option>
-                                <option value="5">5 Steps</option>
-                                <option value="6">6 Steps</option>
-                                <option value="7">7 Steps</option>
-                                <option value="8">8 Steps</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <label class="filter-option highlight" style="margin-bottom: 20px; background: var(--bg-main); padding: 15px; border: 1px solid var(--border-color);">
-                        <input type="checkbox" id="new-arrival-check">
-                        <span class="checkmark"></span>
-                        <span style="font-weight: bold; color: var(--primary);">Mark as New Arrival</span>
-                    </label>
-                    
-                    <div id="image-inputs-container" class="dynamic-inputs"></div>
-
-                    <button id="add-book-btn" class="btn-success full-width"><i data-lucide="upload-cloud"></i> Save to Cloud</button>
-                </div>
-              
-              <div id="admin-batch-view" style="display:none;">
-                    <button id="close-batch-view-btn" class="btn-secondary" style="margin-bottom: 20px; padding: 10px;"><i data-lucide="arrow-left"></i> Back to Menu</button>
-                    <h3 class="sub-title"><i data-lucide="layers"></i> Batch Update Images</h3>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px; line-height: 1.4;">This will overwrite the map navigation images for EVERY book inside the selected category at once.</p>
-                    
-                    <div class="form-grid">
-                        <div>
-                            <label class="input-label">Target Genre</label>
-                            <select id="batch-genre" class="input-field" style="padding-left:15px;">
-                                <option value="Fiction">Fiction</option>
-                                <option value="Filipiniana">Filipiniana</option>
-                                <option value="Filipiniana Reference">Filipiniana Reference</option>
-                                <option value="Science/Math">Science/Math</option>
-                                <option value="Religion">Religion</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="input-label">Nav Steps</label>
-                            <select id="batch-step-count" class="input-field" style="padding-left:15px;">
-                                <option value="2">2 Steps</option>
-                                <option value="3">3 Steps</option>
-                                <option value="4">4 Steps</option>
-                                <option value="5">5 Steps</option>
-                                <option value="6">6 Steps</option>
-                                <option value="7">7 Steps</option>
-                                <option value="8">8 Steps</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="batch-image-inputs-container" class="dynamic-inputs"></div>
-
-                    <button id="run-batch-btn" class="full-width mt" style="background: var(--warning); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;"><i data-lucide="alert-triangle"></i> Apply to Entire Category</button>
-                </div>
-
-            </div> </div> </div> <div id="stats-modal" class="modal-overlay">
-                
+    <div id="stats-modal" class="modal-overlay">
         <div class="modal-box stats-layout">
             <button class="close-btn"><i data-lucide="x"></i></button>
             <div id="stats-content"></div>
@@ -532,23 +331,215 @@
         </div>
     </div>
 
- <div id="shush-overlay">
+    <div id="auth-modal" class="modal-overlay">
+        <div class="modal-box auth-layout">
+            <button class="close-btn"><i data-lucide="x"></i></button>
+            <div class="auth-logo-wrap">
+                <div class="auth-logo-ring">
+                    <div class="auth-logo-ring-inner"></div>
+                    <i data-lucide="library" class="auth-logo-icon"></i>
+                </div>
+                <h2 class="auth-logo-title">LibNav</h2>
+                <p class="auth-logo-sub">Notre Dame - Siena College</p>
+            </div>
+            <div id="auth-tabs" class="auth-tabs">
+                <button class="auth-tab active" data-tab="login"><i data-lucide="log-in"></i> Sign In</button>
+                <button class="auth-tab" data-tab="signup"><i data-lucide="user-plus"></i> Sign Up</button>
+            </div>
+            <div id="auth-login-panel" class="auth-panel">
+                <div class="auth-input-group">
+                    <i data-lucide="mail" class="auth-input-icon"></i>
+                    <input type="email" id="auth-email" class="input-field auth-input" placeholder="Email address">
+                </div>
+                <div class="auth-input-group">
+                    <i data-lucide="lock" class="auth-input-icon"></i>
+                    <input type="password" id="auth-password" class="input-field auth-input" placeholder="Password">
+                </div>
+                <button id="auth-login-btn" class="btn-primary full-width auth-btn"><i data-lucide="log-in"></i> Sign In</button>
+                <button id="auth-guest-btn" class="btn-secondary full-width auth-btn-ghost"><i data-lucide="eye"></i> Browse as Guest</button>
+                <p id="auth-forgot-link" class="auth-forgot">Forgot password?</p>
+            </div>
+            <div id="auth-signup-panel" class="auth-panel" style="display:none;">
+                <div class="auth-input-group">
+                    <i data-lucide="user" class="auth-input-icon"></i>
+                    <input type="text" id="auth-name" class="input-field auth-input" placeholder="Display name (e.g. Juan)">
+                </div>
+                <div class="auth-input-group">
+                    <i data-lucide="mail" class="auth-input-icon"></i>
+                    <input type="email" id="auth-signup-email" class="input-field auth-input" placeholder="Email address">
+                </div>
+                <div class="auth-input-group">
+                    <i data-lucide="lock" class="auth-input-icon"></i>
+                    <input type="password" id="auth-signup-password" class="input-field auth-input" placeholder="Password (min 6 characters)">
+                </div>
+                <button id="auth-signup-btn" class="btn-primary full-width auth-btn"><i data-lucide="user-plus"></i> Create Account</button>
+                <button id="auth-guest-btn-2" class="btn-secondary full-width auth-btn-ghost"><i data-lucide="eye"></i> Browse as Guest</button>
+            </div>
+            <div id="auth-verify-panel" class="auth-panel" style="display:none; text-align:center;">
+                <div class="auth-verify-icon"><i data-lucide="mail-check"></i></div>
+                <h3 style="margin-bottom:10px;">Check Your Email!</h3>
+                <p style="color:var(--text-muted); margin-bottom:20px; line-height:1.6; font-size:0.9rem;">We sent a verification link to your email. Click the link to activate your account.</p>
+                <button id="auth-resend-btn" class="btn-secondary full-width" style="margin-bottom:10px;"><i data-lucide="refresh-cw"></i> Resend Email</button>
+                <button id="auth-verified-btn" class="btn-primary full-width"><i data-lucide="check-circle-2"></i> I've Verified — Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="modal-overlay">
+        <div class="modal-box profile-layout">
+            <button class="close-btn"><i data-lucide="x"></i></button>
+            <div id="profile-guest-view" class="profile-guest-view">
+                <div class="profile-guest-art">
+                    <div class="profile-guest-orb"></div>
+                    <div class="profile-guest-avatar"><i data-lucide="user" style="width:40px;height:40px;"></i></div>
+                </div>
+                <h3>You're browsing as a guest</h3>
+                <p>Sign in to save books to your Backpack, earn ranks, and appear on the Leaderboard!</p>
+                <div class="profile-guest-features">
+                    <div class="pgf-item"><i data-lucide="bookmark"></i><span>My Backpack</span></div>
+                    <div class="pgf-item"><i data-lucide="trophy"></i><span>Earn Ranks</span></div>
+                    <div class="pgf-item"><i data-lucide="users"></i><span>Leaderboard</span></div>
+                </div>
+                <button id="profile-signin-btn" class="btn-primary full-width" style="margin-top:5px;"><i data-lucide="log-in"></i> Sign In / Sign Up</button>
+            </div>
+            <div id="profile-user-view" style="display:none;">
+                <div class="profile-header-wrap">
+                    <div class="profile-avatar-ring">
+                        <div id="profile-avatar-circle" class="profile-avatar-circle"></div>
+                    </div>
+                    <div class="profile-user-info">
+                        <h3 id="profile-display-name">Student</h3>
+                        <p id="profile-email-text"></p>
+                    </div>
+                </div>
+                <div id="profile-rank-badge" class="profile-rank-badge"></div>
+                <div class="profile-stats-row">
+                    <div class="profile-stat-card">
+                        <i data-lucide="bookmark"></i>
+                        <span class="psv" id="profile-bookmark-count">0</span>
+                        <span class="psl">In Backpack</span>
+                    </div>
+                    <div class="profile-stat-card">
+                        <i data-lucide="trophy"></i>
+                        <span class="psv" id="profile-rank-num">—</span>
+                        <span class="psl">Global Rank</span>
+                    </div>
+                </div>
+                <div id="profile-admin-btn-wrap" style="display:none; margin-bottom:12px;">
+                    <button id="profile-open-admin-btn" class="profile-admin-btn"><i data-lucide="shield"></i> Enter Admin Dashboard</button>
+                </div>
+                <button id="profile-leaderboard-btn" class="btn-secondary full-width" style="margin-bottom:10px;"><i data-lucide="trophy"></i> View Leaderboard</button>
+                <button id="profile-signout-btn" class="profile-signout-btn"><i data-lucide="log-out"></i> Sign Out</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-modal" class="modal-overlay">
+        <div class="modal-box admin-layout">
+            <button class="close-btn"><i data-lucide="x"></i></button>
+            <div class="card-header" style="border:none;"><div class="icon-box"><i data-lucide="shield"></i></div><h2>Admin Panel</h2></div>
+            <div id="admin-dashboard">
+                <div id="admin-main-view">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <button id="open-add-view-btn" class="btn-primary" style="padding: 15px;"><i data-lucide="plus-circle"></i> Add</button>
+                        <button id="open-batch-view-btn" class="btn-secondary" style="padding: 15px;"><i data-lucide="layers"></i> Batch</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
+                        <button id="open-broadcast-view-btn" class="btn-secondary" style="padding: 15px; background: var(--primary-light); color: var(--primary); border: none;"><i data-lucide="radio"></i> Broadcast</button>
+                        <button id="open-maint-view-btn" class="btn-secondary" style="padding: 15px; background: rgba(245,158,11,0.1); color: var(--warning); border: none;"><i data-lucide="construction"></i> System</button>
+                    </div>
+                    <h3 class="sub-title warning"><i data-lucide="database"></i> System Data</h3>
+                    <div class="input-with-icon" style="margin-bottom: 15px;">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="admin-search" class="input-field" style="padding: 15px 15px 15px 55px; margin-bottom: 0;" placeholder="Search admin books...">
+                    </div>
+                    <div id="admin-book-list" class="admin-list"></div>
+                    <button id="factory-reset-btn" class="btn-outline-warning full-width mt"><i data-lucide="alert-octagon"></i> Factory Reset</button>
+                    <button id="admin-logout-btn" class="btn-secondary full-width mt" style="color: #ef4444; border-color: rgba(239,68,68,0.3); margin-top: 10px;"><i data-lucide="log-out"></i> Close Admin Panel</button>
+                </div>
+                <div id="admin-form-view" style="display:none;">
+                    <button id="close-form-view-btn" class="btn-secondary" style="margin-bottom: 20px; padding: 10px;"><i data-lucide="arrow-left"></i> Back to Menu</button>
+                    <h3 id="admin-form-title" class="sub-title">Add New Book</h3>
+                    <input type="hidden" id="edit-book-id" value="">
+                    <input type="text" id="new-title" class="input-field" placeholder="Book Title">
+                    <input type="text" id="new-author" class="input-field" placeholder="Author Name">
+                    <div class="form-grid">
+                        <div>
+                            <label class="input-label">Genre</label>
+                            <select id="new-genre" class="input-field" style="padding-left:15px;">
+                                <option value="Fiction">Fiction</option>
+                                <option value="Filipiniana">Filipiniana</option>
+                                <option value="Filipiniana Reference">Filipiniana Reference</option>
+                                <option value="Science/Math">Science/Math</option>
+                                <option value="Religion">Religion</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="input-label">Nav Steps</label>
+                            <select id="step-count-select" class="input-field" style="padding-left:15px;">
+                                <option value="2">2 Steps</option><option value="3">3 Steps</option><option value="4">4 Steps</option>
+                                <option value="5">5 Steps</option><option value="6">6 Steps</option><option value="7">7 Steps</option><option value="8">8 Steps</option>
+                            </select>
+                        </div>
+                    </div>
+                    <label class="filter-option highlight" style="margin-bottom: 20px; background: var(--bg-main); padding: 15px; border: 1px solid var(--border-color);">
+                        <input type="checkbox" id="new-arrival-check"><span class="checkmark"></span>
+                        <span style="font-weight: bold; color: var(--primary);">Mark as New Arrival</span>
+                    </label>
+                    <div id="image-inputs-container" class="dynamic-inputs"></div>
+                    <button id="add-book-btn" class="btn-success full-width"><i data-lucide="upload-cloud"></i> Save to Cloud</button>
+                </div>
+                <div id="admin-batch-view" style="display:none;">
+                    <button id="close-batch-view-btn" class="btn-secondary" style="margin-bottom: 20px; padding: 10px;"><i data-lucide="arrow-left"></i> Back to Menu</button>
+                    <h3 class="sub-title"><i data-lucide="layers"></i> Batch Update Images</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px; line-height: 1.4;">Overwrites map images for every book in the selected category at once.</p>
+                    <div class="form-grid">
+                        <div>
+                            <label class="input-label">Target Genre</label>
+                            <select id="batch-genre" class="input-field" style="padding-left:15px;">
+                                <option value="Fiction">Fiction</option><option value="Filipiniana">Filipiniana</option>
+                                <option value="Filipiniana Reference">Filipiniana Reference</option>
+                                <option value="Science/Math">Science/Math</option><option value="Religion">Religion</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="input-label">Nav Steps</label>
+                            <select id="batch-step-count" class="input-field" style="padding-left:15px;">
+                                <option value="2">2 Steps</option><option value="3">3 Steps</option><option value="4">4 Steps</option>
+                                <option value="5">5 Steps</option><option value="6">6 Steps</option><option value="7">7 Steps</option><option value="8">8 Steps</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="batch-image-inputs-container" class="dynamic-inputs"></div>
+                    <button id="run-batch-btn" class="full-width mt" style="background: var(--warning); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;"><i data-lucide="alert-triangle"></i> Apply to Entire Category</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="leaderboard-modal" class="modal-overlay">
+        <div class="modal-box" style="max-width:420px;">
+            <button class="close-btn"><i data-lucide="x"></i></button>
+            <div class="card-header" style="border:none;"><div class="icon-box"><i data-lucide="trophy"></i></div><h2>Leaderboard</h2></div>
+            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px; text-align:center;">Top 10 most active Library Legends</p>
+            <div id="leaderboard-list" style="display:flex;flex-direction:column;gap:10px;">
+                <div style="text-align:center;color:var(--text-muted);padding:30px;">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="shush-overlay">
         <div class="easter-egg-frame">
-            <div class="tenor-gif-embed" data-postid="5950636071310089815" data-share-method="host" data-aspect-ratio="1.76596" data-width="100%"><a href="https://tenor.com/view/joe-coin-joe-coin-emotiguy-emoti-guy-gif-5950636071310089815">Joe Coin Emotiguy GIF</a>from <a href="https://tenor.com/search/joe+coin-gifs">Joe Coin GIFs</a></div> 
+            <div class="tenor-gif-embed" data-postid="5950636071310089815" data-share-method="host" data-aspect-ratio="1.76596" data-width="100%"><a href="https://tenor.com/view/joe-coin-joe-coin-emotiguy-emoti-guy-gif-5950636071310089815">Joe Coin Emotiguy GIF</a>from <a href="https://tenor.com/search/joe+coin-gifs">Joe Coin GIFs</a></div>
             <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
         </div>
         <h1 id="shush-text">SHHHHH!</h1>
     </div>
-    
+
     <div id="screensaver" class="screensaver">
-        <div class="ss-bg-orb ss-orb1"></div>
-        <div class="ss-bg-orb ss-orb2"></div>
-        <div class="ss-bg-orb ss-orb3"></div>
+        <div class="ss-bg-orb ss-orb1"></div><div class="ss-bg-orb ss-orb2"></div><div class="ss-bg-orb ss-orb3"></div>
         <div class="ss-inner">
-            <div class="ss-logo-wrap">
-                <div class="ss-logo-ring"></div>
-                <i data-lucide="library" class="ss-logo-icon"></i>
-            </div>
+            <div class="ss-logo-wrap"><div class="ss-logo-ring"></div><i data-lucide="library" class="ss-logo-icon"></i></div>
             <h1 class="ss-title">LibNav</h1>
             <p class="ss-subtitle">Touch anywhere to start</p>
             <div class="ss-clock" id="screensaver-clock">00:00</div>
@@ -559,8 +550,8 @@
             <div class="ss-footer">Notre Dame - Siena College &nbsp;·&nbsp; General Santos City</div>
         </div>
     </div>
-    
-            <div id="zoom-modal" class="modal-overlay" style="z-index: 20000; background: rgba(0,0,0,0.95); display: none;">
+
+    <div id="zoom-modal" class="modal-overlay" style="z-index: 20000; background: rgba(0,0,0,0.95); display: none;">
         <button id="close-zoom-btn" class="close-btn" style="position:fixed; top:20px; right:20px; background:rgba(255,255,255,0.1); color:white; border:none;"><i data-lucide="x"></i></button>
         <div id="pinch-hint" class="swipe-hint mobile-only-flex" style="display:none; z-index: 20001; top: 15%; bottom: auto; left: 50%; transform: translateX(-50%); width: max-content; position: absolute;">
             <i data-lucide="zoom-in"></i> <span style="margin-left:8px;">Double-Tap or Pinch</span>
@@ -572,15 +563,11 @@
         <div class="modal-box">
             <button id="close-broadcast-admin-btn" class="close-btn"><i data-lucide="x"></i></button>
             <h3 class="sub-title"><i data-lucide="radio"></i> System Broadcast</h3>
-          <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:15px;">Push an alert to all users instantly.</p>
-            
+            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:15px;">Push an alert to all users instantly.</p>
             <select id="bc-theme" class="input-field" style="margin-bottom: 15px; font-weight: bold;">
-                <option value="info">🔵 Info (Blue)</option>
-                <option value="success">🟢 Success (Green)</option>
-                <option value="warning">🟠 Warning (Orange)</option>
-                <option value="alert">🔴 Urgent Alert (Red)</option>
+                <option value="info">🔵 Info (Blue)</option><option value="success">🟢 Success (Green)</option>
+                <option value="warning">🟠 Warning (Orange)</option><option value="alert">🔴 Urgent Alert (Red)</option>
             </select>
-            
             <input type="text" id="bc-title" class="input-field" placeholder="Broadcast Title (e.g., Update!)">
             <textarea id="bc-msg" class="input-field" rows="4" placeholder="Type your announcement here..."></textarea>
             <button id="send-broadcast-btn" class="btn-success full-width"><i data-lucide="send"></i> Send to All Users</button>
@@ -611,80 +598,46 @@
             <p id="ub-msg" style="color:var(--text-muted); margin-bottom:25px; line-height:1.5;">Message goes here.</p>
             <button id="ub-got-it-btn" class="btn-primary full-width">I Understand</button>
         </div>
-        </div>
-
-<div id="maintenance-overlay">
-    <div class="maint-bg-grid"></div>
-
-    <div class="maint-content">
-        <div class="maint-badge">
-            <i data-lucide="shield-alert"></i>
-            <span>System Maintenance</span>
-        </div>
-
-        <div class="maint-icon-container">
-            <i data-lucide="settings" class="maint-cog main-cog"></i>
-            <i data-lucide="settings" class="maint-cog sub-cog"></i>
-        </div>
-
-        <h1>We're <span>Upgrading!</span></h1>
-        <p>LibNav is temporarily offline for system improvements. We'll be back shortly with a better experience for you.</p>
-
-        <div class="maint-status-row">
-            <div class="maint-status-pill">
-                <span class="maint-dot green"></span>
-                Database Online
-            </div>
-            <div class="maint-status-pill">
-                <span class="maint-dot yellow"></span>
-                App Updating
-            </div>
-            <div class="maint-status-pill">
-                <span class="maint-dot red"></span>
-                Access Restricted
-            </div>
-        </div>
-
-        <div class="maint-card">
-            <div class="maint-card-row">
-                <i data-lucide="clock"></i>
-                <div>
-                    <strong>Current Time</strong>
-                    <span id="maint-live-clock">--:--:-- --</span>
-                </div>
-            </div>
-            <div class="maint-divider"></div>
-            <div class="maint-card-row">
-                <i data-lucide="info"></i>
-                <div>
-                    <strong>Status</strong>
-                    <span>Maintenance in progress. Please check back soon.</span>
-                </div>
-            </div>
-        </div>
-
-        <p class="maint-footer">Notre Dame - Siena College of General Santos City</p>
     </div>
-</div>
-    
+
+    <div id="maintenance-overlay">
+        <div class="maint-bg-grid"></div>
+        <div class="maint-content">
+            <div class="maint-badge"><i data-lucide="shield-alert"></i><span>System Maintenance</span></div>
+            <div class="maint-icon-container">
+                <i data-lucide="settings" class="maint-cog main-cog"></i>
+                <i data-lucide="settings" class="maint-cog sub-cog"></i>
+            </div>
+            <h1>We're <span>Upgrading!</span></h1>
+            <p>LibNav is temporarily offline for system improvements. We'll be back shortly with a better experience for you.</p>
+            <div class="maint-status-row">
+                <div class="maint-status-pill"><span class="maint-dot green"></span>Database Online</div>
+                <div class="maint-status-pill"><span class="maint-dot yellow"></span>App Updating</div>
+                <div class="maint-status-pill"><span class="maint-dot red"></span>Access Restricted</div>
+            </div>
+            <div class="maint-card">
+                <div class="maint-card-row"><i data-lucide="clock"></i><div><strong>Current Time</strong><span id="maint-live-clock">--:--:-- --</span></div></div>
+                <div class="maint-divider"></div>
+                <div class="maint-card-row"><i data-lucide="info"></i><div><strong>Status</strong><span>Maintenance in progress. Please check back soon.</span></div></div>
+            </div>
+            <p class="maint-footer">Notre Dame - Siena College of General Santos City</p>
+            <button id="maint-admin-login-btn" style="margin-top:20px; background:transparent; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.4); padding:10px 20px; border-radius:12px; cursor:pointer; font-size:0.8rem;">Admin Access</button>
+        </div>
+    </div>
+
     <div id="admin-maint-modal" class="modal-overlay" style="z-index: 10005;">
         <div class="modal-box">
             <button id="close-maint-modal-btn" class="close-btn"><i data-lucide="x"></i></button>
             <h3 class="sub-title"><i data-lucide="settings"></i> System Settings</h3>
-            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px; line-height: 1.4;">Enable maintenance mode to temporarily block all regular users from accessing LibNav. Admins will still have full access.</p>
-            
+            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px; line-height: 1.4;">Enable maintenance mode to temporarily block all regular users. Admins keep full access.</p>
             <div class="switch-wrapper">
                 <div class="switch-label"><i data-lucide="power" style="color: var(--warning);"></i> Maintenance Mode</div>
-                <label class="switch">
-                    <input type="checkbox" id="maint-toggle-switch">
-                    <span class="slider"></span>
-                </label>
+                <label class="switch"><input type="checkbox" id="maint-toggle-switch"><span class="slider"></span></label>
             </div>
-            
             <button id="save-maint-btn" class="btn-primary full-width"><i data-lucide="save"></i> Save Settings</button>
         </div>
     </div>
-    
+
     <canvas id="confetti-canvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99998;display:none;"></canvas>
     <script src="database.js"></script>
     <script src="app.js"></script>
