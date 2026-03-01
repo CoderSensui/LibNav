@@ -842,6 +842,13 @@ document.addEventListener('DOMContentLoaded', () => {
         fields.style.display = isHidden ? 'block' : 'none';
         if (icon) icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
     });
+    document.getElementById('auth-signup-email-toggle-btn')?.addEventListener('click', () => {
+        const fields = document.getElementById('auth-signup-email-fields');
+        const icon = document.getElementById('auth-signup-email-toggle-icon');
+        const isHidden = fields.style.display === 'none';
+        fields.style.display = isHidden ? 'block' : 'none';
+        if (icon) icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+    });
     document.getElementById('toggle-login-pw')?.addEventListener('click', () => {
         const inp = document.getElementById('auth-password');
         const icon = document.querySelector('#toggle-login-pw i');
@@ -864,6 +871,18 @@ document.addEventListener('DOMContentLoaded', () => {
         catch (err) { const msg = err.code === 'auth/popup-closed-by-user' ? 'Sign in cancelled.' : err.code === 'auth/popup-blocked' ? 'Popup was blocked. Please allow popups for this site.' : 'Google sign in failed. Please try again.'; showPopup('Google Sign In Failed', msg, null, false); }
         if (btn) { btn.disabled = false; btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px;"> Sign Up with Google'; }
     });
+
+    // Prevent auth modal key events from leaking to background search input
+    document.getElementById('auth-modal')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
+    document.getElementById('auth-modal')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
+    // Also prevent admin/profile/broadcast modals from leaking to search
+    document.getElementById('admin-modal')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
+    document.getElementById('admin-modal')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
+    document.getElementById('admin-broadcast-view')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
+    document.getElementById('admin-broadcast-view')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
+    document.getElementById('admin-maint-modal')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
+    document.getElementById('profile-modal')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
+    document.getElementById('profile-modal')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
 
     document.getElementById('auth-email')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('auth-login-btn')?.click(); });
     document.getElementById('auth-password')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('auth-login-btn')?.click(); });
