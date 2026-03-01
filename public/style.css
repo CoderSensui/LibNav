@@ -218,6 +218,7 @@ button:active, .book-card:active, .menu-item:active, .icon-btn:active, .nav-item
 .input-with-icon input { padding-left: 55px !important; margin-bottom: 0 !important; }
 .input-with-icon svg { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted); margin: 0 !important; padding: 0 !important; display: block; }
 .mt { margin-top: 20px; }
+.full-width { width: 100%; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;}
 
 .side-menu { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: var(--surface); z-index: 200; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; border-right: 1px solid var(--border-color);}
@@ -2315,8 +2316,9 @@ body.light-mode .ss-title { text-shadow: none; }
 
 .auth-panel { display: flex; flex-direction: column; gap: 12px; }
 .auth-input-group { position: relative; }
-.auth-input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; height: 18px; pointer-events: none; }
-.auth-input { padding-left: 46px !important; }
+.auth-input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 20px; height: 20px; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+.auth-input-icon svg { width: 20px !important; height: 20px !important; }
+.auth-input { padding-left: 46px !important; padding-right: 46px !important; }
 .auth-btn { margin-top: 4px; padding: 16px !important; font-size: 1rem !important; border-radius: 14px !important; display: flex; align-items: center; justify-content: center; gap: 9px; }
 .auth-btn-ghost { background: transparent !important; border: 1px solid var(--border-color) !important; color: var(--text-muted) !important; display: flex; align-items: center; justify-content: center; gap: 9px; padding: 14px !important; border-radius: 14px !important; cursor: pointer; font-size: 0.95rem; transition: 0.2s; }
 .auth-btn-ghost:hover { border-color: var(--primary) !important; color: var(--primary) !important; }
