@@ -310,33 +310,10 @@ const LibraryDB = {
     },
 
     getBookSocialProof: async function() {
-        try {
-            const token = await this._getAuthToken();
-            // Only fetch backpack field for each user — much lighter than full user records
-            const authParam = token ? `?auth=${token}` : '';
-            const res = await fetch(`${this.dbUrl}users.json${authParam}&shallow=true`);
-            if (!res.ok) return {};
-            // shallow=true returns just the user UIDs — then we skip building proof
-            // Instead just do a minimal fetch of backpacks only
-            const uidData = await res.json();
-            if (!uidData) return {};
-            const uids = Object.keys(uidData);
-            const proof = {};
-            // Fetch each user's backpack in parallel (only backpack field)
-            const results = await Promise.allSettled(
-                uids.map(uid =>
-                    fetch(`${this.dbUrl}users/${uid}/backpack.json${authParam}`)
-                        .then(r => r.ok ? r.json() : null)
-                        .catch(() => null)
-                )
-            );
-            results.forEach(r => {
-                if (r.status === 'fulfilled' && Array.isArray(r.value)) {
-                    r.value.forEach(id => { proof[id] = (proof[id] || 0) + 1; });
-                }
-            });
-            return proof;
-        } catch(e) { return {}; }
+        // Disabled: the previous implementation made one fetch per user (N+1 queries)
+        // which caused extremely high Firebase Realtime Database downloads.
+        // Social proof is a cosmetic feature — not worth the bandwidth cost.
+        return {};
     },
 
     init: async function() {
