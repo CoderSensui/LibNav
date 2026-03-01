@@ -69,19 +69,21 @@ const LibraryDB = {
             if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
             await Promise.race([
                 new Promise(resolve => {
+                    let resolved = false;
                     firebase.auth().onAuthStateChanged(async (user) => {
                         if (user) {
                             this.currentUser = user;
+                            // Use token-authenticated REST call so Firebase rules work
                             await this._loadUserData(user.uid).catch(() => {});
                         } else {
                             this.currentUser = null;
                             this.currentUserData = null;
                         }
                         this._authStateListeners.forEach(fn => fn(user));
-                        resolve();
+                        if (!resolved) { resolved = true; resolve(); }
                     });
                 }),
-                new Promise(resolve => setTimeout(resolve, 6000))
+                new Promise(resolve => setTimeout(resolve, 8000))
             ]);
         } catch(e) {
             this.currentUser = null;
@@ -96,26 +98,49 @@ const LibraryDB = {
 
     _loadUserData: async function(uid) {
         try {
-            const res = await fetch(`${this.dbUrl}users/${uid}.json`);
-            const data = await res.json();
+            // Always get a fresh token so Firebase security rules pass
+            const token = this.currentUser ? await this.currentUser.getIdToken(true).catch(() => null) : null;
+            const authParam = token ? `?auth=${token}` : '';
+            const res = await fetch(`${this.dbUrl}users/${uid}.json${authParam}`);
+            const data = res.ok ? await res.json() : null;
             if (data) {
+                // Ensure all fields exist (migrate old accounts that lack helpedCount)
+                if (data.helpedCount === undefined) data.helpedCount = 0;
+                if (data.backpack === undefined) data.backpack = [];
+                if (data.bookmarkCount === undefined) data.bookmarkCount = 0;
                 this.currentUserData = data;
+                // If migration needed, patch missing fields silently
+                const needsPatch = (data.helpedCount === 0 && data.backpack !== undefined);
+                if (token && (data.helpedCount === undefined || data.backpack === undefined)) {
+                    fetch(`${this.dbUrl}users/${uid}.json${authParam}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ helpedCount: 0, backpack: data.backpack || [], bookmarkCount: data.bookmarkCount || 0 })
+                    }).catch(() => {});
+                }
             } else {
+                // New user - create their record
                 const fresh = {
                     displayName: this.currentUser?.displayName || 'Student',
                     email: this.currentUser?.email || '',
                     bookmarkCount: 0,
+                    helpedCount: 0,
                     backpack: [],
                     createdAt: Date.now()
                 };
-                await fetch(`${this.dbUrl}users/${uid}.json`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(fresh)
-                });
+                if (token) {
+                    await fetch(`${this.dbUrl}users/${uid}.json${authParam}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(fresh)
+                    });
+                }
                 this.currentUserData = fresh;
             }
-        } catch(e) { this.currentUserData = null; }
+        } catch(e) {
+            console.warn('_loadUserData error:', e);
+            this.currentUserData = null;
+        }
     },
 
     signUp: async function(email, password, displayName) {
@@ -123,12 +148,15 @@ const LibraryDB = {
         const cred = await firebase.auth().createUserWithEmailAndPassword(email, password);
         await cred.user.updateProfile({ displayName });
         await cred.user.sendEmailVerification();
-        const fresh = { displayName, email, bookmarkCount: 0, backpack: [], createdAt: Date.now() };
-        await fetch(`${this.dbUrl}users/${cred.user.uid}.json`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(fresh)
-        });
+        const fresh = { displayName, email, bookmarkCount: 0, helpedCount: 0, backpack: [], createdAt: Date.now() };
+        try {
+            const token = await cred.user.getIdToken();
+            await fetch(`${this.dbUrl}users/${cred.user.uid}.json?auth=${token}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(fresh)
+            });
+        } catch(e) {}
         this.currentUserData = fresh;
         return cred.user;
     },
@@ -153,6 +181,7 @@ const LibraryDB = {
         provider.setCustomParameters({ prompt: 'select_account' });
         const cred = await firebase.auth().signInWithPopup(provider);
         this.currentUser = cred.user;
+        // Load user data (creates record if first time, migrates if missing fields)
         await this._loadUserData(cred.user.uid);
         return cred.user;
     },
@@ -197,7 +226,9 @@ const LibraryDB = {
         const newCount = (this.currentUserData.bookmarkCount || 0) + 1;
         this.currentUserData.bookmarkCount = newCount;
         try {
-            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json`, {
+            const token = await this._getAuthToken();
+            const authParam = token ? `?auth=${token}` : '';
+            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json${authParam}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ backpack: bp, bookmarkCount: newCount })
@@ -213,7 +244,9 @@ const LibraryDB = {
         const newCount = Math.max(0, (this.currentUserData.bookmarkCount || 0) - 1);
         this.currentUserData.bookmarkCount = newCount;
         try {
-            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json`, {
+            const token = await this._getAuthToken();
+            const authParam = token ? `?auth=${token}` : '';
+            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json${authParam}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ backpack: bp, bookmarkCount: newCount })
@@ -227,7 +260,9 @@ const LibraryDB = {
         const newCount = (this.currentUserData.helpedCount || 0) + 1;
         this.currentUserData.helpedCount = newCount;
         try {
-            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json`, {
+            const token = await this._getAuthToken();
+            const authParam = token ? `?auth=${token}` : '';
+            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json${authParam}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ helpedCount: newCount })
@@ -236,9 +271,27 @@ const LibraryDB = {
         } catch(e) { return false; }
     },
 
+    _getAuthToken: async function() {
+        try {
+            if (this.currentUser) {
+                return await this.currentUser.getIdToken();
+            }
+        } catch(e) {}
+        return null;
+    },
+
     getLeaderboard: async function() {
         try {
-            const res = await fetch(`${this.dbUrl}users.json`);
+            const token = await this._getAuthToken();
+            const url = token
+                ? `${this.dbUrl}users.json?auth=${token}`
+                : `${this.dbUrl}users.json`;
+            const res = await fetch(url);
+            if (!res.ok) {
+                // 401/403 = not authorized (guest with restricted rules)
+                if (res.status === 401 || res.status === 403) return null; // null = auth required
+                return [];
+            }
             const data = await res.json();
             if (!data) return [];
             return Object.entries(data)
@@ -257,7 +310,12 @@ const LibraryDB = {
 
     getBookSocialProof: async function() {
         try {
-            const res = await fetch(`${this.dbUrl}users.json`);
+            const token = await this._getAuthToken();
+            const url = token
+                ? `${this.dbUrl}users.json?auth=${token}`
+                : `${this.dbUrl}users.json`;
+            const res = await fetch(url);
+            if (!res.ok) return {};
             const data = await res.json();
             if (!data) return {};
             const proof = {};
@@ -389,11 +447,13 @@ const LibraryDB = {
             try { await this.currentUser.updateProfile({ displayName: displayName.trim() }); } catch(e) {}
         }
         if (avatarDataUrl !== undefined) {
-            updates.avatarUrl = avatarDataUrl; // null to remove, string to set
+            updates.avatarUrl = avatarDataUrl;
             this.currentUserData.avatarUrl = avatarDataUrl;
         }
         try {
-            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json`, {
+            const token = await this._getAuthToken();
+            const authParam = token ? `?auth=${token}` : '';
+            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json${authParam}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updates)
