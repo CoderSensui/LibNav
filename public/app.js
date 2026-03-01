@@ -869,7 +869,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.getElementById('auth-google-btn-signup'); if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;width:18px;height:18px;"></i> Signing in...'; renderIcons(); }
         try { await LibraryDB.signInWithGoogle(); document.getElementById('auth-modal').style.display = 'none'; }
         catch (err) { const msg = err.code === 'auth/popup-closed-by-user' ? 'Sign in cancelled.' : err.code === 'auth/popup-blocked' ? 'Popup was blocked. Please allow popups for this site.' : 'Google sign in failed. Please try again.'; showPopup('Google Sign In Failed', msg, null, false); }
-        if (btn) { btn.disabled = false; btn.innerHTML = '<img src="https:
+        if (btn) { btn.disabled = false; btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px;"> Continue with Google'; }
     });
 
     
