@@ -2930,3 +2930,110 @@ body.light-mode .ss-title { text-shadow: none; }
 
 /* Leaderboard top users special styling */
 .leaderboard-top { background: linear-gradient(135deg, rgba(219,39,119,0.08), rgba(147,51,234,0.08)) !important; border-color: rgba(219,39,119,0.25) !important; }
+
+/* ===== AVATAR PRESET PICKER ===== */
+.edit-avatar-picker-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 12px;
+    text-align: center;
+}
+
+.avatar-preset-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+}
+
+.avatar-preset-btn {
+    position: relative;
+    border: 2.5px solid transparent;
+    border-radius: 16px;
+    padding: 12px 6px 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    aspect-ratio: 1;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.avatar-preset-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+.avatar-preset-btn.selected {
+    border-color: white;
+    box-shadow: 0 0 0 3px rgba(219,39,119,0.5), 0 8px 20px rgba(0,0,0,0.3);
+    transform: scale(1.04);
+}
+
+.avatar-preset-letter {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    line-height: 1;
+}
+
+.avatar-preset-name {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.85);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.avatar-preset-check {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 0.85rem;
+    color: white;
+    font-weight: 900;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+/* Edit avatar section container */
+.edit-avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+    padding: 18px;
+    background: var(--surface-lighter);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+}
+
+/* Preview circle in edit view */
+.edit-avatar-preview-wrap {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.edit-avatar-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#db2777,#9333ea);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 900;
+    color: white;
+    border: 3px solid var(--border-color);
+    text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    transition: background 0.3s ease;
+}
