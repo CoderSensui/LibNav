@@ -375,17 +375,23 @@
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px;"> Sign Up with Google
                 </button>
                 <div class="auth-divider"><span>or create account with email</span></div>
-                <div class="auth-input-group">
-                    <i data-lucide="mail" class="auth-input-icon"></i>
-                    <input type="email" id="auth-signup-email" class="input-field auth-input" placeholder="Email address">
+                <button class="auth-email-toggle" id="auth-signup-email-toggle-btn">
+                    <i data-lucide="mail"></i> Use Email & Password
+                    <i data-lucide="chevron-down" id="auth-signup-email-toggle-icon" style="margin-left:auto;transition:transform 0.3s;"></i>
+                </button>
+                <div id="auth-signup-email-fields" style="display:none; overflow:hidden;">
+                    <div class="auth-input-group" style="margin-top:12px;">
+                        <i data-lucide="mail" class="auth-input-icon"></i>
+                        <input type="email" id="auth-signup-email" class="input-field auth-input" placeholder="Email address">
+                    </div>
+                    <div class="auth-input-group">
+                        <i data-lucide="lock" class="auth-input-icon"></i>
+                        <input type="password" id="auth-signup-password" class="input-field auth-input" placeholder="Password (min 6 characters)">
+                        <button type="button" class="auth-eye-btn" id="toggle-signup-pw"><i data-lucide="eye"></i></button>
+                    </div>
+                    <p class="auth-signup-hint"><i data-lucide="info" style="width:13px;height:13px;display:inline;vertical-align:middle;"></i> You can set your display name and avatar after signing up in your profile.</p>
+                    <button id="auth-signup-btn" class="btn-primary full-width auth-btn"><i data-lucide="user-plus"></i> Create Account</button>
                 </div>
-                <div class="auth-input-group">
-                    <i data-lucide="lock" class="auth-input-icon"></i>
-                    <input type="password" id="auth-signup-password" class="input-field auth-input" placeholder="Password (min 6 characters)">
-                    <button type="button" class="auth-eye-btn" id="toggle-signup-pw"><i data-lucide="eye"></i></button>
-                </div>
-                <p class="auth-signup-hint"><i data-lucide="info" style="width:13px;height:13px;display:inline;vertical-align:middle;"></i> You can set your display name and avatar after signing up in your profile.</p>
-                <button id="auth-signup-btn" class="btn-primary full-width auth-btn"><i data-lucide="user-plus"></i> Create Account</button>
                 <button id="auth-guest-btn-2" class="btn-ghost full-width auth-btn-ghost"><i data-lucide="eye"></i> Browse as Guest</button>
             </div>
             <div id="auth-verify-panel" class="auth-panel" style="display:none; text-align:center;">
@@ -638,8 +644,8 @@
                 <option value="info">🔵 Info (Blue)</option><option value="success">🟢 Success (Green)</option>
                 <option value="warning">🟠 Warning (Orange)</option><option value="alert">🔴 Urgent Alert (Red)</option>
             </select>
-            <input type="text" id="bc-title" class="input-field" placeholder="Broadcast Title (e.g., Update!)">
-            <textarea id="bc-msg" class="input-field" rows="4" placeholder="Type your announcement here..."></textarea>
+            <input type="text" id="bc-title" class="input-field" placeholder="Broadcast Title (e.g., Update!)" style="margin-bottom:12px;">
+            <textarea id="bc-msg" class="input-field" rows="4" placeholder="Type your announcement here..." style="margin-bottom:15px;"></textarea>
             <button id="send-broadcast-btn" class="btn-success full-width"><i data-lucide="send"></i> Send to All Users</button>
             <button id="clear-broadcast-btn" class="btn-outline-warning full-width mt"><i data-lucide="trash-2"></i> Clear Active Broadcast</button>
         </div>
