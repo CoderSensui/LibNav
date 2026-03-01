@@ -283,13 +283,14 @@ const LibraryDB = {
     getLeaderboard: async function() {
         try {
             const token = await this._getAuthToken();
-            const url = token
-                ? `${this.dbUrl}users.json?auth=${token}`
-                : `${this.dbUrl}users.json`;
-            const res = await fetch(url);
+            if (!token) return null; // Guest — can't read users
+
+            // Optimized: only fetch top 10 by helpedCount using Firebase REST query params
+            // orderBy + limitToLast fetches only top 10 sorted entries — not all users
+            const queryUrl = `${this.dbUrl}users.json?auth=${token}&orderBy="helpedCount"&limitToLast=10`;
+            const res = await fetch(queryUrl);
             if (!res.ok) {
-                // 401/403 = not authorized (guest with restricted rules)
-                if (res.status === 401 || res.status === 403) return null; // null = auth required
+                if (res.status === 401 || res.status === 403) return null;
                 return [];
             }
             const data = await res.json();
@@ -301,27 +302,37 @@ const LibraryDB = {
                     displayName: u.displayName,
                     helpedCount: u.helpedCount || 0,
                     bookmarkCount: u.bookmarkCount || 0,
+                    avatarStyle: u.avatarStyle || null,
                     rank: getRank(u.helpedCount || 0)
                 }))
-                .sort((a, b) => b.helpedCount - a.helpedCount)
-                .slice(0, 10);
+                .sort((a, b) => b.helpedCount - a.helpedCount);
         } catch(e) { return []; }
     },
 
     getBookSocialProof: async function() {
         try {
             const token = await this._getAuthToken();
-            const url = token
-                ? `${this.dbUrl}users.json?auth=${token}`
-                : `${this.dbUrl}users.json`;
-            const res = await fetch(url);
+            // Only fetch backpack field for each user — much lighter than full user records
+            const authParam = token ? `?auth=${token}` : '';
+            const res = await fetch(`${this.dbUrl}users.json${authParam}&shallow=true`);
             if (!res.ok) return {};
-            const data = await res.json();
-            if (!data) return {};
+            // shallow=true returns just the user UIDs — then we skip building proof
+            // Instead just do a minimal fetch of backpacks only
+            const uidData = await res.json();
+            if (!uidData) return {};
+            const uids = Object.keys(uidData);
             const proof = {};
-            Object.values(data).forEach(u => {
-                if (u?.backpack) {
-                    u.backpack.forEach(id => { proof[id] = (proof[id] || 0) + 1; });
+            // Fetch each user's backpack in parallel (only backpack field)
+            const results = await Promise.allSettled(
+                uids.map(uid =>
+                    fetch(`${this.dbUrl}users/${uid}/backpack.json${authParam}`)
+                        .then(r => r.ok ? r.json() : null)
+                        .catch(() => null)
+                )
+            );
+            results.forEach(r => {
+                if (r.status === 'fulfilled' && Array.isArray(r.value)) {
+                    r.value.forEach(id => { proof[id] = (proof[id] || 0) + 1; });
                 }
             });
             return proof;
@@ -438,7 +449,7 @@ const LibraryDB = {
         return true;
     },
 
-    updateUserProfile: async function(displayName, avatarDataUrl) {
+    updateUserProfile: async function(displayName, avatarStyle) {
         if (!this.currentUser || !this.currentUserData) return false;
         const updates = {};
         if (displayName && displayName.trim()) {
@@ -446,9 +457,13 @@ const LibraryDB = {
             this.currentUserData.displayName = displayName.trim();
             try { await this.currentUser.updateProfile({ displayName: displayName.trim() }); } catch(e) {}
         }
-        if (avatarDataUrl !== undefined) {
-            updates.avatarUrl = avatarDataUrl;
-            this.currentUserData.avatarUrl = avatarDataUrl;
+        if (avatarStyle !== undefined) {
+            // Store only a small style key (e.g. "rose", "violet") — no base64, no images
+            updates.avatarStyle = avatarStyle;
+            this.currentUserData.avatarStyle = avatarStyle;
+            // Remove any old base64 avatarUrl to save space
+            updates.avatarUrl = null;
+            this.currentUserData.avatarUrl = null;
         }
         try {
             const token = await this._getAuthToken();
