@@ -873,7 +873,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const rankBadge = document.getElementById('profile-rank-badge'); if (rankBadge) rankBadge.innerHTML = `<span class="rank-icon">${rank.icon}</span> ${rank.title}`;
         const bmCount = document.getElementById('profile-bookmark-count'); if (bmCount) bmCount.textContent = bookmarkCount;
         const helpedEl = document.getElementById('profile-helped-count'); if (helpedEl) helpedEl.textContent = helpedCount;
-        const leaderboard = await LibraryDB.getLeaderboard(); const myRank = leaderboard.findIndex(u => u.uid === user.uid);
+        const leaderboard = await LibraryDB.getLeaderboard(); const myRank = leaderboard && leaderboard.length > 0 ? leaderboard.findIndex(u => u.uid === user.uid) : -1;
         const rankNumEl = document.getElementById('profile-rank-num'); if (rankNumEl) rankNumEl.textContent = myRank >= 0 ? `#${myRank + 1}` : '—';
         const isAdmin = await LibraryDB.isAdmin(); const adminWrap = document.getElementById('profile-admin-btn-wrap'); if (adminWrap) adminWrap.style.display = isAdmin ? 'block' : 'none';
         renderIcons();
@@ -982,21 +982,79 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function openLeaderboard() {
         const modal = document.getElementById('leaderboard-modal'); if (!modal) return; modal.style.display = 'flex';
-        const listEl = document.getElementById('leaderboard-list'); if (listEl) listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;">Loading...</div>';
-        const data = await LibraryDB.getLeaderboard(); if (!listEl) return;
-        if (data.length === 0) { listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;">No data yet. Start saving books!</div>'; return; }
+        const listEl = document.getElementById('leaderboard-list'); if (!listEl) return;
+
+        // Show loading spinner
+        listEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:40px 20px;">
+            <div style="width:40px;height:40px;border:3px solid var(--border-color);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+            <p style="color:var(--text-muted);font-size:0.88rem;margin:0;">Loading leaderboard...</p>
+        </div>`;
+
+        const data = await LibraryDB.getLeaderboard();
+
+        // null = Firebase rejected the request (guest + restricted rules)
+        if (data === null) {
+            listEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px 20px;text-align:center;">
+                <div style="width:64px;height:64px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🏆</div>
+                <div>
+                    <p style="font-weight:700;color:var(--text-main);margin:0 0 6px;font-size:1rem;">Sign in to view the Leaderboard</p>
+                    <p style="color:var(--text-muted);font-size:0.85rem;margin:0;line-height:1.5;">Create a free account to see who's found the most books and compete for the top spot!</p>
+                </div>
+                <button onclick="document.getElementById('leaderboard-modal').style.display='none'; showAuthModal('login');" style="padding:12px 28px;background:var(--primary);color:white;border:none;border-radius:12px;font-size:0.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;">
+                    <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4'/><polyline points='10 17 15 12 10 7'/><line x1='15' y1='12' x2='3' y2='12'/></svg>
+                    Sign In / Sign Up
+                </button>
+            </div>`;
+            return;
+        }
+
+        // Empty leaderboard (no users with helpedCount yet)
+        if (data.length === 0) {
+            listEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 20px;text-align:center;">
+                <div style="font-size:2.5rem;">📚</div>
+                <p style="font-weight:700;color:var(--text-main);margin:0 0 4px;">No entries yet!</p>
+                <p style="color:var(--text-muted);font-size:0.85rem;margin:0;line-height:1.5;">Be the first to find a book using LibNav and claim the top spot!</p>
+            </div>`;
+            return;
+        }
+
         const medals = ['🥇', '🥈', '🥉']; const currentUid = LibraryDB.currentUser?.uid;
-        listEl.innerHTML = data.map((u, i) => `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:${u.uid === currentUid ? 'var(--primary-light)' : 'var(--surface)'};border-radius:14px;border:1px solid ${u.uid === currentUid ? 'var(--primary)' : 'var(--border-color)'};"><span style="font-size:1.4rem;width:32px;text-align:center;">${medals[i] || `#${i + 1}`}</span><div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;flex-shrink:0;">${u.displayName.charAt(0).toUpperCase()}</div><div style="flex:1;min-width:0;"><div style="font-weight:bold;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.displayName}${u.uid === currentUid ? ' <span style="color:var(--primary);font-size:0.75rem;">(You)</span>' : ''}</div><div style="font-size:0.8rem;color:var(--primary);">${u.rank.icon} ${u.rank.title}</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-weight:bold;font-size:1.1rem;color:var(--text-main);">${u.helpedCount}</div><div style="font-size:0.75rem;color:var(--text-muted);">books found</div></div></div>`).join('');
+        listEl.innerHTML = data.map((u, i) => {
+            const avatarContent = u.avatarUrl
+                ? `<img src="${u.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.parentElement.textContent='${u.displayName.charAt(0).toUpperCase()}'">`
+                : u.displayName.charAt(0).toUpperCase();
+            return `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:${u.uid === currentUid ? 'var(--primary-light)' : 'var(--surface)'};border-radius:14px;border:1px solid ${u.uid === currentUid ? 'var(--primary)' : 'var(--border-color)'};">
+                <span style="font-size:1.4rem;width:32px;text-align:center;flex-shrink:0;">${medals[i] || `<span style='font-weight:800;color:var(--text-muted);font-size:0.95rem;'>#${i + 1}</span>`}</span>
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;flex-shrink:0;overflow:hidden;">${avatarContent}</div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.displayName}${u.uid === currentUid ? ' <span style="color:var(--primary);font-size:0.75rem;">(You)</span>' : ''}</div>
+                    <div style="font-size:0.8rem;color:var(--primary);">${u.rank.icon} ${u.rank.title}</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                    <div style="font-weight:800;font-size:1.15rem;color:var(--text-main);">${u.helpedCount}</div>
+                    <div style="font-size:0.72rem;color:var(--text-muted);">books found</div>
+                </div>
+            </div>`;
+        }).join('');
     }
 
     LibraryDB.onAuthStateChanged(async (user) => {
         const profileBtn = document.getElementById('profile-btn');
         if (user) {
-            const backpack = LibraryDB.getBackpack(); favorites.length = 0; backpack.forEach(id => favorites.push(id));
+            // Always reload user data fresh from Firebase to ensure counts are current
+            if (!LibraryDB.currentUserData) {
+                await LibraryDB._loadUserData(user.uid).catch(() => {});
+            }
+            const backpack = LibraryDB.getBackpack();
+            favorites.length = 0;
+            backpack.forEach(id => favorites.push(id));
             if (profileBtn) profileBtn.classList.add('logged-in');
             const mo = document.getElementById('maintenance-overlay');
             if (mo && mo.style.display === 'flex') { const isAdmin = await LibraryDB.isAdmin(); if (isAdmin) mo.style.display = 'none'; }
-        } else { favorites.length = 0; if (profileBtn) profileBtn.classList.remove('logged-in'); }
+        } else {
+            favorites.length = 0;
+            if (profileBtn) profileBtn.classList.remove('logged-in');
+        }
         document.querySelectorAll('.fav-btn').forEach(btn => { const match = btn.getAttribute('onclick')?.match(/'([^']+)'\s*\)/); if (match) btn.classList.toggle('active', favorites.includes(match[1])); });
     });
 
