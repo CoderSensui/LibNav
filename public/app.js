@@ -637,7 +637,9 @@ document.addEventListener('DOMContentLoaded', () => {
         statsModal.style.display = "flex";
         contentDiv.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:320px;gap:15px;width:100%;"><div class="loader-logo-ring" style="width:54px;height:54px;"><div class="loader-ring r1" style="border-width:3px;"></div><div class="loader-ring r2" style="border-width:3px;inset:5px;"></div></div><p style="color:var(--text-muted);font-weight:bold;letter-spacing:1.5px;font-size:0.85rem;text-transform:uppercase;">Loading Statistics...</p></div>`;
         await LibraryDB.fetchGlobalStats();
-        const books = LibraryDB.getBooks(); const ratings = LibraryDB.getRatings() || []; const globalHelpedCount = LibraryDB.getHelpedCount();
+        const books = LibraryDB.getBooks(); const globalHelpedCount = LibraryDB.getHelpedCount();
+        const reviewsData = await LibraryDB.fetchReviews();
+        const ratings = Object.values(reviewsData).map(r => r.stars).filter(Boolean);
         const mostViewed = books.length > 0 ? books.reduce((a, b) => (a.views || 0) > (b.views || 0) ? a : b) : { title: "None", views: 0, author: "N/A", genre: "" };
         const newest = books.length > 0 ? books.reduce((a, b) => a.id > b.id ? a : b) : { title: "None", author: "N/A" };
         const genres = {}; books.forEach(b => genres[b.genre] = (genres[b.genre] || 0) + 1);
@@ -656,26 +658,96 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     document.getElementById('section-stats-btn')?.addEventListener('click', openStats);
 
-    const openFeedback = () => {
-        const modal = document.getElementById('feedback-modal'); if (!modal) return;
-        const box = modal.querySelector('.modal-box'); const heroEl = box?.querySelector('.feedback-hero'); const form = document.getElementById('feedback-form');
-        if (!heroEl || !form) { modal.style.display = 'flex'; return; }
-        if (!document.getElementById('fb-loader')) { const loader = document.createElement('div'); loader.id = 'fb-loader'; loader.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:15px;width:100%;"><div class="loader-logo-ring" style="width:50px;height:50px;"><div class="loader-ring r1" style="border-width:3px;"></div><div class="loader-ring r2" style="border-width:3px;inset:4px;"></div></div><p style="color:var(--text-muted);font-weight:bold;letter-spacing:1px;font-size:0.9rem;">LOADING...</p></div>`; box.appendChild(loader); }
-        const loader = document.getElementById('fb-loader');
-        loader.style.display = 'flex'; heroEl.style.display = 'none'; form.style.display = 'none'; modal.style.display = 'flex';
-        setTimeout(() => { loader.style.display = 'none'; heroEl.style.display = 'block'; form.style.display = 'flex'; heroEl.style.animation = 'none'; heroEl.offsetHeight; heroEl.style.animation = 'statsItemIn 0.35s ease both'; form.style.animation = 'none'; form.offsetHeight; form.style.animation = 'statsItemIn 0.35s ease both 0.1s'; }, 800);
+    const openFeedback = async () => {
+        const modal = document.getElementById('feedback-modal');
+        if (!modal) return;
+        modal.style.display = 'flex';
+        const sections = ['fb-loading','fb-guest-notice','fb-existing-review','fb-write-form','fb-new-user-form'];
+        const showSection = (id) => sections.forEach(s => { const el = document.getElementById(s); if (el) el.style.display = s === id ? '' : 'none'; });
+        if (!LibraryDB.currentUser) { showSection('fb-guest-notice'); renderIcons(); return; }
+        showSection('fb-loading');
+        const reviews = await LibraryDB.fetchReviews();
+        const uid = LibraryDB.currentUser.uid;
+        const myReview = reviews[uid] || null;
+        const otherReviews = Object.values(reviews).filter(r => r.uid !== uid);
+        if (myReview) {
+            const nameEl = document.getElementById('fb-existing-name'); if (nameEl) nameEl.textContent = myReview.displayName;
+            const starsEl = document.getElementById('fb-existing-stars'); if (starsEl) starsEl.innerHTML = '⭐'.repeat(myReview.stars) + `<span style="color:var(--text-muted);font-size:0.8rem;margin-left:4px;">${myReview.stars}/5</span>`;
+            const msgEl = document.getElementById('fb-existing-message'); if (msgEl) msgEl.textContent = myReview.message;
+            const avatarEl = document.getElementById('fb-existing-avatar');
+            if (avatarEl) { const preset = (window.AVATAR_PRESETS||[]).find(p=>p.key===myReview.avatarStyle); avatarEl.style.background = preset ? preset.gradient : 'linear-gradient(135deg,#db2777,#9333ea)'; avatarEl.textContent = (myReview.displayName||'S').charAt(0).toUpperCase(); }
+            const listEl = document.getElementById('fb-reviews-list');
+            if (listEl) listEl.innerHTML = otherReviews.length ? otherReviews.sort((a,b)=>b.updatedAt-a.updatedAt).map(r=>renderReviewCard(r)).join('') : '<p style="color:var(--text-muted);text-align:center;padding:16px 0;font-size:0.88rem;">No other reviews yet.</p>';
+            showSection('fb-existing-review');
+        } else {
+            const allReviews = Object.values(reviews).sort((a,b)=>b.updatedAt-a.updatedAt);
+            const allListEl = document.getElementById('fb-all-reviews-list');
+            if (allListEl) allListEl.innerHTML = allReviews.length ? allReviews.map(r=>renderReviewCard(r)).join('') : '<p style="color:var(--text-muted);text-align:center;padding:16px 0;font-size:0.88rem;">No reviews yet. Be the first!</p>';
+            showSection('fb-new-user-form');
+        }
+        renderIcons();
     };
+
+    function renderReviewCard(r) {
+        const preset = (window.AVATAR_PRESETS||[]).find(p=>p.key===r.avatarStyle);
+        const bg = preset ? preset.gradient : 'linear-gradient(135deg,#db2777,#9333ea)';
+        const letter = (r.displayName||'S').charAt(0).toUpperCase();
+        const date = r.updatedAt ? new Date(r.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+        return `<div class="fb-review-card"><div class="fb-review-header"><div class="fb-reviewer-avatar" style="background:${bg};">${letter}</div><div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:0.9rem;color:var(--text-main);">${r.displayName}</div><div style="font-size:0.75rem;color:var(--text-muted);">${'⭐'.repeat(r.stars)}&nbsp;${date}</div></div></div><p class="fb-review-text">${r.message}</p></div>`;
+    }
+
     document.getElementById('section-feedback-btn')?.addEventListener('click', openFeedback);
 
-    const fForm = document.getElementById('feedback-form');
-    if (fForm) fForm.onsubmit = async (e) => {
-        e.preventDefault(); const btn = document.getElementById('fb-submit-btn');
-        const name = document.getElementById('fb-name').value; const email = document.getElementById('fb-email').value; const message = document.getElementById('fb-message').value; const rating = document.querySelector('input[name="rating"]:checked')?.value || 5;
-        btn.innerHTML = '<i data-lucide="loader-2"></i> Sending...'; renderIcons(); btn.disabled = true;
-        try { await LibraryDB.submitRating(parseInt(rating)); await fetch('/api/send-feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, message: `[Rating: ${rating}/5 Stars]\n\n${message}` }) }); showPopup("Success", "Feedback Sent! Thank you.", null, false); fForm.reset(); document.getElementById('feedback-modal').style.display = 'none'; }
-        catch { showPopup("Note", "Rating saved. Email delivery may be offline.", null, false); document.getElementById('feedback-modal').style.display = 'none'; }
-        finally { btn.innerHTML = '<i data-lucide="send"></i> Send Feedback'; btn.disabled = false; renderIcons(); }
-    };
+    document.getElementById('fb-signin-btn')?.addEventListener('click', () => {
+        document.getElementById('feedback-modal').style.display = 'none'; showAuthModal('login');
+    });
+
+    document.getElementById('fb-new-submit-btn')?.addEventListener('click', async () => {
+        const msg = document.getElementById('fb-new-message')?.value.trim();
+        const stars = document.querySelector('input[name="fbrating"]:checked')?.value || 5;
+        if (!msg) return showPopup('Missing Review', 'Please write something before posting.', null, false);
+        const btn = document.getElementById('fb-new-submit-btn');
+        btn.disabled = true; btn.innerHTML = 'Posting...';
+        try { await LibraryDB.submitReview(stars, msg); document.getElementById('feedback-modal').style.display = 'none'; showPopup('Review Posted! 🎉', 'Thank you for your feedback!', null, false); }
+        catch(e) { showPopup('Error', 'Could not post review. Try again.', null, false); }
+        btn.disabled = false; btn.innerHTML = '<i data-lucide="send"></i> Post Review'; renderIcons();
+    });
+
+    document.getElementById('fb-submit-btn')?.addEventListener('click', async () => {
+        const msg = document.getElementById('fb-message')?.value.trim();
+        const stars = document.querySelector('input[name="fbrating"]:checked')?.value || 5;
+        if (!msg) return showPopup('Missing Review', 'Please write something before posting.', null, false);
+        const btn = document.getElementById('fb-submit-btn');
+        btn.disabled = true; btn.innerHTML = 'Saving...';
+        try { await LibraryDB.submitReview(stars, msg); document.getElementById('feedback-modal').style.display = 'none'; showPopup('Review Updated! ✅', 'Your review has been saved.', null, false); }
+        catch(e) { showPopup('Error', 'Could not save review. Try again.', null, false); }
+        btn.disabled = false; btn.innerHTML = '<i data-lucide="send"></i> Post Review'; renderIcons();
+    });
+
+    document.getElementById('fb-cancel-btn')?.addEventListener('click', () => {
+        const wf = document.getElementById('fb-write-form'); const er = document.getElementById('fb-existing-review');
+        if (wf) wf.style.display = 'none'; if (er) er.style.display = '';
+    });
+
+    document.getElementById('fb-edit-btn')?.addEventListener('click', async () => {
+        const reviews = await LibraryDB.fetchReviews();
+        const myReview = reviews[LibraryDB.currentUser?.uid];
+        if (!myReview) return;
+        const msgInput = document.getElementById('fb-message'); if (msgInput) msgInput.value = myReview.message;
+        const starInput = document.querySelector(`input[name="fbrating"][value="${myReview.stars}"]`); if (starInput) starInput.checked = true;
+        const er = document.getElementById('fb-existing-review'); const wf = document.getElementById('fb-write-form');
+        const lbl = document.getElementById('fb-write-label');
+        if (er) er.style.display = 'none'; if (wf) wf.style.display = ''; if (lbl) lbl.textContent = 'Edit your review';
+        renderIcons();
+    });
+
+    document.getElementById('fb-delete-btn')?.addEventListener('click', () => {
+        showPopup('Delete Review', 'Are you sure you want to delete your review?', async () => {
+            await LibraryDB.deleteReview();
+            document.getElementById('feedback-modal').style.display = 'none';
+            showPopup('Deleted', 'Your review has been removed.', null, false);
+        }, true);
+    });
 
     function launchConfetti() {
         const canvas = document.getElementById('confetti-canvas'); if (!canvas) return;
@@ -716,16 +788,88 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderIcons(); setTimeout(renderIcons, 200); setTimeout(renderIcons, 500); setTimeout(renderIcons, 1000);
 
-    const openMaintBtn = document.getElementById('open-maint-view-btn'); const closeMaintBtn = document.getElementById('close-maint-modal-btn'); const maintModal = document.getElementById('admin-maint-modal'); const maintSwitch = document.getElementById('maint-toggle-switch'); const saveMaintBtn = document.getElementById('save-maint-btn');
-    if (openMaintBtn && maintModal) openMaintBtn.onclick = async () => { maintModal.style.display = 'flex'; if (typeof LibraryDB.getMaintenance === 'function') { const cur = await LibraryDB.getMaintenance(); if (maintSwitch) maintSwitch.checked = cur; } };
-    if (closeMaintBtn && maintModal) closeMaintBtn.onclick = () => maintModal.style.display = 'none';
-    if (saveMaintBtn) saveMaintBtn.onclick = async () => { const newState = maintSwitch ? maintSwitch.checked : false; await LibraryDB.setMaintenance(newState); showPopup("System Control", `Maintenance Mode is now ${newState ? 'ON' : 'OFF'}.`, null, false); if (maintModal) maintModal.style.display = 'none'; };
+    const openMaintBtn = document.getElementById('open-maint-view-btn');
+    const closeMaintBtn = document.getElementById('close-maint-modal-btn');
+    const maintModal = document.getElementById('admin-maint-modal');
+    const maintSwitch = document.getElementById('maint-toggle-switch');
+    const saveMaintBtn = document.getElementById('save-maint-btn');
 
-    const openBcBtn = document.getElementById('open-broadcast-view-btn'); const closeBcBtn = document.getElementById('close-broadcast-admin-btn'); const sendBcBtn = document.getElementById('send-broadcast-btn'); const clearBcBtn = document.getElementById('clear-broadcast-btn'); const adminBcView = document.getElementById('admin-broadcast-view');
+    if (openMaintBtn && maintModal) {
+        openMaintBtn.onclick = async () => {
+            maintModal.style.display = 'flex';
+            try { const cur = await LibraryDB.getMaintenance(); if (maintSwitch) maintSwitch.checked = !!cur; } catch(e) {}
+        };
+    }
+    if (closeMaintBtn && maintModal) closeMaintBtn.onclick = () => maintModal.style.display = 'none';
+    if (saveMaintBtn) {
+        saveMaintBtn.onclick = async () => {
+            const newState = maintSwitch ? maintSwitch.checked : false;
+            saveMaintBtn.disabled = true; saveMaintBtn.textContent = 'Saving...';
+            await LibraryDB.setMaintenance(newState);
+            saveMaintBtn.disabled = false; saveMaintBtn.innerHTML = '<i data-lucide="save"></i> Save Settings'; renderIcons();
+            showPopup('System Control', `Maintenance Mode is now ${newState ? 'ON ⚠️' : 'OFF ✅'}.`, null, false);
+            if (maintModal) maintModal.style.display = 'none';
+        };
+    }
+
+    const openBcBtn = document.getElementById('open-broadcast-view-btn');
+    const closeBcBtn = document.getElementById('close-broadcast-admin-btn');
+    const sendBcBtn = document.getElementById('send-broadcast-btn');
+    const clearBcBtn = document.getElementById('clear-broadcast-btn');
+    const adminBcView = document.getElementById('admin-broadcast-view');
+
     if (openBcBtn && adminBcView) openBcBtn.onclick = () => adminBcView.style.display = 'flex';
     if (closeBcBtn && adminBcView) closeBcBtn.onclick = () => adminBcView.style.display = 'none';
-    if (sendBcBtn) sendBcBtn.onclick = async () => { const t = document.getElementById('bc-title')?.value.trim(); const m = document.getElementById('bc-msg')?.value.trim(); const theme = document.getElementById('bc-theme')?.value; if (!t || !m) return showPopup("Error", "Fill out both fields.", null, false); await LibraryDB.setBroadcast({ id: 'bc_' + Date.now(), title: t, message: m, theme }); showPopup("Success", "Broadcast sent!", null, false); if (adminBcView) adminBcView.style.display = 'none'; };
-    if (clearBcBtn) clearBcBtn.onclick = async () => { await LibraryDB.setBroadcast(null); showPopup("Cleared", "Active broadcast removed.", null, false); if (adminBcView) adminBcView.style.display = 'none'; };
+
+    function showUserBroadcast(activeBc) {
+        const ubModal = document.getElementById('user-broadcast-modal');
+        if (!ubModal || !activeBc?.id) return;
+        const box = ubModal.querySelector('.modal-box');
+        const iconWrap = ubModal.querySelector('.welcome-icon-wrap');
+        if (box) box.className = `modal-box broadcast-layout theme-${activeBc.theme || 'info'}`;
+        const iconStr = activeBc.theme === 'success' ? 'check-circle' : activeBc.theme === 'warning' ? 'alert-triangle' : activeBc.theme === 'alert' ? 'shield-alert' : 'bell-ring';
+        if (iconWrap) { iconWrap.innerHTML = `<i data-lucide="${iconStr}"></i>`; renderIcons(); }
+        const titleEl = document.getElementById('ub-title'); const msgEl = document.getElementById('ub-msg');
+        if (titleEl) titleEl.innerText = activeBc.title;
+        if (msgEl) msgEl.innerText = activeBc.message;
+        ubModal.style.display = 'flex';
+        if (navigator.vibrate) navigator.vibrate([50, 100, 50]);
+        const gotItBtn = document.getElementById('ub-got-it-btn');
+        if (gotItBtn) gotItBtn.onclick = () => { localStorage.setItem('libnav_seen_broadcast', activeBc.id); ubModal.style.display = 'none'; };
+    }
+
+    if (sendBcBtn) {
+        sendBcBtn.onclick = async () => {
+            const t = document.getElementById('bc-title')?.value.trim();
+            const m = document.getElementById('bc-msg')?.value.trim();
+            const theme = document.getElementById('bc-theme')?.value || 'info';
+            if (!t || !m) return showPopup('Error', 'Please fill in both the title and message.', null, false);
+            sendBcBtn.disabled = true; sendBcBtn.textContent = 'Sending...';
+            const bcObj = { id: 'bc_' + Date.now(), title: t, message: m, theme };
+            const ok = await LibraryDB.setBroadcast(bcObj);
+            sendBcBtn.disabled = false; sendBcBtn.innerHTML = '<i data-lucide="send"></i> Send to All Users'; renderIcons();
+            if (ok !== false) {
+                document.getElementById('bc-title').value = '';
+                document.getElementById('bc-msg').value = '';
+                if (adminBcView) adminBcView.style.display = 'none';
+                localStorage.removeItem('libnav_seen_broadcast');
+                showUserBroadcast(bcObj);
+            } else {
+                showPopup('Error', 'Failed to send. Check your connection.', null, false);
+            }
+        };
+    }
+    if (clearBcBtn) {
+        clearBcBtn.onclick = async () => {
+            clearBcBtn.disabled = true; clearBcBtn.textContent = 'Clearing...';
+            await LibraryDB.setBroadcast(null);
+            clearBcBtn.disabled = false; clearBcBtn.innerHTML = '<i data-lucide="trash-2"></i> Clear Active Broadcast'; renderIcons();
+            const ubModal = document.getElementById('user-broadcast-modal');
+            if (ubModal) ubModal.style.display = 'none';
+            showPopup('Cleared', 'Active broadcast has been removed.', null, false);
+            if (adminBcView) adminBcView.style.display = 'none';
+        };
+    }
 
     function startMaintClock() { const el = document.getElementById('maint-live-clock'); if (!el) return; const tick = () => { el.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }; tick(); setInterval(tick, 1000); }
 
@@ -734,68 +878,58 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(async () => {
         let sseRetryTimer = null;
         function startAppSSE() {
-            // One connection listening to the parent node — Firebase fires on any child change
-            const appSource = new EventSource(`${LibraryDB.dbUrl}.json?orderBy="$key"&startAt="broadcast"&endAt="maintenance"`);
+            const bcSource = new EventSource(`${LibraryDB.dbUrl}broadcast.json`);
+            const maintSource = new EventSource(`${LibraryDB.dbUrl}maintenance.json`);
 
-            appSource.addEventListener('put', async (e) => {
+            bcSource.addEventListener('put', async (e) => {
                 try {
                     const parsed = JSON.parse(e.data);
-                    const path = parsed.path || '/';
-                    const data = parsed.data;
-
-                    // Handle maintenance changes
-                    if (path === '/maintenance' || (path === '/' && data?.maintenance !== undefined)) {
-                        const isMaint = path === '/maintenance' ? data : data?.maintenance;
-                        if (isMaint !== null && isMaint !== undefined) {
-                            const isVIP = LibraryDB.currentUser && (await LibraryDB.isAdmin());
-                            const maintOverlay = document.getElementById('maintenance-overlay');
-                            if (isMaint && !isVIP) {
-                                if (maintOverlay && maintOverlay.style.display !== 'flex') { maintOverlay.style.display = 'flex'; maintOverlay.style.animation = 'fadeIn 0.4s ease'; renderIcons(); startMaintClock(); }
-                            } else {
-                                if (maintOverlay && maintOverlay.style.display === 'flex') { maintOverlay.style.animation = 'sectionFadeOut 0.5s ease both'; setTimeout(() => { maintOverlay.style.display = 'none'; maintOverlay.style.animation = ''; launchConfetti(); if (navigator.vibrate) navigator.vibrate([100, 50, 100]); document.body.insertAdjacentHTML('beforeend', `<div id="welcome-back-modal" class="modal-overlay" style="display:flex;z-index:999999;animation:fadeIn 0.3s ease;"><div class="popup-box" style="border:2px solid var(--primary);"><div class="success-icon" style="color:var(--primary);"><i data-lucide="sparkles" style="width:45px;height:45px;"></i></div><h2 style="font-family:var(--font-head);font-size:2.2rem;">We're Back!</h2><p style="color:var(--text-muted);margin-bottom:25px;">The system update is complete. Thank you!</p><button class="btn-primary full-width" onclick="document.getElementById('welcome-back-modal').remove()">Let's Go!</button></div></div>`); renderIcons(); }, 450); }
-                            }
-                        }
+                    const activeBc = parsed.data;
+                    const ubModal = document.getElementById('user-broadcast-modal');
+                    if (activeBc?.id) {
+                        const seenBc = localStorage.getItem('libnav_seen_broadcast');
+                        if (seenBc !== activeBc.id) showUserBroadcast(activeBc);
+                    } else if (ubModal?.style.display === 'flex') {
+                        ubModal.style.animation = 'sectionFadeOut 0.3s ease both';
+                        setTimeout(() => { ubModal.style.display = 'none'; ubModal.style.animation = ''; }, 300);
                     }
+                } catch(err) {}
+            });
 
-                    // Handle broadcast changes
-                    if (path === '/broadcast' || (path === '/' && data?.broadcast !== undefined)) {
-                        const activeBc = path === '/broadcast' ? data : data?.broadcast;
-                        const ubModal = document.getElementById('user-broadcast-modal');
-                        if (activeBc?.id) {
-                            const seenBc = localStorage.getItem('libnav_seen_broadcast');
-                            if (seenBc !== activeBc.id && ubModal) {
-                                const box = ubModal.querySelector('.modal-box'); const iconWrap = ubModal.querySelector('.welcome-icon-wrap');
-                                box.className = `modal-box broadcast-layout theme-${activeBc.theme || 'info'}`;
-                                let iconStr = activeBc.theme === 'success' ? 'check-circle' : activeBc.theme === 'warning' ? 'alert-triangle' : activeBc.theme === 'alert' ? 'shield-alert' : 'bell-ring';
-                                iconWrap.innerHTML = `<i data-lucide="${iconStr}"></i>`; renderIcons();
-                                const titleEl = document.getElementById('ub-title'); const msgEl = document.getElementById('ub-msg');
-                                if (titleEl) titleEl.innerText = activeBc.title; if (msgEl) msgEl.innerText = activeBc.message;
-                                ubModal.style.display = 'flex'; if (navigator.vibrate) navigator.vibrate([50, 100, 50]);
-                                const gotItBtn = document.getElementById('ub-got-it-btn');
-                                if (gotItBtn) gotItBtn.onclick = () => { localStorage.setItem('libnav_seen_broadcast', activeBc.id); ubModal.style.display = 'none'; };
-                            }
-                        } else if ((activeBc === null || activeBc === undefined) && ubModal?.style.display === 'flex') {
-                            ubModal.style.animation = 'sectionFadeOut 0.3s ease both';
-                            setTimeout(() => { ubModal.style.display = 'none'; ubModal.style.animation = ''; }, 300);
+            maintSource.addEventListener('put', async (e) => {
+                try {
+                    const parsed = JSON.parse(e.data);
+                    const isMaint = parsed.data;
+                    const isVIP = LibraryDB.currentUser && (await LibraryDB.isAdmin());
+                    const maintOverlay = document.getElementById('maintenance-overlay');
+                    if (isMaint && !isVIP) {
+                        if (maintOverlay && maintOverlay.style.display !== 'flex') {
+                            maintOverlay.style.display = 'flex';
+                            maintOverlay.style.animation = 'fadeIn 0.4s ease';
+                            renderIcons(); startMaintClock();
+                        }
+                    } else {
+                        if (maintOverlay && maintOverlay.style.display === 'flex') {
+                            maintOverlay.style.animation = 'sectionFadeOut 0.5s ease both';
+                            setTimeout(() => {
+                                maintOverlay.style.display = 'none'; maintOverlay.style.animation = '';
+                                launchConfetti();
+                                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                                document.body.insertAdjacentHTML('beforeend', `<div id="welcome-back-modal" class="modal-overlay" style="display:flex;z-index:999999;animation:fadeIn 0.3s ease;"><div class="popup-box" style="border:2px solid var(--primary);"><div class="success-icon" style="color:var(--primary);"><i data-lucide="sparkles" style="width:45px;height:45px;"></i></div><h2 style="font-family:var(--font-head);font-size:2.2rem;">We're Back!</h2><p style="color:var(--text-muted);margin-bottom:25px;">The system update is complete. Thank you!</p><button class="btn-primary full-width" onclick="document.getElementById('welcome-back-modal').remove()">Let's Go!</button></div></div>`);
+                                renderIcons();
+                            }, 450);
                         }
                     }
                 } catch(err) {}
             });
 
-            appSource.addEventListener('error', () => {
-                appSource.close();
-                // Reconnect after 30s to avoid hammering on errors
-                if (sseRetryTimer) clearTimeout(sseRetryTimer);
-                sseRetryTimer = setTimeout(startAppSSE, 30000);
-            });
+            bcSource.addEventListener('error', () => { bcSource.close(); if (sseRetryTimer) clearTimeout(sseRetryTimer); sseRetryTimer = setTimeout(startAppSSE, 30000); });
+            maintSource.addEventListener('error', () => maintSource.close());
 
-            // Pause SSE when tab is hidden, resume when visible — saves connections
             document.addEventListener('visibilitychange', () => {
-                if (document.hidden) { appSource.close(); }
+                if (document.hidden) { bcSource.close(); maintSource.close(); }
                 else { clearTimeout(sseRetryTimer); sseRetryTimer = setTimeout(startAppSSE, 1000); }
             });
-
-            return appSource;
         }
         startAppSSE();
     }, 1500);
