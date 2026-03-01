@@ -690,7 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try { let count = parseInt(localStorage.getItem('libnav_helped_local') || '0'); count++; localStorage.setItem('libnav_helped_local', String(count)); if (typeof LibraryDB.incrementHelped === 'function') await LibraryDB.incrementHelped(); const MILESTONES = [10, 25, 50, 100, 200, 500, 1000]; if (MILESTONES.includes(count)) setTimeout(() => { const toast = document.getElementById('toast-notification'); if (!toast) return; toast.innerHTML = `<i data-lucide="party-popper"></i> <span>LibNav has helped ${count} students! 🎉</span>`; toast.classList.add('show', 'toast-milestone'); renderIcons(); setTimeout(() => toast.classList.remove('show', 'toast-milestone'), 5000); }, 1500); } catch (e) {}
     }
 
-    window.showSuccessScreen = function () { document.getElementById('book-modal').style.display = 'none'; document.getElementById('success-modal').style.display = 'flex'; if (navigator.vibrate) navigator.vibrate([50, 30, 100, 30, 200]); launchConfetti(); incrementHelpedCount(); };
+    window.showSuccessScreen = function () { document.getElementById('book-modal').style.display = 'none'; document.getElementById('success-modal').style.display = 'flex'; if (navigator.vibrate) navigator.vibrate([50, 30, 100, 30, 200]); launchConfetti(); incrementHelpedCount(); if (LibraryDB.currentUser) LibraryDB.incrementUserHelped().catch(() => {}); };
     window.closeSuccessScreen = function () { document.getElementById('success-modal').style.display = 'none'; document.body.classList.remove('companion-mode-active'); switchSection('home'); };
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -779,23 +779,72 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!email || !pass) { showPopup('Missing Info', 'Please enter your email and password.', null, false); return; }
         setAuthLoading('auth-login-btn', true, '<i data-lucide="log-in"></i> Sign In');
         try { await LibraryDB.signIn(email, pass); document.getElementById('auth-modal').style.display = 'none'; document.getElementById('auth-email').value = ''; document.getElementById('auth-password').value = ''; }
-        catch (err) { const msg = (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') ? 'Incorrect email or password.' : err.code === 'auth/too-many-requests' ? 'Too many attempts. Try again later.' : 'Sign in failed. Please try again.'; showPopup('Sign In Failed', msg, null, false); }
+        catch (err) { const msg = err.code === 'auth/email-not-verified' ? 'Please verify your email first. Check your inbox (and spam folder!) for the verification link.' : (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') ? 'Incorrect email or password.' : err.code === 'auth/too-many-requests' ? 'Too many attempts. Try again later.' : 'Sign in failed. Please try again.'; showPopup('Sign In Failed', msg, null, false); }
         setAuthLoading('auth-login-btn', false, '<i data-lucide="log-in"></i> Sign In');
     });
+    document.getElementById('auth-email-toggle-btn')?.addEventListener('click', () => {
+        const fields = document.getElementById('auth-email-fields');
+        const icon = document.getElementById('auth-email-toggle-icon');
+        const isHidden = fields.style.display === 'none';
+        fields.style.display = isHidden ? 'block' : 'none';
+        if (icon) icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+    });
+    document.getElementById('toggle-login-pw')?.addEventListener('click', () => {
+        const inp = document.getElementById('auth-password');
+        const icon = document.querySelector('#toggle-login-pw i');
+        if (!inp) return;
+        const isPass = inp.type === 'password';
+        inp.type = isPass ? 'text' : 'password';
+        if (icon) { icon.setAttribute('data-lucide', isPass ? 'eye-off' : 'eye'); renderIcons(); }
+    });
+    document.getElementById('toggle-signup-pw')?.addEventListener('click', () => {
+        const inp = document.getElementById('auth-signup-password');
+        const icon = document.querySelector('#toggle-signup-pw i');
+        if (!inp) return;
+        const isPass = inp.type === 'password';
+        inp.type = isPass ? 'text' : 'password';
+        if (icon) { icon.setAttribute('data-lucide', isPass ? 'eye-off' : 'eye'); renderIcons(); }
+    });
+    document.getElementById('auth-google-btn-signup')?.addEventListener('click', async () => {
+        const btn = document.getElementById('auth-google-btn-signup'); if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;width:18px;height:18px;"></i> Signing in...'; renderIcons(); }
+        try { await LibraryDB.signInWithGoogle(); document.getElementById('auth-modal').style.display = 'none'; }
+        catch (err) { const msg = err.code === 'auth/popup-closed-by-user' ? 'Sign in cancelled.' : err.code === 'auth/popup-blocked' ? 'Popup was blocked. Please allow popups for this site.' : 'Google sign in failed. Please try again.'; showPopup('Google Sign In Failed', msg, null, false); }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px;"> Sign Up with Google'; }
+    });
+
     document.getElementById('auth-email')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('auth-login-btn')?.click(); });
     document.getElementById('auth-password')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('auth-login-btn')?.click(); });
 
     document.getElementById('auth-signup-btn')?.addEventListener('click', async () => {
-        const name = document.getElementById('auth-name')?.value.trim(); const email = document.getElementById('auth-signup-email')?.value.trim(); const pass = document.getElementById('auth-signup-password')?.value;
-        if (!name || !email || !pass) { showPopup('Missing Info', 'Please fill in all fields.', null, false); return; }
+        const email = document.getElementById('auth-signup-email')?.value.trim(); const pass = document.getElementById('auth-signup-password')?.value;
+        if (!email || !pass) { showPopup('Missing Info', 'Please enter your email and password.', null, false); return; }
         if (pass.length < 6) { showPopup('Weak Password', 'Password must be at least 6 characters.', null, false); return; }
+        // Auto-generate display name from email prefix (e.g. "juan.dela" -> "Juan Dela")
+        const autoName = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).trim() || 'Student';
         setAuthLoading('auth-signup-btn', true, '<i data-lucide="user-plus"></i> Create Account');
-        try { await LibraryDB.signUp(email, pass, name); document.getElementById('auth-login-panel').style.display = 'none'; document.getElementById('auth-signup-panel').style.display = 'none'; document.getElementById('auth-verify-panel').style.display = 'block'; document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active')); }
+        try { await LibraryDB.signUp(email, pass, autoName); document.getElementById('auth-login-panel').style.display = 'none'; document.getElementById('auth-signup-panel').style.display = 'none'; document.getElementById('auth-verify-panel').style.display = 'block'; document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active')); }
         catch (err) { const msg = err.code === 'auth/email-already-in-use' ? 'Email already registered. Try signing in.' : err.code === 'auth/invalid-email' ? 'Enter a valid email address.' : 'Sign up failed. Please try again.'; showPopup('Sign Up Failed', msg, null, false); }
         setAuthLoading('auth-signup-btn', false, '<i data-lucide="user-plus"></i> Create Account');
     });
-    document.getElementById('auth-resend-btn')?.addEventListener('click', async () => { try { await LibraryDB.sendVerificationEmail(); showPopup('Email Sent', 'Verification email resent!', null, false); } catch (e) { showPopup('Error', 'Could not resend. Wait a moment and try again.', null, false); } });
-    document.getElementById('auth-verified-btn')?.addEventListener('click', async () => { if (LibraryDB.currentUser) await LibraryDB.currentUser.reload().catch(() => {}); document.getElementById('auth-modal').style.display = 'none'; document.getElementById('auth-verify-panel').style.display = 'none'; });
+    document.getElementById('auth-resend-btn')?.addEventListener('click', async () => { try { await LibraryDB.sendVerificationEmail(); showPopup('Email Sent', 'Verification email resent! Check your spam folder too.', null, false); } catch (e) { showPopup('Error', 'Could not resend. Wait a moment and try again.', null, false); } });
+    document.getElementById('auth-verified-btn')?.addEventListener('click', async () => {
+        const btn = document.getElementById('auth-verified-btn'); if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;width:18px;height:18px;"></i> Checking...'; renderIcons(); }
+        try {
+            if (LibraryDB.currentUser) await LibraryDB.currentUser.reload();
+            if (LibraryDB.currentUser?.emailVerified) {
+                document.getElementById('auth-modal').style.display = 'none'; document.getElementById('auth-verify-panel').style.display = 'none';
+            } else {
+                showPopup('Not Verified Yet', 'Your email is not verified yet. Please click the link in your email. Check your spam folder too!', null, false);
+            }
+        } catch(e) { showPopup('Error', 'Could not check verification status. Try again.', null, false); }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="check-circle-2"></i> I\'ve Verified — Continue'; renderIcons(); }
+    });
+    document.getElementById('auth-google-btn')?.addEventListener('click', async () => {
+        const btn = document.getElementById('auth-google-btn'); if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;width:18px;height:18px;"></i> Signing in...'; renderIcons(); }
+        try { await LibraryDB.signInWithGoogle(); document.getElementById('auth-modal').style.display = 'none'; }
+        catch (err) { const msg = err.code === 'auth/popup-closed-by-user' ? 'Sign in cancelled.' : err.code === 'auth/popup-blocked' ? 'Popup was blocked. Please allow popups for this site.' : 'Google sign in failed. Please try again.'; showPopup('Google Sign In Failed', msg, null, false); }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px;"> Continue with Google'; }
+    });
     document.getElementById('auth-forgot-link')?.addEventListener('click', async () => { const email = document.getElementById('auth-email')?.value.trim(); if (!email) { showPopup('Enter Email', 'Type your email address first.', null, false); return; } try { await LibraryDB.sendPasswordReset(email); showPopup('Email Sent', `Reset link sent to ${email}.`, null, false); } catch (e) { showPopup('Error', 'Could not send reset email.', null, false); } });
     document.getElementById('auth-guest-btn')?.addEventListener('click', () => { document.getElementById('auth-modal').style.display = 'none'; });
     document.getElementById('auth-guest-btn-2')?.addEventListener('click', () => { document.getElementById('auth-modal').style.display = 'none'; });
@@ -805,18 +854,126 @@ document.addEventListener('DOMContentLoaded', () => {
         const user = LibraryDB.currentUser; const guestView = document.getElementById('profile-guest-view'); const userView = document.getElementById('profile-user-view');
         if (!user) { if (guestView) guestView.style.display = 'block'; if (userView) userView.style.display = 'none'; renderIcons(); return; }
         if (guestView) guestView.style.display = 'none'; if (userView) userView.style.display = 'block';
-        const data = LibraryDB.currentUserData; const name = data?.displayName || user.displayName || 'Student'; const bookmarkCount = data?.bookmarkCount || 0; const rank = getRank(bookmarkCount);
-        const avatarEl = document.getElementById('profile-avatar-circle'); if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
+        const data = LibraryDB.currentUserData; const name = data?.displayName || user.displayName || 'Student'; const bookmarkCount = data?.bookmarkCount || 0; const helpedCount = data?.helpedCount || 0; const rank = getRank(helpedCount);
+        const avatarEl = document.getElementById('profile-avatar-circle'); 
+        if (avatarEl) {
+            const avatarUrl = data?.avatarUrl || user.photoURL || null;
+            if (avatarUrl) {
+                avatarEl.style.backgroundImage = `url(${avatarUrl})`;
+                avatarEl.style.backgroundSize = 'cover';
+                avatarEl.style.backgroundPosition = 'center';
+                avatarEl.textContent = '';
+            } else {
+                avatarEl.style.backgroundImage = '';
+                avatarEl.textContent = name.charAt(0).toUpperCase();
+            }
+        }
         const nameEl = document.getElementById('profile-display-name'); if (nameEl) nameEl.textContent = name;
         const emailEl = document.getElementById('profile-email-text'); if (emailEl) emailEl.textContent = user.email || '';
         const rankBadge = document.getElementById('profile-rank-badge'); if (rankBadge) rankBadge.innerHTML = `<span class="rank-icon">${rank.icon}</span> ${rank.title}`;
         const bmCount = document.getElementById('profile-bookmark-count'); if (bmCount) bmCount.textContent = bookmarkCount;
+        const helpedEl = document.getElementById('profile-helped-count'); if (helpedEl) helpedEl.textContent = helpedCount;
         const leaderboard = await LibraryDB.getLeaderboard(); const myRank = leaderboard.findIndex(u => u.uid === user.uid);
         const rankNumEl = document.getElementById('profile-rank-num'); if (rankNumEl) rankNumEl.textContent = myRank >= 0 ? `#${myRank + 1}` : '—';
         const isAdmin = await LibraryDB.isAdmin(); const adminWrap = document.getElementById('profile-admin-btn-wrap'); if (adminWrap) adminWrap.style.display = isAdmin ? 'block' : 'none';
         renderIcons();
     }
     window.openProfileModal = openProfileModal;
+
+    // ===== EDIT PROFILE LOGIC =====
+    let _editAvatarDataUrl = undefined; // undefined = unchanged, null = removed, string = new image
+
+    function showProfileEditView() {
+        const mainView = document.getElementById('profile-main-view');
+        const editView = document.getElementById('profile-edit-view');
+        if (mainView) mainView.style.display = 'none';
+        if (editView) editView.style.display = 'block';
+        _editAvatarDataUrl = undefined;
+        // Populate fields
+        const data = LibraryDB.currentUserData;
+        const nameInp = document.getElementById('edit-display-name');
+        if (nameInp) nameInp.value = data?.displayName || LibraryDB.currentUser?.displayName || '';
+        // Populate avatar preview
+        const preview = document.getElementById('edit-avatar-preview');
+        if (preview) {
+            const avatarUrl = data?.avatarUrl || (LibraryDB.currentUser?.photoURL) || null;
+            if (avatarUrl) {
+                preview.style.backgroundImage = `url(${avatarUrl})`;
+                preview.style.backgroundSize = 'cover';
+                preview.style.backgroundPosition = 'center';
+                preview.textContent = '';
+            } else {
+                preview.style.backgroundImage = '';
+                const nm = data?.displayName || LibraryDB.currentUser?.displayName || 'S';
+                preview.textContent = nm.charAt(0).toUpperCase();
+            }
+        }
+        renderIcons();
+    }
+
+    function showProfileMainView() {
+        const mainView = document.getElementById('profile-main-view');
+        const editView = document.getElementById('profile-edit-view');
+        if (mainView) mainView.style.display = 'block';
+        if (editView) editView.style.display = 'none';
+    }
+
+    document.getElementById('profile-edit-btn')?.addEventListener('click', showProfileEditView);
+    document.getElementById('profile-edit-avatar-btn')?.addEventListener('click', showProfileEditView);
+    document.getElementById('profile-edit-back-btn')?.addEventListener('click', showProfileMainView);
+    document.getElementById('profile-cancel-edit-btn')?.addEventListener('click', showProfileMainView);
+
+    // Avatar upload
+    document.getElementById('edit-avatar-upload-btn')?.addEventListener('click', () => {
+        document.getElementById('edit-avatar-input')?.click();
+    });
+    document.getElementById('edit-avatar-overlay-btn')?.addEventListener('click', () => {
+        document.getElementById('edit-avatar-input')?.click();
+    });
+    document.getElementById('edit-avatar-input')?.addEventListener('change', (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        if (file.size > 2 * 1024 * 1024) { showPopup('File Too Large', 'Please choose an image under 2MB.', null, false); return; }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            _editAvatarDataUrl = ev.target.result;
+            const preview = document.getElementById('edit-avatar-preview');
+            if (preview) {
+                preview.style.backgroundImage = `url(${_editAvatarDataUrl})`;
+                preview.style.backgroundSize = 'cover';
+                preview.style.backgroundPosition = 'center';
+                preview.textContent = '';
+            }
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    });
+    document.getElementById('edit-avatar-remove-btn')?.addEventListener('click', () => {
+        _editAvatarDataUrl = null; // null means remove
+        const preview = document.getElementById('edit-avatar-preview');
+        if (preview) {
+            preview.style.backgroundImage = '';
+            const nm = LibraryDB.currentUserData?.displayName || 'S';
+            preview.textContent = nm.charAt(0).toUpperCase();
+        }
+    });
+
+    document.getElementById('profile-save-btn')?.addEventListener('click', async () => {
+        const btn = document.getElementById('profile-save-btn');
+        const newName = document.getElementById('edit-display-name')?.value.trim();
+        if (!newName) { showPopup('Missing Name', 'Please enter a display name.', null, false); return; }
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;width:18px;height:18px;"></i> Saving...'; renderIcons(); }
+        try {
+            const avatarToSave = _editAvatarDataUrl; // undefined = no change, null = remove, string = new
+            await LibraryDB.updateUserProfile(newName, avatarToSave !== undefined ? avatarToSave : undefined);
+            // Refresh profile view
+            showProfileMainView();
+            await openProfileModal();
+            showPopup('Saved!', 'Your profile has been updated.', null, false);
+        } catch(e) {
+            showPopup('Error', 'Could not save profile. Please try again.', null, false);
+        }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="save"></i> Save Changes'; renderIcons(); }
+    });
 
     document.getElementById('profile-signin-btn')?.addEventListener('click', () => { document.getElementById('profile-modal').style.display = 'none'; showAuthModal('login'); });
     document.getElementById('profile-signout-btn')?.addEventListener('click', async () => { await LibraryDB.signOut(); favorites.length = 0; document.getElementById('profile-modal').style.display = 'none'; loadFeaturedBook(); });
@@ -829,7 +986,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await LibraryDB.getLeaderboard(); if (!listEl) return;
         if (data.length === 0) { listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;">No data yet. Start saving books!</div>'; return; }
         const medals = ['🥇', '🥈', '🥉']; const currentUid = LibraryDB.currentUser?.uid;
-        listEl.innerHTML = data.map((u, i) => `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:${u.uid === currentUid ? 'var(--primary-light)' : 'var(--surface)'};border-radius:14px;border:1px solid ${u.uid === currentUid ? 'var(--primary)' : 'var(--border-color)'};"><span style="font-size:1.4rem;width:32px;text-align:center;">${medals[i] || `#${i + 1}`}</span><div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;flex-shrink:0;">${u.displayName.charAt(0).toUpperCase()}</div><div style="flex:1;min-width:0;"><div style="font-weight:bold;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.displayName}${u.uid === currentUid ? ' <span style="color:var(--primary);font-size:0.75rem;">(You)</span>' : ''}</div><div style="font-size:0.8rem;color:var(--primary);">${u.rank.icon} ${u.rank.title}</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-weight:bold;font-size:1.1rem;color:var(--text-main);">${u.bookmarkCount}</div><div style="font-size:0.75rem;color:var(--text-muted);">saved</div></div></div>`).join('');
+        listEl.innerHTML = data.map((u, i) => `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:${u.uid === currentUid ? 'var(--primary-light)' : 'var(--surface)'};border-radius:14px;border:1px solid ${u.uid === currentUid ? 'var(--primary)' : 'var(--border-color)'};"><span style="font-size:1.4rem;width:32px;text-align:center;">${medals[i] || `#${i + 1}`}</span><div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;flex-shrink:0;">${u.displayName.charAt(0).toUpperCase()}</div><div style="flex:1;min-width:0;"><div style="font-weight:bold;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.displayName}${u.uid === currentUid ? ' <span style="color:var(--primary);font-size:0.75rem;">(You)</span>' : ''}</div><div style="font-size:0.8rem;color:var(--primary);">${u.rank.icon} ${u.rank.title}</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-weight:bold;font-size:1.1rem;color:var(--text-main);">${u.helpedCount}</div><div style="font-size:0.75rem;color:var(--text-muted);">books found</div></div></div>`).join('');
     }
 
     LibraryDB.onAuthStateChanged(async (user) => {
