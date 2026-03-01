@@ -729,22 +729,75 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function startMaintClock() { const el = document.getElementById('maint-live-clock'); if (!el) return; const tick = () => { el.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }; tick(); setInterval(tick, 1000); }
 
+    // ── OPTIMIZED: Single EventSource on parent node instead of 2 separate connections ──
+    // This halves simultaneous connections from 2 per tab → 1 per tab
     setTimeout(async () => {
-        const maintSource = new EventSource(`${LibraryDB.dbUrl}maintenance.json`);
-        maintSource.addEventListener('put', async (e) => {
-            const isMaint = JSON.parse(e.data).data;
-            if (isMaint !== null) {
-                const isVIP = LibraryDB.currentUser && (await LibraryDB.isAdmin()); const maintOverlay = document.getElementById('maintenance-overlay');
-                if (isMaint && !isVIP) { if (maintOverlay && maintOverlay.style.display !== 'flex') { maintOverlay.style.display = 'flex'; maintOverlay.style.animation = 'fadeIn 0.4s ease'; renderIcons(); startMaintClock(); } }
-                else { if (maintOverlay && maintOverlay.style.display === 'flex') { maintOverlay.style.animation = 'sectionFadeOut 0.5s ease both'; setTimeout(() => { maintOverlay.style.display = 'none'; maintOverlay.style.animation = ''; launchConfetti(); if (navigator.vibrate) navigator.vibrate([100, 50, 100]); document.body.insertAdjacentHTML('beforeend', `<div id="welcome-back-modal" class="modal-overlay" style="display:flex;z-index:999999;animation:fadeIn 0.3s ease;"><div class="popup-box" style="border:2px solid var(--primary);"><div class="success-icon" style="color:var(--primary);"><i data-lucide="sparkles" style="width:45px;height:45px;"></i></div><h2 style="font-family:var(--font-head);font-size:2.2rem;">We're Back!</h2><p style="color:var(--text-muted);margin-bottom:25px;">The system update is complete. Thank you!</p><button class="btn-primary full-width" onclick="document.getElementById('welcome-back-modal').remove()">Let's Go!</button></div></div>`); renderIcons(); }, 450); } }
-            }
-        });
-        const bcSource = new EventSource(`${LibraryDB.dbUrl}broadcast.json`);
-        bcSource.addEventListener('put', (e) => {
-            const activeBc = JSON.parse(e.data).data; const ubModal = document.getElementById('user-broadcast-modal');
-            if (activeBc?.id) { const seenBc = localStorage.getItem('libnav_seen_broadcast'); if (seenBc !== activeBc.id && ubModal) { const box = ubModal.querySelector('.modal-box'); const iconWrap = ubModal.querySelector('.welcome-icon-wrap'); box.className = `modal-box broadcast-layout theme-${activeBc.theme || 'info'}`; let iconStr = activeBc.theme === 'success' ? 'check-circle' : activeBc.theme === 'warning' ? 'alert-triangle' : activeBc.theme === 'alert' ? 'shield-alert' : 'bell-ring'; iconWrap.innerHTML = `<i data-lucide="${iconStr}"></i>`; renderIcons(); const titleEl = document.getElementById('ub-title'); const msgEl = document.getElementById('ub-msg'); if (titleEl) titleEl.innerText = activeBc.title; if (msgEl) msgEl.innerText = activeBc.message; ubModal.style.display = 'flex'; if (navigator.vibrate) navigator.vibrate([50, 100, 50]); const gotItBtn = document.getElementById('ub-got-it-btn'); if (gotItBtn) gotItBtn.onclick = () => { localStorage.setItem('libnav_seen_broadcast', activeBc.id); ubModal.style.display = 'none'; }; } }
-            else if (activeBc === null && ubModal?.style.display === 'flex') { ubModal.style.animation = 'sectionFadeOut 0.3s ease both'; setTimeout(() => { ubModal.style.display = 'none'; ubModal.style.animation = ''; }, 300); }
-        });
+        let sseRetryTimer = null;
+        function startAppSSE() {
+            // One connection listening to the parent node — Firebase fires on any child change
+            const appSource = new EventSource(`${LibraryDB.dbUrl}.json?orderBy="$key"&startAt="broadcast"&endAt="maintenance"`);
+
+            appSource.addEventListener('put', async (e) => {
+                try {
+                    const parsed = JSON.parse(e.data);
+                    const path = parsed.path || '/';
+                    const data = parsed.data;
+
+                    // Handle maintenance changes
+                    if (path === '/maintenance' || (path === '/' && data?.maintenance !== undefined)) {
+                        const isMaint = path === '/maintenance' ? data : data?.maintenance;
+                        if (isMaint !== null && isMaint !== undefined) {
+                            const isVIP = LibraryDB.currentUser && (await LibraryDB.isAdmin());
+                            const maintOverlay = document.getElementById('maintenance-overlay');
+                            if (isMaint && !isVIP) {
+                                if (maintOverlay && maintOverlay.style.display !== 'flex') { maintOverlay.style.display = 'flex'; maintOverlay.style.animation = 'fadeIn 0.4s ease'; renderIcons(); startMaintClock(); }
+                            } else {
+                                if (maintOverlay && maintOverlay.style.display === 'flex') { maintOverlay.style.animation = 'sectionFadeOut 0.5s ease both'; setTimeout(() => { maintOverlay.style.display = 'none'; maintOverlay.style.animation = ''; launchConfetti(); if (navigator.vibrate) navigator.vibrate([100, 50, 100]); document.body.insertAdjacentHTML('beforeend', `<div id="welcome-back-modal" class="modal-overlay" style="display:flex;z-index:999999;animation:fadeIn 0.3s ease;"><div class="popup-box" style="border:2px solid var(--primary);"><div class="success-icon" style="color:var(--primary);"><i data-lucide="sparkles" style="width:45px;height:45px;"></i></div><h2 style="font-family:var(--font-head);font-size:2.2rem;">We're Back!</h2><p style="color:var(--text-muted);margin-bottom:25px;">The system update is complete. Thank you!</p><button class="btn-primary full-width" onclick="document.getElementById('welcome-back-modal').remove()">Let's Go!</button></div></div>`); renderIcons(); }, 450); }
+                            }
+                        }
+                    }
+
+                    // Handle broadcast changes
+                    if (path === '/broadcast' || (path === '/' && data?.broadcast !== undefined)) {
+                        const activeBc = path === '/broadcast' ? data : data?.broadcast;
+                        const ubModal = document.getElementById('user-broadcast-modal');
+                        if (activeBc?.id) {
+                            const seenBc = localStorage.getItem('libnav_seen_broadcast');
+                            if (seenBc !== activeBc.id && ubModal) {
+                                const box = ubModal.querySelector('.modal-box'); const iconWrap = ubModal.querySelector('.welcome-icon-wrap');
+                                box.className = `modal-box broadcast-layout theme-${activeBc.theme || 'info'}`;
+                                let iconStr = activeBc.theme === 'success' ? 'check-circle' : activeBc.theme === 'warning' ? 'alert-triangle' : activeBc.theme === 'alert' ? 'shield-alert' : 'bell-ring';
+                                iconWrap.innerHTML = `<i data-lucide="${iconStr}"></i>`; renderIcons();
+                                const titleEl = document.getElementById('ub-title'); const msgEl = document.getElementById('ub-msg');
+                                if (titleEl) titleEl.innerText = activeBc.title; if (msgEl) msgEl.innerText = activeBc.message;
+                                ubModal.style.display = 'flex'; if (navigator.vibrate) navigator.vibrate([50, 100, 50]);
+                                const gotItBtn = document.getElementById('ub-got-it-btn');
+                                if (gotItBtn) gotItBtn.onclick = () => { localStorage.setItem('libnav_seen_broadcast', activeBc.id); ubModal.style.display = 'none'; };
+                            }
+                        } else if ((activeBc === null || activeBc === undefined) && ubModal?.style.display === 'flex') {
+                            ubModal.style.animation = 'sectionFadeOut 0.3s ease both';
+                            setTimeout(() => { ubModal.style.display = 'none'; ubModal.style.animation = ''; }, 300);
+                        }
+                    }
+                } catch(err) {}
+            });
+
+            appSource.addEventListener('error', () => {
+                appSource.close();
+                // Reconnect after 30s to avoid hammering on errors
+                if (sseRetryTimer) clearTimeout(sseRetryTimer);
+                sseRetryTimer = setTimeout(startAppSSE, 30000);
+            });
+
+            // Pause SSE when tab is hidden, resume when visible — saves connections
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) { appSource.close(); }
+                else { clearTimeout(sseRetryTimer); sseRetryTimer = setTimeout(startAppSSE, 1000); }
+            });
+
+            return appSource;
+        }
+        startAppSSE();
     }, 1500);
 
     let zScale = 1, zP1x = 0, zP1y = 0, zP2x = 0, zP2y = 0, zStartX = 0, zStartY = 0, zX = 0, zY = 0, zIsDragging = false, zLastTapTime = 0;
@@ -857,16 +910,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = LibraryDB.currentUserData; const name = data?.displayName || user.displayName || 'Student'; const bookmarkCount = data?.bookmarkCount || 0; const helpedCount = data?.helpedCount || 0; const rank = getRank(helpedCount);
         const avatarEl = document.getElementById('profile-avatar-circle'); 
         if (avatarEl) {
-            const avatarUrl = data?.avatarUrl || user.photoURL || null;
-            if (avatarUrl) {
-                avatarEl.style.backgroundImage = `url(${avatarUrl})`;
-                avatarEl.style.backgroundSize = 'cover';
-                avatarEl.style.backgroundPosition = 'center';
-                avatarEl.textContent = '';
-            } else {
-                avatarEl.style.backgroundImage = '';
-                avatarEl.textContent = name.charAt(0).toUpperCase();
-            }
+            renderAvatarCircle(avatarEl, name, data?.avatarStyle || null);
         }
         const nameEl = document.getElementById('profile-display-name'); if (nameEl) nameEl.textContent = name;
         const emailEl = document.getElementById('profile-email-text'); if (emailEl) emailEl.textContent = user.email || '';
@@ -880,34 +924,97 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.openProfileModal = openProfileModal;
 
+    // ===== AVATAR PRESET SYSTEM =====
+    // 6 gradient styles stored as tiny keys in Firebase (e.g. "rose") — zero storage cost
+    const AVATAR_PRESETS = [
+        { key: 'rose',    label: 'Rose',    gradient: 'linear-gradient(135deg,#f43f5e,#ec4899)', icon: '🌸' },
+        { key: 'violet',  label: 'Violet',  gradient: 'linear-gradient(135deg,#8b5cf6,#6366f1)', icon: '💜' },
+        { key: 'ocean',   label: 'Ocean',   gradient: 'linear-gradient(135deg,#0ea5e9,#06b6d4)', icon: '🌊' },
+        { key: 'forest',  label: 'Forest',  gradient: 'linear-gradient(135deg,#10b981,#84cc16)', icon: '🌿' },
+        { key: 'sunset',  label: 'Sunset',  gradient: 'linear-gradient(135deg,#f97316,#eab308)', icon: '🌅' },
+        { key: 'night',   label: 'Night',   gradient: 'linear-gradient(135deg,#1e293b,#334155)', icon: '🌙' },
+    ];
+    window.AVATAR_PRESETS = AVATAR_PRESETS;
+
+    function getAvatarStyle(styleKey) {
+        return AVATAR_PRESETS.find(p => p.key === styleKey) || AVATAR_PRESETS[0];
+    }
+    window.getAvatarStyle = getAvatarStyle;
+
+    function renderAvatarCircle(el, displayName, avatarStyle) {
+        if (!el) return;
+        const preset = avatarStyle ? getAvatarStyle(avatarStyle) : null;
+        const letter = (displayName || 'S').charAt(0).toUpperCase();
+        el.textContent = letter;
+        el.style.backgroundImage = '';
+        el.style.color = 'white';
+        el.style.fontWeight = '800';
+        if (preset) {
+            el.style.background = preset.gradient;
+        } else {
+            el.style.background = 'linear-gradient(135deg,#db2777,#9333ea)';
+        }
+    }
+    window.renderAvatarCircle = renderAvatarCircle;
+
+    function buildAvatarPresetGrid() {
+        const grid = document.getElementById('avatar-preset-grid'); if (!grid) return;
+        const currentStyle = LibraryDB.currentUserData?.avatarStyle || null;
+        grid.innerHTML = AVATAR_PRESETS.map(p => `
+            <button class="avatar-preset-btn ${p.key === currentStyle ? 'selected' : ''}"
+                    data-key="${p.key}"
+                    style="background:${p.gradient};"
+                    onclick="selectAvatarPreset('${p.key}')">
+                <span class="avatar-preset-letter">${(LibraryDB.currentUserData?.displayName || 'S').charAt(0).toUpperCase()}</span>
+                <span class="avatar-preset-name">${p.label}</span>
+                ${p.key === currentStyle ? '<span class="avatar-preset-check">✓</span>' : ''}
+            </button>
+        `).join('');
+    }
+
+    window.selectAvatarPreset = function(key) {
+        window._selectedAvatarStyle = key;
+        // Update grid UI
+        document.querySelectorAll('.avatar-preset-btn').forEach(btn => {
+            const isSelected = btn.dataset.key === key;
+            btn.classList.toggle('selected', isSelected);
+            const check = btn.querySelector('.avatar-preset-check');
+            if (isSelected && !check) btn.insertAdjacentHTML('beforeend', '<span class="avatar-preset-check">✓</span>');
+            else if (!isSelected && check) check.remove();
+        });
+        // Update live preview
+        const preview = document.getElementById('edit-avatar-preview');
+        if (preview) {
+            const preset = getAvatarStyle(key);
+            preview.style.background = preset.gradient;
+            preview.style.backgroundImage = '';
+            preview.textContent = (LibraryDB.currentUserData?.displayName || 'S').charAt(0).toUpperCase();
+            preview.style.color = 'white';
+        }
+    };
+
+
     // ===== EDIT PROFILE LOGIC =====
-    let _editAvatarDataUrl = undefined; // undefined = unchanged, null = removed, string = new image
+    // Avatar style is tracked in window._selectedAvatarStyle
 
     function showProfileEditView() {
         const mainView = document.getElementById('profile-main-view');
         const editView = document.getElementById('profile-edit-view');
         if (mainView) mainView.style.display = 'none';
         if (editView) editView.style.display = 'block';
-        _editAvatarDataUrl = undefined;
-        // Populate fields
+        window._selectedAvatarStyle = undefined; // undefined = no change yet
+        // Populate display name
         const data = LibraryDB.currentUserData;
         const nameInp = document.getElementById('edit-display-name');
         if (nameInp) nameInp.value = data?.displayName || LibraryDB.currentUser?.displayName || '';
-        // Populate avatar preview
+        // Populate avatar preview with current style
         const preview = document.getElementById('edit-avatar-preview');
         if (preview) {
-            const avatarUrl = data?.avatarUrl || (LibraryDB.currentUser?.photoURL) || null;
-            if (avatarUrl) {
-                preview.style.backgroundImage = `url(${avatarUrl})`;
-                preview.style.backgroundSize = 'cover';
-                preview.style.backgroundPosition = 'center';
-                preview.textContent = '';
-            } else {
-                preview.style.backgroundImage = '';
-                const nm = data?.displayName || LibraryDB.currentUser?.displayName || 'S';
-                preview.textContent = nm.charAt(0).toUpperCase();
-            }
+            const nm = data?.displayName || LibraryDB.currentUser?.displayName || 'S';
+            renderAvatarCircle(preview, nm, data?.avatarStyle || null);
         }
+        // Build the preset grid
+        buildAvatarPresetGrid();
         renderIcons();
     }
 
@@ -923,39 +1030,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('profile-edit-back-btn')?.addEventListener('click', showProfileMainView);
     document.getElementById('profile-cancel-edit-btn')?.addEventListener('click', showProfileMainView);
 
-    // Avatar upload
-    document.getElementById('edit-avatar-upload-btn')?.addEventListener('click', () => {
-        document.getElementById('edit-avatar-input')?.click();
-    });
-    document.getElementById('edit-avatar-overlay-btn')?.addEventListener('click', () => {
-        document.getElementById('edit-avatar-input')?.click();
-    });
-    document.getElementById('edit-avatar-input')?.addEventListener('change', (e) => {
-        const file = e.target.files[0]; if (!file) return;
-        if (file.size > 2 * 1024 * 1024) { showPopup('File Too Large', 'Please choose an image under 2MB.', null, false); return; }
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            _editAvatarDataUrl = ev.target.result;
-            const preview = document.getElementById('edit-avatar-preview');
-            if (preview) {
-                preview.style.backgroundImage = `url(${_editAvatarDataUrl})`;
-                preview.style.backgroundSize = 'cover';
-                preview.style.backgroundPosition = 'center';
-                preview.textContent = '';
-            }
-        };
-        reader.readAsDataURL(file);
-        e.target.value = '';
-    });
-    document.getElementById('edit-avatar-remove-btn')?.addEventListener('click', () => {
-        _editAvatarDataUrl = null; // null means remove
-        const preview = document.getElementById('edit-avatar-preview');
-        if (preview) {
-            preview.style.backgroundImage = '';
-            const nm = LibraryDB.currentUserData?.displayName || 'S';
-            preview.textContent = nm.charAt(0).toUpperCase();
-        }
-    });
+    // Avatar upload removed — using preset system instead
 
     document.getElementById('profile-save-btn')?.addEventListener('click', async () => {
         const btn = document.getElementById('profile-save-btn');
@@ -963,12 +1038,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!newName) { showPopup('Missing Name', 'Please enter a display name.', null, false); return; }
         if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;width:18px;height:18px;"></i> Saving...'; renderIcons(); }
         try {
-            const avatarToSave = _editAvatarDataUrl; // undefined = no change, null = remove, string = new
-            await LibraryDB.updateUserProfile(newName, avatarToSave !== undefined ? avatarToSave : undefined);
+            // Pass avatarStyle key (e.g. "rose") or undefined if unchanged
+            const styleToSave = window._selectedAvatarStyle; // undefined = unchanged
+            await LibraryDB.updateUserProfile(newName, styleToSave);
             // Refresh profile view
             showProfileMainView();
             await openProfileModal();
-            showPopup('Saved!', 'Your profile has been updated.', null, false);
+            showPopup('Saved! 🎉', 'Your profile has been updated.', null, false);
         } catch(e) {
             showPopup('Error', 'Could not save profile. Please try again.', null, false);
         }
@@ -1020,19 +1096,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const medals = ['🥇', '🥈', '🥉']; const currentUid = LibraryDB.currentUser?.uid;
         listEl.innerHTML = data.map((u, i) => {
-            const avatarContent = u.avatarUrl
-                ? `<img src="${u.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.parentElement.textContent='${u.displayName.charAt(0).toUpperCase()}'">`
-                : u.displayName.charAt(0).toUpperCase();
-            return `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:${u.uid === currentUid ? 'var(--primary-light)' : 'var(--surface)'};border-radius:14px;border:1px solid ${u.uid === currentUid ? 'var(--primary)' : 'var(--border-color)'};">
-                <span style="font-size:1.4rem;width:32px;text-align:center;flex-shrink:0;">${medals[i] || `<span style='font-weight:800;color:var(--text-muted);font-size:0.95rem;'>#${i + 1}</span>`}</span>
-                <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:bold;color:white;flex-shrink:0;overflow:hidden;">${avatarContent}</div>
+            const preset = window.getAvatarStyle ? window.getAvatarStyle(u.avatarStyle) : null;
+            const avatarBg = preset ? preset.gradient : 'linear-gradient(135deg,#db2777,#9333ea)';
+            const isTop3 = i < 3;
+            return `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:${u.uid === currentUid ? 'var(--primary-light)' : isTop3 ? 'rgba(219,39,119,0.04)' : 'var(--surface)'};border-radius:16px;border:1px solid ${u.uid === currentUid ? 'var(--primary)' : isTop3 ? 'rgba(219,39,119,0.15)' : 'var(--border-color)'};margin-bottom:8px;">
+                <span style="font-size:${i < 3 ? '1.6' : '1'}rem;width:34px;text-align:center;flex-shrink:0;font-weight:800;color:var(--text-muted);">${medals[i] || `#${i + 1}`}</span>
+                <div style="width:42px;height:42px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;color:white;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.2);">${u.displayName.charAt(0).toUpperCase()}</div>
                 <div style="flex:1;min-width:0;">
-                    <div style="font-weight:700;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.displayName}${u.uid === currentUid ? ' <span style="color:var(--primary);font-size:0.75rem;">(You)</span>' : ''}</div>
-                    <div style="font-size:0.8rem;color:var(--primary);">${u.rank.icon} ${u.rank.title}</div>
+                    <div style="font-weight:700;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:0.95rem;">${u.displayName}${u.uid === currentUid ? ' <span style="color:var(--primary);font-size:0.72rem;font-weight:600;">(You)</span>' : ''}</div>
+                    <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">${u.rank.icon} ${u.rank.title}</div>
                 </div>
                 <div style="text-align:right;flex-shrink:0;">
-                    <div style="font-weight:800;font-size:1.15rem;color:var(--text-main);">${u.helpedCount}</div>
-                    <div style="font-size:0.72rem;color:var(--text-muted);">books found</div>
+                    <div style="font-weight:900;font-size:1.2rem;color:var(--text-main);line-height:1;">${u.helpedCount}</div>
+                    <div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px;">books found</div>
                 </div>
             </div>`;
         }).join('');
