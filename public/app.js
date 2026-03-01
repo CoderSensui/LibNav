@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showLoaderStep(4, 100);
         await new Promise(r => setTimeout(r, 180));
         hideLoader(); renderIcons();
-        setTimeout(() => { new Image().src = 'https://media.tenor.com/N_8Yk_wO8qIAAAAi/minion-running.gif'; }, 5000);
+        setTimeout(() => { new Image().src = 'https:
     }
 
     function animateCount(el, from, to, duration) {
@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const genre = document.getElementById('new-genre').value; const editingId = document.getElementById('edit-book-id').value;
         const isNewBox = document.getElementById('new-arrival-check'); const isNew = isNewBox ? isNewBox.checked : false;
         if (!title || !author) return showPopup("Missing Info", "Please fill in title and author.", null, false);
-        const imageUrls = Array.from(document.querySelectorAll('.step-url-input')).map((input, i) => input.value.trim() || `https://placehold.co/600x400/121212/db2777?text=${genre}+Step+${i + 1}`);
+        const imageUrls = Array.from(document.querySelectorAll('.step-url-input')).map((input, i) => input.value.trim() || `https:
         if (editingId) {
             const books = LibraryDB.getBooks(); const index = books.findIndex(b => String(b.id) === String(editingId));
             if (index > -1) { books[index].title = title; books[index].author = author; books[index].genre = genre; books[index].images = imageUrls; books[index].isNew = isNew; await LibraryDB.saveToCloud(); showPopup("Success", "Book Updated!", null, false); }
@@ -320,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('run-batch-btn').onclick = () => {
         const genre = document.getElementById('batch-genre').value;
         showPopup("Warning", `Overwrite map images for ALL books in "${genre}"?`, async () => {
-            const imageUrls = Array.from(document.querySelectorAll('.batch-step-url-input')).map((input, i) => input.value.trim() || `https://placehold.co/600x400/121212/db2777?text=${genre}+Step+${i + 1}`);
+            const imageUrls = Array.from(document.querySelectorAll('.batch-step-url-input')).map((input, i) => input.value.trim() || `https:
             const books = LibraryDB.getBooks(); let count = 0;
             books.forEach(b => { if (b.genre === genre) { b.images = imageUrls; count++; } });
             if (count > 0) { await LibraryDB.saveToCloud(); showPopup("Success", `Updated maps for ${count} books in ${genre}!`, null, false); document.getElementById('close-batch-view-btn').click(); renderAdminList(); }
@@ -386,11 +386,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function fetchCoverWithFallback(title, author, elementId, isImgTag) {
         const cacheKey = `${title}-${author}`;
         if (coverCache[cacheKey]) { applyCover(coverCache[cacheKey], elementId, isImgTag); return; }
-        fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1`)
+        fetch(`https:
             .then(r => r.json()).then(d => {
-                if (d.docs?.[0]?.cover_i) { const url = `https://covers.openlibrary.org/b/id/${d.docs[0].cover_i}-M.jpg`; coverCache[cacheKey] = url; applyCover(url, elementId, isImgTag); }
-                else fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&limit=1`).then(r2 => r2.json()).then(d2 => {
-                    if (d2.docs?.[0]?.cover_i) { const url = `https://covers.openlibrary.org/b/id/${d2.docs[0].cover_i}-M.jpg`; coverCache[cacheKey] = url; applyCover(url, elementId, isImgTag); }
+                if (d.docs?.[0]?.cover_i) { const url = `https:
+                else fetch(`https:
+                    if (d2.docs?.[0]?.cover_i) { const url = `https:
                     else { const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); }
                 }).catch(() => { const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); });
             }).catch(() => { const fb = generateInitialsImage(title); coverCache[cacheKey] = fb; applyCover(fb, elementId, isImgTag); });
@@ -400,7 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const el = document.getElementById('umh-author-pic'); if (!el) return;
         const wrap = el.closest('.bm-author-avatar'); const fallback = generateInitialsImage(author);
         el.src = fallback; if (wrap) wrap.classList.remove('skeleton'); el.onerror = function () { this.src = fallback; };
-        fetch(`https://openlibrary.org/search/authors.json?q=${encodeURIComponent(author)}`).then(r => r.json()).then(d => { if (d.docs?.[0]?.key) el.src = `https://covers.openlibrary.org/a/olid/${d.docs[0].key}-M.jpg?default=false`; }).catch(() => {});
+        fetch(`https:
     }
 
     function applyCover(url, elId, isImgTag) {
@@ -619,7 +619,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchScreensaverFact() {
         const factEl = document.getElementById('screensaver-fact'); if (!factEl) return; factEl.innerText = 'Loading a fun fact...';
-        try { const res = await fetch('https://uselessfacts.jsph.pl/api/v2/facts/random'); const data = await res.json(); factEl.innerText = data.text; }
+        try { const res = await fetch('https:
         catch (e) { const fallbacks = ['Reading for just 6 minutes can reduce stress by up to 68%.', 'The word "library" comes from the Latin "liber," meaning book.', 'The Library of Congress holds over 170 million items.', 'Reading before bed improves sleep quality and memory retention.', 'A bookworm is actually a real insect that eats through books!']; factEl.innerText = fallbacks[Math.floor(Math.random() * fallbacks.length)]; }
     }
 
@@ -637,7 +637,9 @@ document.addEventListener('DOMContentLoaded', () => {
         statsModal.style.display = "flex";
         contentDiv.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:320px;gap:15px;width:100%;"><div class="loader-logo-ring" style="width:54px;height:54px;"><div class="loader-ring r1" style="border-width:3px;"></div><div class="loader-ring r2" style="border-width:3px;inset:5px;"></div></div><p style="color:var(--text-muted);font-weight:bold;letter-spacing:1.5px;font-size:0.85rem;text-transform:uppercase;">Loading Statistics...</p></div>`;
         await LibraryDB.fetchGlobalStats();
-        const books = LibraryDB.getBooks(); const ratings = LibraryDB.getRatings() || []; const globalHelpedCount = LibraryDB.getHelpedCount();
+        const books = LibraryDB.getBooks(); const globalHelpedCount = LibraryDB.getHelpedCount();
+        const reviewsData = await LibraryDB.fetchReviews();
+        const ratings = Object.values(reviewsData).map(r => r.stars).filter(Boolean);
         const mostViewed = books.length > 0 ? books.reduce((a, b) => (a.views || 0) > (b.views || 0) ? a : b) : { title: "None", views: 0, author: "N/A", genre: "" };
         const newest = books.length > 0 ? books.reduce((a, b) => a.id > b.id ? a : b) : { title: "None", author: "N/A" };
         const genres = {}; books.forEach(b => genres[b.genre] = (genres[b.genre] || 0) + 1);
@@ -656,26 +658,101 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     document.getElementById('section-stats-btn')?.addEventListener('click', openStats);
 
-    const openFeedback = () => {
-        const modal = document.getElementById('feedback-modal'); if (!modal) return;
-        const box = modal.querySelector('.modal-box'); const heroEl = box?.querySelector('.feedback-hero'); const form = document.getElementById('feedback-form');
-        if (!heroEl || !form) { modal.style.display = 'flex'; return; }
-        if (!document.getElementById('fb-loader')) { const loader = document.createElement('div'); loader.id = 'fb-loader'; loader.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:15px;width:100%;"><div class="loader-logo-ring" style="width:50px;height:50px;"><div class="loader-ring r1" style="border-width:3px;"></div><div class="loader-ring r2" style="border-width:3px;inset:4px;"></div></div><p style="color:var(--text-muted);font-weight:bold;letter-spacing:1px;font-size:0.9rem;">LOADING...</p></div>`; box.appendChild(loader); }
-        const loader = document.getElementById('fb-loader');
-        loader.style.display = 'flex'; heroEl.style.display = 'none'; form.style.display = 'none'; modal.style.display = 'flex';
-        setTimeout(() => { loader.style.display = 'none'; heroEl.style.display = 'block'; form.style.display = 'flex'; heroEl.style.animation = 'none'; heroEl.offsetHeight; heroEl.style.animation = 'statsItemIn 0.35s ease both'; form.style.animation = 'none'; form.offsetHeight; form.style.animation = 'statsItemIn 0.35s ease both 0.1s'; }, 800);
+    const openFeedback = async () => {
+        const modal = document.getElementById('feedback-modal');
+        if (!modal) return;
+        modal.style.display = 'flex';
+        const showSection = (id) => ['fb-loading','fb-guest-notice','fb-existing-review','fb-write-form','fb-new-user-form'].forEach(s => {
+            document.getElementById(s).style.display = s === id ? '' : 'none';
+        });
+        if (!LibraryDB.currentUser) { showSection('fb-guest-notice'); renderIcons(); return; }
+        showSection('fb-loading');
+        const reviews = await LibraryDB.fetchReviews();
+        const uid = LibraryDB.currentUser.uid;
+        const myReview = reviews[uid] || null;
+        const otherReviews = Object.values(reviews).filter(r => r.uid !== uid);
+        if (myReview) {
+            document.getElementById('fb-existing-name').textContent = myReview.displayName;
+            document.getElementById('fb-existing-stars').innerHTML = '⭐'.repeat(myReview.stars) + `<span style="color:var(--text-muted);font-size:0.8rem;margin-left:4px;">${myReview.stars}/5</span>`;
+            document.getElementById('fb-existing-message').textContent = myReview.message;
+            const avatarEl = document.getElementById('fb-existing-avatar');
+            if (avatarEl) renderAvatarCircle(avatarEl, myReview.displayName, myReview.avatarStyle);
+            const reviewsList = document.getElementById('fb-reviews-list');
+            reviewsList.innerHTML = otherReviews.length ? otherReviews.sort((a,b) => b.updatedAt - a.updatedAt).map(r => renderReviewCard(r)).join('') : '<p style="color:var(--text-muted);text-align:center;padding:16px 0;font-size:0.88rem;">No other reviews yet.</p>';
+            showSection('fb-existing-review');
+        } else {
+            const allReviews = Object.values(reviews).sort((a,b) => b.updatedAt - a.updatedAt);
+            document.getElementById('fb-all-reviews-list').innerHTML = allReviews.length ? allReviews.map(r => renderReviewCard(r)).join('') : '<p style="color:var(--text-muted);text-align:center;padding:16px 0;font-size:0.88rem;">No reviews yet. Be the first!</p>';
+            showSection('fb-new-user-form');
+        }
+        renderIcons();
     };
-    document.getElementById('section-feedback-btn')?.addEventListener('click', openFeedback);
 
-    const fForm = document.getElementById('feedback-form');
-    if (fForm) fForm.onsubmit = async (e) => {
-        e.preventDefault(); const btn = document.getElementById('fb-submit-btn');
-        const name = document.getElementById('fb-name').value; const email = document.getElementById('fb-email').value; const message = document.getElementById('fb-message').value; const rating = document.querySelector('input[name="rating"]:checked')?.value || 5;
-        btn.innerHTML = '<i data-lucide="loader-2"></i> Sending...'; renderIcons(); btn.disabled = true;
-        try { await LibraryDB.submitRating(parseInt(rating)); await fetch('/api/send-feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, message: `[Rating: ${rating}/5 Stars]\n\n${message}` }) }); showPopup("Success", "Feedback Sent! Thank you.", null, false); fForm.reset(); document.getElementById('feedback-modal').style.display = 'none'; }
-        catch { showPopup("Note", "Rating saved. Email delivery may be offline.", null, false); document.getElementById('feedback-modal').style.display = 'none'; }
-        finally { btn.innerHTML = '<i data-lucide="send"></i> Send Feedback'; btn.disabled = false; renderIcons(); }
-    };
+    function renderReviewCard(r) {
+        const preset = window.AVATAR_PRESETS?.find(p => p.key === r.avatarStyle);
+        const bg = preset ? preset.gradient : 'linear-gradient(135deg,#db2777,#9333ea)';
+        const letter = (r.displayName || 'S').charAt(0).toUpperCase();
+        const date = r.updatedAt ? new Date(r.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+        return `<div class="fb-review-card"><div class="fb-review-header"><div class="fb-reviewer-avatar" style="background:${bg};">${letter}</div><div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:0.9rem;color:var(--text-main);">${r.displayName}</div><div style="font-size:0.75rem;color:var(--text-muted);">${'⭐'.repeat(r.stars)} &nbsp;${date}</div></div></div><p class="fb-review-text">${r.message}</p></div>`;
+    }
+
+    document.getElementById('section-feedback-btn')?.addEventListener('click', openFeedback);
+    document.getElementById('fb-signin-btn')?.addEventListener('click', () => { document.getElementById('feedback-modal').style.display = 'none'; showAuthModal('login'); });
+
+    document.getElementById('fb-new-submit-btn')?.addEventListener('click', async () => {
+        const msg = document.getElementById('fb-new-message')?.value.trim();
+        const stars = document.querySelector('input[name="fbrating"]:checked')?.value || 5;
+        if (!msg) return showPopup('Missing Review', 'Please write something before posting.', null, false);
+        const btn = document.getElementById('fb-new-submit-btn');
+        btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;width:18px;height:18px;"></i> Posting...'; renderIcons();
+        try {
+            await LibraryDB.submitReview(stars, msg);
+            document.getElementById('feedback-modal').style.display = 'none';
+            showPopup('Review Posted! 🎉', 'Thank you for your feedback!', null, false);
+        } catch(e) { showPopup('Error', 'Could not post review. Please try again.', null, false); }
+        btn.disabled = false; btn.innerHTML = '<i data-lucide="send"></i> Post Review'; renderIcons();
+    });
+
+    document.getElementById('fb-submit-btn')?.addEventListener('click', async () => {
+        const msg = document.getElementById('fb-message')?.value.trim();
+        const stars = document.querySelector('input[name="fbrating"]:checked')?.value || 5;
+        if (!msg) return showPopup('Missing Review', 'Please write something before posting.', null, false);
+        const btn = document.getElementById('fb-submit-btn');
+        btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;width:18px;height:18px;"></i> Saving...'; renderIcons();
+        try {
+            await LibraryDB.submitReview(stars, msg);
+            document.getElementById('feedback-modal').style.display = 'none';
+            showPopup('Review Updated! ✅', 'Your review has been saved.', null, false);
+        } catch(e) { showPopup('Error', 'Could not save review. Please try again.', null, false); }
+        btn.disabled = false; btn.innerHTML = '<i data-lucide="send"></i> Post Review'; renderIcons();
+    });
+
+    document.getElementById('fb-cancel-btn')?.addEventListener('click', () => {
+        document.getElementById('fb-write-form').style.display = 'none';
+        document.getElementById('fb-existing-review').style.display = '';
+    });
+
+    document.getElementById('fb-edit-btn')?.addEventListener('click', async () => {
+        const reviews = await LibraryDB.fetchReviews();
+        const myReview = reviews[LibraryDB.currentUser?.uid];
+        if (!myReview) return;
+        const msgInput = document.getElementById('fb-message');
+        if (msgInput) msgInput.value = myReview.message;
+        const starInput = document.querySelector(`input[name="fbrating"][value="${myReview.stars}"]`);
+        if (starInput) starInput.checked = true;
+        document.getElementById('fb-existing-review').style.display = 'none';
+        document.getElementById('fb-write-form').style.display = '';
+        document.getElementById('fb-write-label').textContent = 'Edit your review';
+        renderIcons();
+    });
+
+    document.getElementById('fb-delete-btn')?.addEventListener('click', () => {
+        showPopup('Delete Review', 'Are you sure you want to delete your review?', async () => {
+            await LibraryDB.deleteReview();
+            document.getElementById('feedback-modal').style.display = 'none';
+            showPopup('Deleted', 'Your review has been removed.', null, false);
+        }, true);
+    });
 
     function launchConfetti() {
         const canvas = document.getElementById('confetti-canvas'); if (!canvas) return;
@@ -716,25 +793,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderIcons(); setTimeout(renderIcons, 200); setTimeout(renderIcons, 500); setTimeout(renderIcons, 1000);
 
-    const openMaintBtn = document.getElementById('open-maint-view-btn'); const closeMaintBtn = document.getElementById('close-maint-modal-btn'); const maintModal = document.getElementById('admin-maint-modal'); const maintSwitch = document.getElementById('maint-toggle-switch'); const saveMaintBtn = document.getElementById('save-maint-btn');
-    if (openMaintBtn && maintModal) openMaintBtn.onclick = async () => { maintModal.style.display = 'flex'; if (typeof LibraryDB.getMaintenance === 'function') { const cur = await LibraryDB.getMaintenance(); if (maintSwitch) maintSwitch.checked = cur; } };
-    if (closeMaintBtn && maintModal) closeMaintBtn.onclick = () => maintModal.style.display = 'none';
-    if (saveMaintBtn) saveMaintBtn.onclick = async () => { const newState = maintSwitch ? maintSwitch.checked : false; await LibraryDB.setMaintenance(newState); showPopup("System Control", `Maintenance Mode is now ${newState ? 'ON' : 'OFF'}.`, null, false); if (maintModal) maintModal.style.display = 'none'; };
+    const openMaintBtn = document.getElementById('open-maint-view-btn');
+    const closeMaintBtn = document.getElementById('close-maint-modal-btn');
+    const maintModal = document.getElementById('admin-maint-modal');
+    const maintSwitch = document.getElementById('maint-toggle-switch');
+    const saveMaintBtn = document.getElementById('save-maint-btn');
 
-    const openBcBtn = document.getElementById('open-broadcast-view-btn'); const closeBcBtn = document.getElementById('close-broadcast-admin-btn'); const sendBcBtn = document.getElementById('send-broadcast-btn'); const clearBcBtn = document.getElementById('clear-broadcast-btn'); const adminBcView = document.getElementById('admin-broadcast-view');
-    if (openBcBtn && adminBcView) openBcBtn.onclick = () => adminBcView.style.display = 'flex';
-    if (closeBcBtn && adminBcView) closeBcBtn.onclick = () => adminBcView.style.display = 'none';
-    if (sendBcBtn) sendBcBtn.onclick = async () => { const t = document.getElementById('bc-title')?.value.trim(); const m = document.getElementById('bc-msg')?.value.trim(); const theme = document.getElementById('bc-theme')?.value; if (!t || !m) return showPopup("Error", "Fill out both fields.", null, false); await LibraryDB.setBroadcast({ id: 'bc_' + Date.now(), title: t, message: m, theme }); showPopup("Success", "Broadcast sent!", null, false); if (adminBcView) adminBcView.style.display = 'none'; };
-    if (clearBcBtn) clearBcBtn.onclick = async () => { await LibraryDB.setBroadcast(null); showPopup("Cleared", "Active broadcast removed.", null, false); if (adminBcView) adminBcView.style.display = 'none'; };
+    if (openMaintBtn && maintModal) {
+        openMaintBtn.onclick = async () => {
+            maintModal.style.display = 'flex';
+            try {
+                const cur = await LibraryDB.getMaintenance();
+                if (maintSwitch) maintSwitch.checked = !!cur;
+            } catch(e) {}
+        };
+    }
+    if (closeMaintBtn && maintModal) closeMaintBtn.onclick = () => maintModal.style.display = 'none';
+    if (saveMaintBtn) {
+        saveMaintBtn.onclick = async () => {
+            const newState = maintSwitch ? maintSwitch.checked : false;
+            saveMaintBtn.disabled = true; saveMaintBtn.textContent = 'Saving...';
+            const ok = await LibraryDB.setMaintenance(newState);
+            saveMaintBtn.disabled = false; saveMaintBtn.innerHTML = '<i data-lucide="save"></i> Save Settings'; renderIcons();
+            showPopup('System Control', `Maintenance Mode is now ${newState ? 'ON ⚠️' : 'OFF ✅'}.`, null, false);
+            if (maintModal) maintModal.style.display = 'none';
+        };
+    }
+
+    const openBcBtn = document.getElementById('open-broadcast-view-btn');
+    const closeBcBtn = document.getElementById('close-broadcast-admin-btn');
+    const sendBcBtn = document.getElementById('send-broadcast-btn');
+    const clearBcBtn = document.getElementById('clear-broadcast-btn');
+    const adminBcView = document.getElementById('admin-broadcast-view');
+
+    if (openBcBtn && adminBcView) openBcBtn.onclick = () => { adminBcView.style.display = 'flex'; };
+    if (closeBcBtn && adminBcView) closeBcBtn.onclick = () => { adminBcView.style.display = 'none'; };
+    if (sendBcBtn) {
+        sendBcBtn.onclick = async () => {
+            const t = document.getElementById('bc-title')?.value.trim();
+            const m = document.getElementById('bc-msg')?.value.trim();
+            const theme = document.getElementById('bc-theme')?.value || 'info';
+            if (!t || !m) return showPopup('Error', 'Please fill in both the title and message.', null, false);
+            sendBcBtn.disabled = true; sendBcBtn.textContent = 'Sending...';
+            const ok = await LibraryDB.setBroadcast({ id: 'bc_' + Date.now(), title: t, message: m, theme });
+            sendBcBtn.disabled = false; sendBcBtn.innerHTML = '<i data-lucide="send"></i> Send to All Users'; renderIcons();
+            if (ok) {
+                document.getElementById('bc-title').value = '';
+                document.getElementById('bc-msg').value = '';
+                showPopup('Broadcast Sent! 📣', 'All users will see your message.', null, false);
+                if (adminBcView) adminBcView.style.display = 'none';
+            } else {
+                showPopup('Error', 'Failed to send broadcast. Check your connection.', null, false);
+            }
+        };
+    }
+    if (clearBcBtn) {
+        clearBcBtn.onclick = async () => {
+            clearBcBtn.disabled = true; clearBcBtn.textContent = 'Clearing...';
+            await LibraryDB.setBroadcast(null);
+            clearBcBtn.disabled = false; clearBcBtn.innerHTML = '<i data-lucide="trash-2"></i> Clear Active Broadcast'; renderIcons();
+            showPopup('Cleared', 'Active broadcast has been removed.', null, false);
+            if (adminBcView) adminBcView.style.display = 'none';
+        };
+    }
 
     function startMaintClock() { const el = document.getElementById('maint-live-clock'); if (!el) return; const tick = () => { el.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }; tick(); setInterval(tick, 1000); }
 
-    // ── OPTIMIZED: Single EventSource on parent node instead of 2 separate connections ──
-    // This halves simultaneous connections from 2 per tab → 1 per tab
     setTimeout(async () => {
         let sseRetryTimer = null;
         function startAppSSE() {
-            // One connection listening to the parent node — Firebase fires on any child change
+            
             const appSource = new EventSource(`${LibraryDB.dbUrl}.json?orderBy="$key"&startAt="broadcast"&endAt="maintenance"`);
 
             appSource.addEventListener('put', async (e) => {
@@ -743,7 +871,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const path = parsed.path || '/';
                     const data = parsed.data;
 
-                    // Handle maintenance changes
                     if (path === '/maintenance' || (path === '/' && data?.maintenance !== undefined)) {
                         const isMaint = path === '/maintenance' ? data : data?.maintenance;
                         if (isMaint !== null && isMaint !== undefined) {
@@ -757,7 +884,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
 
-                    // Handle broadcast changes
                     if (path === '/broadcast' || (path === '/' && data?.broadcast !== undefined)) {
                         const activeBc = path === '/broadcast' ? data : data?.broadcast;
                         const ubModal = document.getElementById('user-broadcast-modal');
@@ -784,12 +910,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             appSource.addEventListener('error', () => {
                 appSource.close();
-                // Reconnect after 30s to avoid hammering on errors
+                
                 if (sseRetryTimer) clearTimeout(sseRetryTimer);
                 sseRetryTimer = setTimeout(startAppSSE, 30000);
             });
 
-            // Pause SSE when tab is hidden, resume when visible — saves connections
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden) { appSource.close(); }
                 else { clearTimeout(sseRetryTimer); sseRetryTimer = setTimeout(startAppSSE, 1000); }
@@ -869,13 +994,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.getElementById('auth-google-btn-signup'); if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;width:18px;height:18px;"></i> Signing in...'; renderIcons(); }
         try { await LibraryDB.signInWithGoogle(); document.getElementById('auth-modal').style.display = 'none'; }
         catch (err) { const msg = err.code === 'auth/popup-closed-by-user' ? 'Sign in cancelled.' : err.code === 'auth/popup-blocked' ? 'Popup was blocked. Please allow popups for this site.' : 'Google sign in failed. Please try again.'; showPopup('Google Sign In Failed', msg, null, false); }
-        if (btn) { btn.disabled = false; btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px;"> Sign Up with Google'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<img src="https:
     });
 
-    // Prevent auth modal key events from leaking to background search input
     document.getElementById('auth-modal')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
     document.getElementById('auth-modal')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
-    // Also prevent admin/profile/broadcast modals from leaking to search
     document.getElementById('admin-modal')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
     document.getElementById('admin-modal')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
     document.getElementById('admin-broadcast-view')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
@@ -883,6 +1006,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('admin-maint-modal')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
     document.getElementById('profile-modal')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
     document.getElementById('profile-modal')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
+    document.getElementById('feedback-modal')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
+    document.getElementById('feedback-modal')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
 
     document.getElementById('auth-email')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('auth-login-btn')?.click(); });
     document.getElementById('auth-password')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('auth-login-btn')?.click(); });
@@ -891,7 +1016,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = document.getElementById('auth-signup-email')?.value.trim(); const pass = document.getElementById('auth-signup-password')?.value;
         if (!email || !pass) { showPopup('Missing Info', 'Please enter your email and password.', null, false); return; }
         if (pass.length < 6) { showPopup('Weak Password', 'Password must be at least 6 characters.', null, false); return; }
-        // Auto-generate display name from email prefix (e.g. "juan.dela" -> "Juan Dela")
+        
         const autoName = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).trim() || 'Student';
         setAuthLoading('auth-signup-btn', true, '<i data-lucide="user-plus"></i> Create Account');
         try { await LibraryDB.signUp(email, pass, autoName); document.getElementById('auth-login-panel').style.display = 'none'; document.getElementById('auth-signup-panel').style.display = 'none'; document.getElementById('auth-verify-panel').style.display = 'block'; document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active')); }
@@ -915,7 +1040,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.getElementById('auth-google-btn'); if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;width:18px;height:18px;"></i> Signing in...'; renderIcons(); }
         try { await LibraryDB.signInWithGoogle(); document.getElementById('auth-modal').style.display = 'none'; }
         catch (err) { const msg = err.code === 'auth/popup-closed-by-user' ? 'Sign in cancelled.' : err.code === 'auth/popup-blocked' ? 'Popup was blocked. Please allow popups for this site.' : 'Google sign in failed. Please try again.'; showPopup('Google Sign In Failed', msg, null, false); }
-        if (btn) { btn.disabled = false; btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px;"> Continue with Google'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<img src="https:
     });
     document.getElementById('auth-forgot-link')?.addEventListener('click', async () => { const email = document.getElementById('auth-email')?.value.trim(); if (!email) { showPopup('Enter Email', 'Type your email address first.', null, false); return; } try { await LibraryDB.sendPasswordReset(email); showPopup('Email Sent', `Reset link sent to ${email}.`, null, false); } catch (e) { showPopup('Error', 'Could not send reset email.', null, false); } });
     document.getElementById('auth-guest-btn')?.addEventListener('click', () => { document.getElementById('auth-modal').style.display = 'none'; });
@@ -943,8 +1068,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.openProfileModal = openProfileModal;
 
-    // ===== AVATAR PRESET SYSTEM =====
-    // 6 gradient styles stored as tiny keys in Firebase (e.g. "rose") — zero storage cost
     const AVATAR_PRESETS = [
         { key: 'rose',    label: 'Rose',    gradient: 'linear-gradient(135deg,#f43f5e,#ec4899)', icon: '🌸' },
         { key: 'violet',  label: 'Violet',  gradient: 'linear-gradient(135deg,#8b5cf6,#6366f1)', icon: '💜' },
@@ -993,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.selectAvatarPreset = function(key) {
         window._selectedAvatarStyle = key;
-        // Update grid UI
+        
         document.querySelectorAll('.avatar-preset-btn').forEach(btn => {
             const isSelected = btn.dataset.key === key;
             btn.classList.toggle('selected', isSelected);
@@ -1001,7 +1124,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isSelected && !check) btn.insertAdjacentHTML('beforeend', '<span class="avatar-preset-check">✓</span>');
             else if (!isSelected && check) check.remove();
         });
-        // Update live preview
+        
         const preview = document.getElementById('edit-avatar-preview');
         if (preview) {
             const preset = getAvatarStyle(key);
@@ -1012,27 +1135,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-
-    // ===== EDIT PROFILE LOGIC =====
-    // Avatar style is tracked in window._selectedAvatarStyle
-
     function showProfileEditView() {
         const mainView = document.getElementById('profile-main-view');
         const editView = document.getElementById('profile-edit-view');
         if (mainView) mainView.style.display = 'none';
         if (editView) editView.style.display = 'block';
-        window._selectedAvatarStyle = undefined; // undefined = no change yet
-        // Populate display name
+        window._selectedAvatarStyle = undefined; 
+        
         const data = LibraryDB.currentUserData;
         const nameInp = document.getElementById('edit-display-name');
         if (nameInp) nameInp.value = data?.displayName || LibraryDB.currentUser?.displayName || '';
-        // Populate avatar preview with current style
+        
         const preview = document.getElementById('edit-avatar-preview');
         if (preview) {
             const nm = data?.displayName || LibraryDB.currentUser?.displayName || 'S';
             renderAvatarCircle(preview, nm, data?.avatarStyle || null);
         }
-        // Build the preset grid
+        
         buildAvatarPresetGrid();
         renderIcons();
     }
@@ -1049,18 +1168,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('profile-edit-back-btn')?.addEventListener('click', showProfileMainView);
     document.getElementById('profile-cancel-edit-btn')?.addEventListener('click', showProfileMainView);
 
-    // Avatar upload removed — using preset system instead
-
     document.getElementById('profile-save-btn')?.addEventListener('click', async () => {
         const btn = document.getElementById('profile-save-btn');
         const newName = document.getElementById('edit-display-name')?.value.trim();
         if (!newName) { showPopup('Missing Name', 'Please enter a display name.', null, false); return; }
         if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;width:18px;height:18px;"></i> Saving...'; renderIcons(); }
         try {
-            // Pass avatarStyle key (e.g. "rose") or undefined if unchanged
-            const styleToSave = window._selectedAvatarStyle; // undefined = unchanged
+            
+            const styleToSave = window._selectedAvatarStyle; 
             await LibraryDB.updateUserProfile(newName, styleToSave);
-            // Refresh profile view
+            
             showProfileMainView();
             await openProfileModal();
             showPopup('Saved! 🎉', 'Your profile has been updated.', null, false);
@@ -1079,7 +1196,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const modal = document.getElementById('leaderboard-modal'); if (!modal) return; modal.style.display = 'flex';
         const listEl = document.getElementById('leaderboard-list'); if (!listEl) return;
 
-        // Show loading spinner
         listEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:40px 20px;">
             <div style="width:40px;height:40px;border:3px solid var(--border-color);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
             <p style="color:var(--text-muted);font-size:0.88rem;margin:0;">Loading leaderboard...</p>
@@ -1087,7 +1203,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const data = await LibraryDB.getLeaderboard();
 
-        // null = Firebase rejected the request (guest + restricted rules)
         if (data === null) {
             listEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px 20px;text-align:center;">
                 <div style="width:64px;height:64px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🏆</div>
@@ -1096,14 +1211,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p style="color:var(--text-muted);font-size:0.85rem;margin:0;line-height:1.5;">Create a free account to see who's found the most books and compete for the top spot!</p>
                 </div>
                 <button onclick="document.getElementById('leaderboard-modal').style.display='none'; showAuthModal('login');" style="padding:12px 28px;background:var(--primary);color:white;border:none;border-radius:12px;font-size:0.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;">
-                    <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4'/><polyline points='10 17 15 12 10 7'/><line x1='15' y1='12' x2='3' y2='12'/></svg>
+                    <svg xmlns='http:
                     Sign In / Sign Up
                 </button>
             </div>`;
             return;
         }
 
-        // Empty leaderboard (no users with helpedCount yet)
         if (data.length === 0) {
             listEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 20px;text-align:center;">
                 <div style="font-size:2.5rem;">📚</div>
@@ -1136,7 +1250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     LibraryDB.onAuthStateChanged(async (user) => {
         const profileBtn = document.getElementById('profile-btn');
         if (user) {
-            // Always reload user data fresh from Firebase to ensure counts are current
+            
             if (!LibraryDB.currentUserData) {
                 await LibraryDB._loadUserData(user.uid).catch(() => {});
             }
