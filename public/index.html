@@ -347,23 +347,34 @@
                 <button class="auth-tab" data-tab="signup"><i data-lucide="user-plus"></i> Sign Up</button>
             </div>
             <div id="auth-login-panel" class="auth-panel">
-                <div class="auth-input-group">
-                    <i data-lucide="mail" class="auth-input-icon"></i>
-                    <input type="email" id="auth-email" class="input-field auth-input" placeholder="Email address">
+                <button id="auth-google-btn" class="auth-google-btn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px;"> Continue with Google
+                </button>
+                <div class="auth-divider"><span>or sign in with email</span></div>
+                <button class="auth-email-toggle" id="auth-email-toggle-btn">
+                    <i data-lucide="mail"></i> Use Email & Password
+                    <i data-lucide="chevron-down" id="auth-email-toggle-icon" style="margin-left:auto;transition:transform 0.3s;"></i>
+                </button>
+                <div id="auth-email-fields" style="display:none; overflow:hidden;">
+                    <div class="auth-input-group" style="margin-top:12px;">
+                        <i data-lucide="mail" class="auth-input-icon"></i>
+                        <input type="email" id="auth-email" class="input-field auth-input" placeholder="Email address">
+                    </div>
+                    <div class="auth-input-group">
+                        <i data-lucide="lock" class="auth-input-icon"></i>
+                        <input type="password" id="auth-password" class="input-field auth-input" placeholder="Password">
+                        <button type="button" class="auth-eye-btn" id="toggle-login-pw"><i data-lucide="eye"></i></button>
+                    </div>
+                    <p id="auth-forgot-link" class="auth-forgot">Forgot password?</p>
+                    <button id="auth-login-btn" class="btn-primary full-width auth-btn"><i data-lucide="log-in"></i> Sign In</button>
                 </div>
-                <div class="auth-input-group">
-                    <i data-lucide="lock" class="auth-input-icon"></i>
-                    <input type="password" id="auth-password" class="input-field auth-input" placeholder="Password">
-                </div>
-                <button id="auth-login-btn" class="btn-primary full-width auth-btn"><i data-lucide="log-in"></i> Sign In</button>
-                <button id="auth-guest-btn" class="btn-secondary full-width auth-btn-ghost"><i data-lucide="eye"></i> Browse as Guest</button>
-                <p id="auth-forgot-link" class="auth-forgot">Forgot password?</p>
+                <button id="auth-guest-btn" class="btn-ghost full-width auth-btn-ghost"><i data-lucide="eye"></i> Browse as Guest</button>
             </div>
             <div id="auth-signup-panel" class="auth-panel" style="display:none;">
-                <div class="auth-input-group">
-                    <i data-lucide="user" class="auth-input-icon"></i>
-                    <input type="text" id="auth-name" class="input-field auth-input" placeholder="Display name (e.g. Juan)">
-                </div>
+                <button id="auth-google-btn-signup" class="auth-google-btn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px;"> Sign Up with Google
+                </button>
+                <div class="auth-divider"><span>or create account with email</span></div>
                 <div class="auth-input-group">
                     <i data-lucide="mail" class="auth-input-icon"></i>
                     <input type="email" id="auth-signup-email" class="input-field auth-input" placeholder="Email address">
@@ -371,15 +382,18 @@
                 <div class="auth-input-group">
                     <i data-lucide="lock" class="auth-input-icon"></i>
                     <input type="password" id="auth-signup-password" class="input-field auth-input" placeholder="Password (min 6 characters)">
+                    <button type="button" class="auth-eye-btn" id="toggle-signup-pw"><i data-lucide="eye"></i></button>
                 </div>
+                <p class="auth-signup-hint"><i data-lucide="info" style="width:13px;height:13px;display:inline;vertical-align:middle;"></i> You can set your display name and avatar after signing up in your profile.</p>
                 <button id="auth-signup-btn" class="btn-primary full-width auth-btn"><i data-lucide="user-plus"></i> Create Account</button>
-                <button id="auth-guest-btn-2" class="btn-secondary full-width auth-btn-ghost"><i data-lucide="eye"></i> Browse as Guest</button>
+                <button id="auth-guest-btn-2" class="btn-ghost full-width auth-btn-ghost"><i data-lucide="eye"></i> Browse as Guest</button>
             </div>
             <div id="auth-verify-panel" class="auth-panel" style="display:none; text-align:center;">
                 <div class="auth-verify-icon"><i data-lucide="mail-check"></i></div>
                 <h3 style="margin-bottom:10px;">Check Your Email!</h3>
-                <p style="color:var(--text-muted); margin-bottom:20px; line-height:1.6; font-size:0.9rem;">We sent a verification link to your email. Click the link to activate your account.</p>
-                <button id="auth-resend-btn" class="btn-secondary full-width" style="margin-bottom:10px;"><i data-lucide="refresh-cw"></i> Resend Email</button>
+                <p style="color:var(--text-muted); margin-bottom:8px; line-height:1.6; font-size:0.9rem;">We sent a verification link to your email. Click the link to activate your account.</p>
+                <div class="auth-spam-notice"><i data-lucide="alert-triangle" style="width:15px;height:15px;flex-shrink:0;"></i> <span>Can't find the email? Check your <strong>spam or junk folder</strong>!</span></div>
+                <button id="auth-resend-btn" class="btn-secondary full-width" style="margin-bottom:10px;margin-top:16px;"><i data-lucide="refresh-cw"></i> Resend Email</button>
                 <button id="auth-verified-btn" class="btn-primary full-width"><i data-lucide="check-circle-2"></i> I've Verified — Continue</button>
             </div>
         </div>
@@ -403,33 +417,93 @@
                 <button id="profile-signin-btn" class="btn-primary full-width" style="margin-top:5px;"><i data-lucide="log-in"></i> Sign In / Sign Up</button>
             </div>
             <div id="profile-user-view" style="display:none;">
-                <div class="profile-header-wrap">
-                    <div class="profile-avatar-ring">
-                        <div id="profile-avatar-circle" class="profile-avatar-circle"></div>
+                <!-- MAIN PROFILE VIEW -->
+                <div id="profile-main-view">
+                    <div class="profile-hero-wrap">
+                        <div class="profile-hero-bg"></div>
+                        <div class="profile-avatar-ring">
+                            <div id="profile-avatar-circle" class="profile-avatar-circle"></div>
+                            <button id="profile-edit-avatar-btn" class="profile-avatar-edit-btn" title="Edit Profile">
+                                <i data-lucide="pencil"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="profile-user-info">
-                        <h3 id="profile-display-name">Student</h3>
-                        <p id="profile-email-text"></p>
+                    <div class="profile-user-info-center">
+                        <div class="profile-name-row">
+                            <h3 id="profile-display-name">Student</h3>
+                            <button id="profile-edit-btn" class="profile-edit-inline-btn" title="Edit Profile"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>
+                        </div>
+                        <p id="profile-email-text" class="profile-email-text"></p>
+                        <div id="profile-rank-badge" class="profile-rank-badge"></div>
                     </div>
+                    <div class="profile-stats-row">
+                        <div class="profile-stat-card">
+                            <div class="psc-icon"><i data-lucide="heart-handshake"></i></div>
+                            <span class="psv" id="profile-helped-count">0</span>
+                            <span class="psl">Books Found</span>
+                        </div>
+                        <div class="profile-stat-card">
+                            <div class="psc-icon"><i data-lucide="bookmark"></i></div>
+                            <span class="psv" id="profile-bookmark-count">0</span>
+                            <span class="psl">In Backpack</span>
+                        </div>
+                        <div class="profile-stat-card">
+                            <div class="psc-icon"><i data-lucide="trophy"></i></div>
+                            <span class="psv" id="profile-rank-num">—</span>
+                            <span class="psl">Global Rank</span>
+                        </div>
+                    </div>
+                    <div class="profile-rank-progress-wrap">
+                        <p class="profile-rank-hint">Your rank is based on how many books you've found. Keep tapping "I Found It!" to level up! 🏆</p>
+                    </div>
+                    <div id="profile-admin-btn-wrap" style="display:none; margin-bottom:12px;">
+                        <button id="profile-open-admin-btn" class="profile-admin-btn"><i data-lucide="shield"></i> Enter Admin Dashboard</button>
+                    </div>
+                    <button id="profile-leaderboard-btn" class="btn-secondary full-width" style="margin-bottom:10px;"><i data-lucide="trophy"></i> View Leaderboard</button>
+                    <button id="profile-signout-btn" class="profile-signout-btn"><i data-lucide="log-out"></i> Sign Out</button>
                 </div>
-                <div id="profile-rank-badge" class="profile-rank-badge"></div>
-                <div class="profile-stats-row">
-                    <div class="profile-stat-card">
-                        <i data-lucide="bookmark"></i>
-                        <span class="psv" id="profile-bookmark-count">0</span>
-                        <span class="psl">In Backpack</span>
+
+                <!-- EDIT PROFILE VIEW -->
+                <div id="profile-edit-view" style="display:none;">
+                    <div class="edit-profile-header">
+                        <button id="profile-edit-back-btn" class="edit-back-btn"><i data-lucide="arrow-left"></i></button>
+                        <h3>Edit Profile</h3>
+                        <div style="width:36px;"></div>
                     </div>
-                    <div class="profile-stat-card">
-                        <i data-lucide="trophy"></i>
-                        <span class="psv" id="profile-rank-num">—</span>
-                        <span class="psl">Global Rank</span>
+
+                    <!-- Avatar Upload -->
+                    <div class="edit-avatar-section">
+                        <div class="edit-avatar-preview-wrap">
+                            <div id="edit-avatar-preview" class="edit-avatar-preview"></div>
+                            <div class="edit-avatar-overlay" id="edit-avatar-overlay-btn">
+                                <i data-lucide="camera"></i>
+                            </div>
+                        </div>
+                        <input type="file" id="edit-avatar-input" accept="image/*" style="display:none;">
+                        <div class="edit-avatar-actions">
+                            <button class="edit-avatar-upload-btn" id="edit-avatar-upload-btn"><i data-lucide="upload"></i> Upload Photo</button>
+                            <button class="edit-avatar-remove-btn" id="edit-avatar-remove-btn"><i data-lucide="trash-2"></i> Remove</button>
+                        </div>
+                        <p class="edit-avatar-hint">JPG, PNG or GIF · Max 2MB</p>
                     </div>
+
+                    <!-- Display Name -->
+                    <div class="edit-field-group">
+                        <label class="edit-field-label"><i data-lucide="user" style="width:14px;height:14px;"></i> Display Name</label>
+                        <div class="auth-input-group" style="margin-bottom:0;">
+                            <i data-lucide="user" class="auth-input-icon"></i>
+                            <input type="text" id="edit-display-name" class="input-field auth-input" placeholder="Your display name" maxlength="30">
+                        </div>
+                        <p class="edit-field-hint">This is how your name appears on the leaderboard.</p>
+                    </div>
+
+                    <button id="profile-save-btn" class="btn-primary full-width" style="margin-top:8px;">
+                        <i data-lucide="save"></i> Save Changes
+                    </button>
+                    <button id="profile-cancel-edit-btn" class="btn-ghost full-width" style="margin-top:8px;">
+                        Cancel
+                    </button>
                 </div>
-                <div id="profile-admin-btn-wrap" style="display:none; margin-bottom:12px;">
-                    <button id="profile-open-admin-btn" class="profile-admin-btn"><i data-lucide="shield"></i> Enter Admin Dashboard</button>
-                </div>
-                <button id="profile-leaderboard-btn" class="btn-secondary full-width" style="margin-bottom:10px;"><i data-lucide="trophy"></i> View Leaderboard</button>
-                <button id="profile-signout-btn" class="profile-signout-btn"><i data-lucide="log-out"></i> Sign Out</button>
             </div>
         </div>
     </div>
