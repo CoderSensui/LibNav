@@ -345,7 +345,9 @@ const LibraryDB = {
 
     saveToCloud: async function() {
         try {
-            await fetch(`${this.dbUrl}books.json`, {
+            const token = await this._getAuthToken();
+            if (!token) return false;
+            await fetch(`${this.dbUrl}books.json?auth=${token}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(this.books)
@@ -490,7 +492,9 @@ const LibraryDB = {
 
     setBroadcast: async function(obj) {
         try {
-            await fetch(`${this.dbUrl}broadcast.json`, {
+            const token = await this._getAuthToken();
+            if (!token) return false;
+            await fetch(`${this.dbUrl}broadcast.json?auth=${token}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(obj)
@@ -505,7 +509,9 @@ const LibraryDB = {
 
     setMaintenance: async function(status) {
         try {
-            await fetch(`${this.dbUrl}maintenance.json`, {
+            const token = await this._getAuthToken();
+            if (!token) return false;
+            await fetch(`${this.dbUrl}maintenance.json?auth=${token}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(status)
