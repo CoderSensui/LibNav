@@ -1,4 +1,4 @@
-const CACHE_NAME = 'libnav-v2';
+const CACHE_NAME = 'libnav-v3';
 const ASSETS = ['/', '/index.html', '/app.js', '/database.js', '/style.css', '/manifest.json'];
 
 self.addEventListener('install', e => {
