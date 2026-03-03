@@ -872,9 +872,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startMaintClock() { const el = document.getElementById('maint-live-clock'); if (!el) return; const tick = () => { el.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }; tick(); setInterval(tick, 1000); }
-
-    // ── OPTIMIZED: Single EventSource on parent node instead of 2 separate connections ──
-    // This halves simultaneous connections from 2 per tab → 1 per tab
+    
     setTimeout(async () => {
         let sseRetryTimer = null;
         function startAppSSE() {
@@ -1011,7 +1009,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('auth-modal')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
     
     document.getElementById('admin-modal')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
-    document.getElementById('admin-modal')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
+    document.getElementById('admin-modal')?.addEventListener('input', (e) => { if (e.target.id === 'admin-search') renderAdminList(); e.stopPropagation(); }, true);
     document.getElementById('admin-broadcast-view')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
     document.getElementById('admin-broadcast-view')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
     document.getElementById('admin-maint-modal')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
