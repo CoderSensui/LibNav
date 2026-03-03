@@ -302,10 +302,13 @@
                 <div style="width:36px;height:36px;border:3px solid var(--border-color);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px;"></div>
                 <p style="color:var(--text-muted);font-size:0.85rem;">Loading reviews...</p>
             </div>
-            <div id="fb-guest-notice" style="display:none;text-align:center;padding:20px 0;">
-                <div style="font-size:2.5rem;margin-bottom:12px;">📝</div>
-                <p style="color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Sign in to leave a review and see what others think of LibNav.</p>
-                <button id="fb-signin-btn" class="btn-primary" style="width:100%;"><i data-lucide="log-in"></i> Sign In to Review</button>
+            <div id="fb-guest-notice" style="display:none;">
+                <div id="fb-guest-reviews-list" class="fb-reviews-list" style="margin-bottom:16px;"></div>
+                <div style="text-align:center;padding:16px;background:var(--surface);border-radius:14px;border:1px solid var(--border-color);">
+                    <div style="font-size:2rem;margin-bottom:8px;">✍️</div>
+                    <p style="color:var(--text-muted);margin-bottom:14px;font-size:0.88rem;line-height:1.6;">Sign in to leave your own review.</p>
+                    <button id="fb-signin-btn" class="btn-primary" style="width:100%;"><i data-lucide="log-in"></i> Sign In to Review</button>
+                </div>
             </div>
             <div id="fb-existing-review" style="display:none;">
                 <div class="fb-existing-card">
@@ -753,5 +756,41 @@
     <canvas id="confetti-canvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99998;display:none;"></canvas>
     <script src="database.js"></script>
     <script src="app.js"></script>
+
+    <div id="a2hs-prompt" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:420px;background:var(--surface);border:1px solid var(--primary);border-radius:20px;padding:18px 20px;z-index:99999;box-shadow:0 8px 40px rgba(0,0,0,0.4);animation:slideUp 0.35s cubic-bezier(0.4,0,0.2,1);">
+        <div style="display:flex;align-items:center;gap:14px;">
+            <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#db2777,#9333ea);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i data-lucide="smartphone" style="color:white;width:24px;height:24px;"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:800;color:var(--text-main);font-size:0.95rem;">Add LibNav to Home Screen</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Get quick access — no app store needed.</div>
+            </div>
+            <button id="a2hs-dismiss" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;flex-shrink:0;"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:14px;">
+            <button id="a2hs-later" class="btn-secondary" style="flex:1;padding:10px;">Maybe Later</button>
+            <button id="a2hs-install" class="btn-primary" style="flex:2;padding:10px;"><i data-lucide="download"></i> Install App</button>
+        </div>
+    </div>
+
+    <div id="a2hs-ios-tip" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:420px;background:var(--surface);border:1px solid var(--primary);border-radius:20px;padding:18px 20px;z-index:99999;box-shadow:0 8px 40px rgba(0,0,0,0.4);animation:slideUp 0.35s cubic-bezier(0.4,0,0.2,1);">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+            <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#db2777,#9333ea);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i data-lucide="smartphone" style="color:white;width:24px;height:24px;"></i>
+            </div>
+            <div style="flex:1;">
+                <div style="font-weight:800;color:var(--text-main);font-size:0.95rem;">Install LibNav on iPhone</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Follow these steps:</div>
+            </div>
+            <button id="a2hs-ios-dismiss" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:0.85rem;color:var(--text-main);">
+            <div style="display:flex;align-items:center;gap:10px;"><span style="background:var(--primary);color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.75rem;flex-shrink:0;">1</span>Tap the <strong>Share</strong> button <span style="font-size:1.1rem;">⬆️</span> at the bottom of Safari</div>
+            <div style="display:flex;align-items:center;gap:10px;"><span style="background:var(--primary);color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.75rem;flex-shrink:0;">2</span>Scroll down and tap <strong>"Add to Home Screen"</strong></div>
+            <div style="display:flex;align-items:center;gap:10px;"><span style="background:var(--primary);color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.75rem;flex-shrink:0;">3</span>Tap <strong>"Add"</strong> — done! 🎉</div>
+        </div>
+    </div>
+
 </body>
 </html>
