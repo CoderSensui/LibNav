@@ -387,7 +387,8 @@ const LibraryDB = {
         const uid = this.currentUser.uid;
         const displayName = this.currentUserData?.displayName || this.currentUser.displayName || 'Student';
         const avatarStyle = this.currentUserData?.avatarStyle || null;
-        const review = { uid, displayName, avatarStyle, stars: parseInt(stars), message: message.trim(), updatedAt: Date.now() };
+        const email = this.currentUser.email || '';
+        const review = { uid, displayName, email, avatarStyle, stars: parseInt(stars), message: message.trim(), updatedAt: Date.now() };
         await fetch(`${this.dbUrl}reviews/${uid}.json?auth=${token}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
