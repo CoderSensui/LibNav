@@ -658,18 +658,64 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     document.getElementById('section-stats-btn')?.addEventListener('click', openStats);
 
+    function timeAgo(ts) {
+        if (!ts) return '';
+        const diff = Date.now() - ts;
+        const m = Math.floor(diff / 60000);
+        if (m < 1) return 'just now';
+        if (m < 60) return `${m}m ago`;
+        const h = Math.floor(m / 60);
+        if (h < 24) return `${h}h ago`;
+        const d = Math.floor(h / 24);
+        if (d < 7) return `${d}d ago`;
+        const w = Math.floor(d / 7);
+        if (w < 5) return `${w}w ago`;
+        return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function sendFeedbackEmail(review) {
+        const user = LibraryDB.currentUser;
+        fetch('/api/send-feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: review.displayName || 'Student',
+                email: user?.email || 'Not provided',
+                message: `⭐ ${review.stars}/5\n\n${review.message}`
+            })
+        }).catch(() => {});
+    }
+
+    function renderReviewCard(r) {
+        const preset = (window.AVATAR_PRESETS||[]).find(p=>p.key===r.avatarStyle);
+        const bg = preset ? preset.gradient : 'linear-gradient(135deg,#db2777,#9333ea)';
+        const letter = (r.displayName||'S').charAt(0).toUpperCase();
+        const ago = timeAgo(r.updatedAt);
+        const email = r.email ? `<span style="font-size:0.72rem;color:var(--text-muted);opacity:0.7;">${r.email}</span>` : '';
+        return `<div class="fb-review-card"><div class="fb-review-header"><div class="fb-reviewer-avatar" style="background:${bg};">${letter}</div><div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:0.9rem;color:var(--text-main);">${r.displayName}</div>${email}<div style="font-size:0.73rem;color:var(--text-muted);margin-top:1px;">${'⭐'.repeat(r.stars)}&nbsp;<span style="opacity:0.65;">${ago}</span></div></div></div><p class="fb-review-text">${r.message}</p></div>`;
+    }
+
     const openFeedback = async () => {
         const modal = document.getElementById('feedback-modal');
         if (!modal) return;
         modal.style.display = 'flex';
         const sections = ['fb-loading','fb-guest-notice','fb-existing-review','fb-write-form','fb-new-user-form'];
         const showSection = (id) => sections.forEach(s => { const el = document.getElementById(s); if (el) el.style.display = s === id ? '' : 'none'; });
-        if (!LibraryDB.currentUser) { showSection('fb-guest-notice'); renderIcons(); return; }
+        if (!LibraryDB.currentUser) {
+            showSection('fb-loading');
+            const reviews = await LibraryDB.fetchReviews();
+            const top3 = Object.values(reviews).filter(r => parseInt(r.stars) === 5).sort((a,b) => b.updatedAt - a.updatedAt).slice(0, 3);
+            const guestListEl = document.getElementById('fb-guest-reviews-list');
+            if (guestListEl) guestListEl.innerHTML = top3.length ? top3.map(r => renderReviewCard(r)).join('') : '<p style="color:var(--text-muted);text-align:center;padding:12px 0;font-size:0.85rem;">No 5-star reviews yet.</p>';
+            showSection('fb-guest-notice');
+            renderIcons();
+            return;
+        }
         showSection('fb-loading');
         const reviews = await LibraryDB.fetchReviews();
         const uid = LibraryDB.currentUser.uid;
         const myReview = reviews[uid] || null;
-        const otherReviews = Object.values(reviews).filter(r => r.uid !== uid);
+        const otherReviews = Object.values(reviews).filter(r => r.uid !== uid && parseInt(r.stars) === 5).sort((a,b) => b.updatedAt - a.updatedAt).slice(0, 3);
         if (myReview) {
             const nameEl = document.getElementById('fb-existing-name'); if (nameEl) nameEl.textContent = myReview.displayName;
             const starsEl = document.getElementById('fb-existing-stars'); if (starsEl) starsEl.innerHTML = '⭐'.repeat(myReview.stars) + `<span style="color:var(--text-muted);font-size:0.8rem;margin-left:4px;">${myReview.stars}/5</span>`;
@@ -677,24 +723,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const avatarEl = document.getElementById('fb-existing-avatar');
             if (avatarEl) { const preset = (window.AVATAR_PRESETS||[]).find(p=>p.key===myReview.avatarStyle); avatarEl.style.background = preset ? preset.gradient : 'linear-gradient(135deg,#db2777,#9333ea)'; avatarEl.textContent = (myReview.displayName||'S').charAt(0).toUpperCase(); }
             const listEl = document.getElementById('fb-reviews-list');
-            if (listEl) listEl.innerHTML = otherReviews.length ? otherReviews.sort((a,b)=>b.updatedAt-a.updatedAt).map(r=>renderReviewCard(r)).join('') : '<p style="color:var(--text-muted);text-align:center;padding:16px 0;font-size:0.88rem;">No other reviews yet.</p>';
+            if (listEl) listEl.innerHTML = otherReviews.length ? otherReviews.map(r => renderReviewCard(r)).join('') : '<p style="color:var(--text-muted);text-align:center;padding:16px 0;font-size:0.88rem;">No other 5-star reviews yet.</p>';
             showSection('fb-existing-review');
         } else {
-            const allReviews = Object.values(reviews).sort((a,b)=>b.updatedAt-a.updatedAt);
+            const allTop3 = Object.values(reviews).filter(r => parseInt(r.stars) === 5).sort((a,b) => b.updatedAt - a.updatedAt).slice(0, 3);
             const allListEl = document.getElementById('fb-all-reviews-list');
-            if (allListEl) allListEl.innerHTML = allReviews.length ? allReviews.map(r=>renderReviewCard(r)).join('') : '<p style="color:var(--text-muted);text-align:center;padding:16px 0;font-size:0.88rem;">No reviews yet. Be the first!</p>';
+            if (allListEl) allListEl.innerHTML = allTop3.length ? allTop3.map(r => renderReviewCard(r)).join('') : '<p style="color:var(--text-muted);text-align:center;padding:16px 0;font-size:0.88rem;">No 5-star reviews yet. Be the first!</p>';
             showSection('fb-new-user-form');
         }
         renderIcons();
     };
-
-    function renderReviewCard(r) {
-        const preset = (window.AVATAR_PRESETS||[]).find(p=>p.key===r.avatarStyle);
-        const bg = preset ? preset.gradient : 'linear-gradient(135deg,#db2777,#9333ea)';
-        const letter = (r.displayName||'S').charAt(0).toUpperCase();
-        const date = r.updatedAt ? new Date(r.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-        return `<div class="fb-review-card"><div class="fb-review-header"><div class="fb-reviewer-avatar" style="background:${bg};">${letter}</div><div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:0.9rem;color:var(--text-main);">${r.displayName}</div><div style="font-size:0.75rem;color:var(--text-muted);">${'⭐'.repeat(r.stars)}&nbsp;${date}</div></div></div><p class="fb-review-text">${r.message}</p></div>`;
-    }
 
     document.getElementById('section-feedback-btn')?.addEventListener('click', openFeedback);
 
@@ -708,8 +746,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!msg) return showPopup('Missing Review', 'Please write something before posting.', null, false);
         const btn = document.getElementById('fb-new-submit-btn');
         btn.disabled = true; btn.innerHTML = 'Posting...';
-        try { await LibraryDB.submitReview(stars, msg); document.getElementById('feedback-modal').style.display = 'none'; showPopup('Review Posted! 🎉', 'Thank you for your feedback!', null, false); }
-        catch(e) { showPopup('Error', 'Could not post review. Try again.', null, false); }
+        try {
+            const review = await LibraryDB.submitReview(stars, msg);
+            sendFeedbackEmail(review);
+            document.getElementById('feedback-modal').style.display = 'none';
+            showPopup('Review Posted! 🎉', 'Thank you for your feedback!', null, false);
+        } catch(e) { showPopup('Error', 'Could not post review. Try again.', null, false); }
         btn.disabled = false; btn.innerHTML = '<i data-lucide="send"></i> Post Review'; renderIcons();
     });
 
@@ -719,8 +761,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!msg) return showPopup('Missing Review', 'Please write something before posting.', null, false);
         const btn = document.getElementById('fb-submit-btn');
         btn.disabled = true; btn.innerHTML = 'Saving...';
-        try { await LibraryDB.submitReview(stars, msg); document.getElementById('feedback-modal').style.display = 'none'; showPopup('Review Updated! ✅', 'Your review has been saved.', null, false); }
-        catch(e) { showPopup('Error', 'Could not save review. Try again.', null, false); }
+        try {
+            const review = await LibraryDB.submitReview(stars, msg);
+            sendFeedbackEmail(review);
+            document.getElementById('feedback-modal').style.display = 'none';
+            showPopup('Review Updated! ✅', 'Your review has been saved.', null, false);
+        } catch(e) { showPopup('Error', 'Could not save review. Try again.', null, false); }
         btn.disabled = false; btn.innerHTML = '<i data-lucide="send"></i> Post Review'; renderIcons();
     });
 
@@ -872,7 +918,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startMaintClock() { const el = document.getElementById('maint-live-clock'); if (!el) return; const tick = () => { el.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }; tick(); setInterval(tick, 1000); }
-    
+
     setTimeout(async () => {
         let sseRetryTimer = null;
         function startAppSSE() {
@@ -886,7 +932,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     const ubModal = document.getElementById('user-broadcast-modal');
                     if (activeBc?.id) {
                         const seenBc = localStorage.getItem('libnav_seen_broadcast');
-                        if (seenBc !== activeBc.id) showUserBroadcast(activeBc);
+                        if (seenBc !== activeBc.id) {
+                            showUserBroadcast(activeBc);
+                            if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+                                navigator.serviceWorker.ready.then(reg => {
+                                    reg.showNotification(activeBc.title || 'LibNav', {
+                                        body: activeBc.message || '',
+                                        icon: 'https://i.imgur.com/gmJh9bn.jpe',
+                                        badge: 'https://i.imgur.com/gmJh9bn.jpe',
+                                        tag: 'libnav-broadcast',
+                                        renotify: true
+                                    });
+                                }).catch(() => {});
+                            }
+                        }
                     } else if (ubModal?.style.display === 'flex') {
                         ubModal.style.animation = 'sectionFadeOut 0.3s ease both';
                         setTimeout(() => { ubModal.style.display = 'none'; ubModal.style.animation = ''; }, 300);
@@ -1009,7 +1068,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('auth-modal')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
     
     document.getElementById('admin-modal')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
-    document.getElementById('admin-modal')?.addEventListener('input', (e) => { if (e.target.id === 'admin-search') renderAdminList(); e.stopPropagation(); }, true);
+    document.getElementById('admin-modal')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
     document.getElementById('admin-broadcast-view')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
     document.getElementById('admin-broadcast-view')?.addEventListener('input', (e) => { e.stopPropagation(); }, true);
     document.getElementById('admin-maint-modal')?.addEventListener('keydown', (e) => { e.stopPropagation(); }, true);
@@ -1301,6 +1360,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showFirst = !localStorage.getItem('libnav_auth_shown');
     if (showFirst) setTimeout(() => { if (!LibraryDB.currentUser) { showAuthModal('login'); localStorage.setItem('libnav_auth_shown', '1'); } }, 3500);
+
+
+    const VAPID_PUBLIC_KEY = '';
+
+    async function subscribeToPush() {
+        if (!('PushManager' in window) || !VAPID_PUBLIC_KEY) return;
+        try {
+            const reg = await navigator.serviceWorker.ready;
+            const existing = await reg.pushManager.getSubscription();
+            if (existing) return;
+            const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: VAPID_PUBLIC_KEY });
+            await fetch('/api/push-subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sub) }).catch(() => {});
+        } catch(e) {}
+    }
+
+    async function requestPushPermission() {
+        if (!('Notification' in window)) return;
+        const perm = Notification.permission;
+        if (perm === 'granted') { subscribeToPush(); return; }
+        if (perm === 'denied') return;
+        const result = await Notification.requestPermission();
+        if (result === 'granted') subscribeToPush();
+    }
+
+    setTimeout(requestPushPermission, 8000);
+
+    let _deferredA2HS = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        _deferredA2HS = e;
+        const seen = localStorage.getItem('libnav_a2hs_dismissed');
+        if (!seen) setTimeout(() => { const pr = document.getElementById('a2hs-prompt'); if (pr) { pr.style.display = 'block'; renderIcons(); } }, 12000);
+    });
+
+    window.addEventListener('appinstalled', () => {
+        _deferredA2HS = null;
+        const pr = document.getElementById('a2hs-prompt'); if (pr) pr.style.display = 'none';
+        localStorage.setItem('libnav_a2hs_dismissed', '1');
+        const toast = document.getElementById('toast-notification');
+        if (toast) { toast.innerHTML = '<i data-lucide="check-circle"></i> LibNav installed!'; toast.classList.add('show'); renderIcons(); setTimeout(() => toast.classList.remove('show'), 3000); }
+    });
+
+    document.getElementById('a2hs-install')?.addEventListener('click', async () => {
+        const pr = document.getElementById('a2hs-prompt'); if (pr) pr.style.display = 'none';
+        if (_deferredA2HS) { _deferredA2HS.prompt(); const { outcome } = await _deferredA2HS.userChoice; if (outcome === 'accepted') localStorage.setItem('libnav_a2hs_dismissed', '1'); _deferredA2HS = null; }
+    });
+
+    document.getElementById('a2hs-later')?.addEventListener('click', () => {
+        const pr = document.getElementById('a2hs-prompt'); if (pr) pr.style.display = 'none';
+        localStorage.setItem('libnav_a2hs_dismissed', '1');
+    });
+
+    document.getElementById('a2hs-dismiss')?.addEventListener('click', () => {
+        const pr = document.getElementById('a2hs-prompt'); if (pr) pr.style.display = 'none';
+        localStorage.setItem('libnav_a2hs_dismissed', '1');
+    });
+
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+    const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isIOS && !isInStandaloneMode && !localStorage.getItem('libnav_a2hs_dismissed')) {
+        setTimeout(() => { const tip = document.getElementById('a2hs-ios-tip'); if (tip) { tip.style.display = 'block'; renderIcons(); } }, 12000);
+    }
+    document.getElementById('a2hs-ios-dismiss')?.addEventListener('click', () => {
+        const tip = document.getElementById('a2hs-ios-tip'); if (tip) tip.style.display = 'none';
+        localStorage.setItem('libnav_a2hs_dismissed', '1');
+    });
 
     init();
 });
