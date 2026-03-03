@@ -491,18 +491,20 @@ const LibraryDB = {
     },
 
     setBroadcast: async function(obj) {
-        try {
-            const token = await this._getAuthToken();
-            if (!token) return false;
-            await fetch(`${this.dbUrl}broadcast.json?auth=${token}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(obj)
-            });
-            return true;
-        } catch(e) { return false; }
-    },
-
+    try {
+        const token = await this._getAuthToken();
+        if (!token) { alert('No token - not logged in'); return false; }
+        const res = await fetch(`${this.dbUrl}broadcast.json?auth=${token}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(obj)
+        });
+        const text = await res.text();
+        alert(`Status: ${res.status}\n${text.substring(0,150)}`);
+        return res.ok;
+    } catch(e) { alert('Error: ' + e.message); return false; }
+},
+    
     getMaintenance: async function() {
         try { const res = await fetch(`${this.dbUrl}maintenance.json?t=${Date.now()}`); return await res.json(); } catch(e) { return false; }
     },
