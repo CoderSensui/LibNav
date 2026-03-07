@@ -437,7 +437,9 @@ const LibraryDB = {
         const book = this.books.find(b => String(b.id) === String(id));
         if (book) {
             book.views = (book.views || 0) + 1;
-            fetch(`${this.dbUrl}books.json`, {
+            const token = await this._getAuthToken();
+            const authParam = token ? `?auth=${token}` : '';
+            fetch(`${this.dbUrl}books.json${authParam}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(this.books)
@@ -448,8 +450,10 @@ const LibraryDB = {
     factoryReset: async function() {
         this.books.forEach(b => b.views = 0);
         await this.saveToCloud();
-        await fetch(`${this.dbUrl}reviews.json`, { method: 'DELETE' });
-        await fetch(`${this.dbUrl}globalStats/helpedCount.json`, {
+        const token = await this._getAuthToken();
+        const authParam = token ? `?auth=${token}` : '';
+        await fetch(`${this.dbUrl}reviews.json${authParam}`, { method: 'DELETE' });
+        await fetch(`${this.dbUrl}globalStats/helpedCount.json${authParam}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(0)
@@ -491,19 +495,17 @@ const LibraryDB = {
     },
 
     setBroadcast: async function(obj) {
-    try {
-        const token = await this._getAuthToken();
-        if (!token) { alert('No token - not logged in'); return false; }
-        const res = await fetch(`${this.dbUrl}broadcast.json?auth=${token}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(obj)
-        });
-        const text = await res.text();
-        alert(`Status: ${res.status}\n${text.substring(0,150)}`);
-        return res.ok;
-    } catch(e) { alert('Error: ' + e.message); return false; }
-},
+        try {
+            const token = await this._getAuthToken();
+            if (!token) return false;
+            const res = await fetch(`${this.dbUrl}broadcast.json?auth=${token}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(obj)
+            });
+            return res.ok;
+        } catch(e) { return false; }
+    },
     
     getMaintenance: async function() {
         try { const res = await fetch(`${this.dbUrl}maintenance.json?t=${Date.now()}`); return await res.json(); } catch(e) { return false; }
@@ -513,12 +515,12 @@ const LibraryDB = {
         try {
             const token = await this._getAuthToken();
             if (!token) return false;
-            await fetch(`${this.dbUrl}maintenance.json?auth=${token}`, {
+            const res = await fetch(`${this.dbUrl}maintenance.json?auth=${token}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(status)
             });
-            return true;
+            return res.ok;
         } catch(e) { return false; }
     }
 };
