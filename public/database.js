@@ -33,46 +33,42 @@ const LibraryDB = {
     _authStateListeners: [],
     _sdkLoaded: false,
 
-    _loadSDK: function() {
-        if (this._sdkLoaded) return Promise.resolve();
-        if (this._sdkLoading) return this._sdkLoading;
-        this._sdkLoading = new Promise((resolve, reject) => {
-            const urls = [
-                "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js",
-                "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js",
-                "https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"
-            ];
-            let done = 0;
-            const timeout = setTimeout(() => reject(new Error('Firebase SDK load timeout')), 8000);
-            urls.forEach(src => {
-                const s = document.createElement('script');
-                s.src = src;
-                s.onload = () => {
-                    done++;
-                    if (done === urls.length) {
-                        clearTimeout(timeout);
-                        this._sdkLoaded = true;
-                        resolve();
-                    }
-                };
-                s.onerror = () => { clearTimeout(timeout); reject(new Error('Firebase SDK load failed')); };
-                document.head.appendChild(s);
-            });
+    _loadScript: function(src) {
+        return new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = resolve;
+            s.onerror = () => reject(new Error('Failed to load: ' + src));
+            document.head.appendChild(s);
         });
+    },
+
+    _loadSDK: async function() {
+        if (this._sdkLoaded) return;
+        if (this._sdkLoading) return this._sdkLoading;
+        this._sdkLoading = (async () => {
+            await this._loadScript("https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js");
+            await this._loadScript("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js");
+            await this._loadScript("https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js");
+            if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+            this._sdkLoaded = true;
+        })();
         return this._sdkLoading;
+    },
+
+    _db: function() {
+        return firebase.database();
     },
 
     _initAuth: async function() {
         try {
             await this._loadSDK();
-            if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
             await Promise.race([
                 new Promise(resolve => {
                     let resolved = false;
                     firebase.auth().onAuthStateChanged(async (user) => {
                         if (user) {
                             this.currentUser = user;
-                            
                             await this._loadUserData(user.uid).catch(() => {});
                         } else {
                             this.currentUser = null;
@@ -97,22 +93,17 @@ const LibraryDB = {
 
     _loadUserData: async function(uid) {
         try {
-            
-            const res = await fetch(`${this.dbUrl}users/${uid}.json`);
-            const data = res.ok ? await res.json() : null;
+            const snap = await this._db().ref(`users/${uid}`).once('value');
+            const data = snap.val();
             if (data) {
-                
                 if (data.helpedCount === undefined) data.helpedCount = 0;
                 if (data.backpack === undefined) data.backpack = [];
                 if (data.bookmarkCount === undefined) data.bookmarkCount = 0;
                 this.currentUserData = data;
-                
-                const needsPatch = (data.helpedCount === 0 && data.backpack !== undefined);
                 if (data.helpedCount === undefined || data.backpack === undefined) {
-                    firebase.database().ref(`users/${uid}`).update({ helpedCount: 0, backpack: data.backpack || [], bookmarkCount: data.bookmarkCount || 0 }).catch(() => {});
+                    this._db().ref(`users/${uid}`).update({ helpedCount: 0, backpack: data.backpack || [], bookmarkCount: data.bookmarkCount || 0 }).catch(() => {});
                 }
             } else {
-                
                 const fresh = {
                     displayName: this.currentUser?.displayName || 'Student',
                     email: this.currentUser?.email || '',
@@ -121,11 +112,10 @@ const LibraryDB = {
                     backpack: [],
                     createdAt: Date.now()
                 };
-                await firebase.database().ref(`users/${uid}`).set(fresh).catch(() => {});
+                await this._db().ref(`users/${uid}`).set(fresh).catch(() => {});
                 this.currentUserData = fresh;
             }
         } catch(e) {
-            console.warn('_loadUserData error:', e);
             this.currentUserData = null;
         }
     },
@@ -136,9 +126,7 @@ const LibraryDB = {
         await cred.user.updateProfile({ displayName });
         await cred.user.sendEmailVerification();
         const fresh = { displayName, email, bookmarkCount: 0, helpedCount: 0, backpack: [], createdAt: Date.now() };
-        try {
-            await firebase.database().ref(`users/${cred.user.uid}`).set(fresh);
-        } catch(e) {}
+        try { await this._db().ref(`users/${cred.user.uid}`).set(fresh); } catch(e) {}
         this.currentUserData = fresh;
         return cred.user;
     },
@@ -163,7 +151,6 @@ const LibraryDB = {
         provider.setCustomParameters({ prompt: 'select_account' });
         const cred = await firebase.auth().signInWithPopup(provider);
         this.currentUser = cred.user;
-        
         await this._loadUserData(cred.user.uid);
         return cred.user;
     },
@@ -189,9 +176,8 @@ const LibraryDB = {
     isAdmin: async function() {
         if (!this.currentUser) return false;
         try {
-            const res = await fetch(`${this.dbUrl}admins/${this.currentUser.uid}.json`);
-            const val = await res.json();
-            return val === true;
+            const snap = await this._db().ref(`admins/${this.currentUser.uid}`).once('value');
+            return snap.val() === true;
         } catch(e) { return false; }
     },
 
@@ -208,7 +194,7 @@ const LibraryDB = {
         const newCount = (this.currentUserData.bookmarkCount || 0) + 1;
         this.currentUserData.bookmarkCount = newCount;
         try {
-            await firebase.database().ref(`users/${this.currentUser.uid}`).update({ backpack: bp, bookmarkCount: newCount });
+            await this._db().ref(`users/${this.currentUser.uid}`).update({ backpack: bp, bookmarkCount: newCount });
             return true;
         } catch(e) { return false; }
     },
@@ -220,7 +206,7 @@ const LibraryDB = {
         const newCount = Math.max(0, (this.currentUserData.bookmarkCount || 0) - 1);
         this.currentUserData.bookmarkCount = newCount;
         try {
-            await firebase.database().ref(`users/${this.currentUser.uid}`).update({ backpack: bp, bookmarkCount: newCount });
+            await this._db().ref(`users/${this.currentUser.uid}`).update({ backpack: bp, bookmarkCount: newCount });
             return true;
         } catch(e) { return false; }
     },
@@ -230,34 +216,23 @@ const LibraryDB = {
         const newCount = (this.currentUserData.helpedCount || 0) + 1;
         this.currentUserData.helpedCount = newCount;
         try {
-            await firebase.database().ref(`users/${this.currentUser.uid}`).update({ helpedCount: newCount });
+            await this._db().ref(`users/${this.currentUser.uid}`).update({ helpedCount: newCount });
             return newCount;
         } catch(e) { return false; }
     },
 
     _getAuthToken: async function() {
         try {
-            if (this.currentUser) {
-                return await this.currentUser.getIdToken(true);
-            }
+            if (this.currentUser) return await this.currentUser.getIdToken(true);
         } catch(e) {}
         return null;
     },
 
     getLeaderboard: async function() {
         try {
-            const token = await this._getAuthToken();
-            if (!token) return null; 
-
-            
-            
-            const queryUrl = `${this.dbUrl}users.json?auth=${token}&orderBy="helpedCount"&limitToLast=10`;
-            const res = await fetch(queryUrl);
-            if (!res.ok) {
-                if (res.status === 401 || res.status === 403) return null;
-                return [];
-            }
-            const data = await res.json();
+            if (!this.currentUser) return null;
+            const snap = await this._db().ref('users').orderByChild('helpedCount').limitToLast(10).once('value');
+            const data = snap.val();
             if (!data) return [];
             return Object.entries(data)
                 .filter(([, u]) => u && u.displayName && !u.isPrivate)
@@ -274,9 +249,6 @@ const LibraryDB = {
     },
 
     getBookSocialProof: async function() {
-        
-        
-        
         return {};
     },
 
@@ -310,7 +282,7 @@ const LibraryDB = {
 
     saveToCloud: async function() {
         try {
-            await firebase.database().ref('books').set(this.books);
+            await this._db().ref('books').set(this.books);
             return true;
         } catch(e) { return false; }
     },
@@ -321,7 +293,7 @@ const LibraryDB = {
     _patchUser: async function(updates) {
         if (!this.currentUser) return false;
         try {
-            await firebase.database().ref(`users/${this.currentUser.uid}`).update(updates);
+            await this._db().ref(`users/${this.currentUser.uid}`).update(updates);
             return true;
         } catch(e) { return false; }
     },
@@ -337,30 +309,26 @@ const LibraryDB = {
 
     submitReview: async function(stars, message) {
         if (!this.currentUser) throw new Error('Not logged in');
-        const token = await this._getAuthToken();
-        if (!token) throw new Error('No token');
         const uid = this.currentUser.uid;
         const displayName = this.currentUserData?.displayName || this.currentUser.displayName || 'Student';
         const avatarStyle = this.currentUserData?.avatarStyle || null;
         const email = this.currentUser.email || '';
         const review = { uid, displayName, email, avatarStyle, stars: parseInt(stars), message: message.trim(), updatedAt: Date.now() };
-        await firebase.database().ref(`reviews/${uid}`).set(review);
+        await this._db().ref(`reviews/${uid}`).set(review);
         return review;
     },
 
     deleteReview: async function() {
         if (!this.currentUser) return false;
-        const token = await this._getAuthToken();
-        if (!token) return false;
-        await firebase.database().ref(`reviews/${this.currentUser.uid}`).remove();
+        await this._db().ref(`reviews/${this.currentUser.uid}`).remove();
         return true;
     },
 
     incrementHelped: async function() {
         try {
-            const ref = firebase.database().ref('globalStats/helpedCount');
+            const ref = this._db().ref('globalStats/helpedCount');
             const snap = await ref.once('value');
-            const current = (typeof snap.val() === 'number') ? snap.val() : 0;
+            const current = typeof snap.val() === 'number' ? snap.val() : 0;
             const newCount = current + 1;
             await ref.set(newCount);
             this.helpedCount = newCount;
@@ -382,15 +350,15 @@ const LibraryDB = {
         const book = this.books.find(b => String(b.id) === String(id));
         if (book) {
             book.views = (book.views || 0) + 1;
-            firebase.database().ref('books').set(this.books).catch(() => {});
+            this._db().ref('books').set(this.books).catch(() => {});
         }
     },
 
     factoryReset: async function() {
         this.books.forEach(b => b.views = 0);
         await this.saveToCloud();
-        await firebase.database().ref('reviews').remove();
-        await firebase.database().ref('globalStats/helpedCount').set(0);
+        await this._db().ref('reviews').remove();
+        await this._db().ref('globalStats/helpedCount').set(0);
         this.helpedCount = 0;
         return true;
     },
@@ -410,29 +378,35 @@ const LibraryDB = {
             this.currentUserData.avatarUrl = null;
         }
         try {
-            await firebase.database().ref(`users/${this.currentUser.uid}`).update(updates);
+            await this._db().ref(`users/${this.currentUser.uid}`).update(updates);
             return true;
         } catch(e) { return false; }
     },
 
     getBroadcast: async function() {
-        try { const res = await fetch(`${this.dbUrl}broadcast.json`); return await res.json(); } catch(e) { return null; }
+        try {
+            const res = await fetch(`${this.dbUrl}broadcast.json`);
+            return await res.json();
+        } catch(e) { return null; }
     },
 
     setBroadcast: async function(obj) {
         try {
-            await firebase.database().ref('broadcast').set(obj);
+            await this._db().ref('broadcast').set(obj);
             return true;
         } catch(e) { return false; }
     },
-    
+
     getMaintenance: async function() {
-        try { const res = await fetch(`${this.dbUrl}maintenance.json?t=${Date.now()}`); return await res.json(); } catch(e) { return false; }
+        try {
+            const res = await fetch(`${this.dbUrl}maintenance.json?t=${Date.now()}`);
+            return await res.json();
+        } catch(e) { return false; }
     },
 
     setMaintenance: async function(status) {
         try {
-            await firebase.database().ref('maintenance').set(status);
+            await this._db().ref('maintenance').set(status);
             return true;
         } catch(e) { return false; }
     }
