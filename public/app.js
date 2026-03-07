@@ -851,10 +851,14 @@ document.addEventListener('DOMContentLoaded', () => {
         saveMaintBtn.onclick = async () => {
             const newState = maintSwitch ? maintSwitch.checked : false;
             saveMaintBtn.disabled = true; saveMaintBtn.textContent = 'Saving...';
-            await LibraryDB.setMaintenance(newState);
+            const ok = await LibraryDB.setMaintenance(newState);
             saveMaintBtn.disabled = false; saveMaintBtn.innerHTML = '<i data-lucide="save"></i> Save Settings'; renderIcons();
-            showPopup('System Control', `Maintenance Mode is now ${newState ? 'ON ⚠️' : 'OFF ✅'}.`, null, false);
-            if (maintModal) maintModal.style.display = 'none';
+            if (ok) {
+                showPopup('System Control', `Maintenance Mode is now ${newState ? 'ON ⚠️' : 'OFF ✅'}.`, null, false);
+                if (maintModal) maintModal.style.display = 'none';
+            } else {
+                showPopup('Error', 'Failed to update maintenance mode. Check your connection or permissions.', null, false);
+            }
         };
     }
 
@@ -894,7 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const bcObj = { id: 'bc_' + Date.now(), title: t, message: m, theme };
             const ok = await LibraryDB.setBroadcast(bcObj);
             sendBcBtn.disabled = false; sendBcBtn.innerHTML = '<i data-lucide="send"></i> Send to All Users'; renderIcons();
-            if (ok !== false) {
+            if (ok) {
                 document.getElementById('bc-title').value = '';
                 document.getElementById('bc-msg').value = '';
                 if (adminBcView) adminBcView.style.display = 'none';
