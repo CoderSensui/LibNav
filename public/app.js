@@ -1370,7 +1370,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const ra = document.getElementById('results-area'); const fc = document.getElementById('featured-container');
     if (ra) rObs.observe(ra, { childList: true, subtree: false }); if (fc) rObs.observe(fc, { childList: true, subtree: false });
 
-    
 
     const showFirst = !localStorage.getItem('libnav_auth_shown');
     if (showFirst) setTimeout(() => { if (!LibraryDB.currentUser) { showAuthModal('login'); localStorage.setItem('libnav_auth_shown', '1'); } }, 3500);
