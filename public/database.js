@@ -421,13 +421,30 @@ const LibraryDB = {
     },
 
     setMaintenance: async function(status) {
-        try {
-            await this._loadSDK();
-            await firebase.database().ref('maintenance').set(status);
-            return true;
-        } catch(e) {
-            console.error('setMaintenance error:', e.message);
-            return false;
+    try {
+        await this._loadSDK();
+
+        if (!this.currentUser) {
+            throw new Error("User not logged in");
         }
+
+        const isAdmin = await this.isAdmin();
+        if (!isAdmin) {
+            throw new Error("User is not admin");
+        }
+
+        const ref = firebase.database().ref('maintenance');
+
+        await ref.set(!!status);
+
+        const verify = await ref.once('value');
+        console.log("Maintenance saved:", verify.val());
+
+        return true;
+
+    } catch(e) {
+        console.error("Maintenance write failed:", e);
+        return false;
     }
+}
 };
