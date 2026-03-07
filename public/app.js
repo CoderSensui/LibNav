@@ -857,7 +857,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showPopup('System Control', `Maintenance Mode is now ${newState ? 'ON ⚠️' : 'OFF ✅'}.`, null, false);
                 if (maintModal) maintModal.style.display = 'none';
             } else {
-                showPopup('Error', 'Failed to update maintenance mode. Make sure you are logged in as admin.', null, false);
+                showPopup('Error', 'Failed to save. Make sure you are logged in as admin.', null, false);
             }
         };
     }
@@ -920,7 +920,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showPopup('Cleared', 'Active broadcast has been removed.', null, false);
                 if (adminBcView) adminBcView.style.display = 'none';
             } else {
-                showPopup('Error', 'Failed to clear broadcast. Make sure you are logged in as admin.', null, false);
+                showPopup('Error', 'Failed to clear. Make sure you are logged in as admin.', null, false);
             }
         };
     }
@@ -962,17 +962,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     maintOverlay.style.animation = 'fadeIn 0.4s ease';
                     renderIcons(); startMaintClock();
                 }
-            } else {
-                if (maintOverlay.style.display === 'flex') {
-                    maintOverlay.style.animation = 'sectionFadeOut 0.5s ease both';
-                    setTimeout(() => {
-                        maintOverlay.style.display = 'none'; maintOverlay.style.animation = '';
-                        launchConfetti();
-                        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                        document.body.insertAdjacentHTML('beforeend', `<div id="welcome-back-modal" class="modal-overlay" style="display:flex;z-index:999999;animation:fadeIn 0.3s ease;"><div class="popup-box" style="border:2px solid var(--primary);"><div class="success-icon" style="color:var(--primary);"><i data-lucide="sparkles" style="width:45px;height:45px;"></i></div><h2 style="font-family:var(--font-head);font-size:2.2rem;">We're Back!</h2><p style="color:var(--text-muted);margin-bottom:25px;">The system update is complete. Thank you!</p><button class="btn-primary full-width" onclick="document.getElementById('welcome-back-modal').remove()">Let's Go!</button></div></div>`);
-                        renderIcons();
-                    }, 450);
-                }
+            } else if (!isMaint && maintOverlay.style.display === 'flex') {
+                maintOverlay.style.animation = 'sectionFadeOut 0.5s ease both';
+                setTimeout(() => {
+                    maintOverlay.style.display = 'none'; maintOverlay.style.animation = '';
+                    launchConfetti();
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                    document.body.insertAdjacentHTML('beforeend', `<div id="welcome-back-modal" class="modal-overlay" style="display:flex;z-index:999999;animation:fadeIn 0.3s ease;"><div class="popup-box" style="border:2px solid var(--primary);"><div class="success-icon" style="color:var(--primary);"><i data-lucide="sparkles" style="width:45px;height:45px;"></i></div><h2 style="font-family:var(--font-head);font-size:2.2rem;">We're Back!</h2><p style="color:var(--text-muted);margin-bottom:25px;">The system update is complete. Thank you!</p><button class="btn-primary full-width" onclick="document.getElementById('welcome-back-modal').remove()">Let's Go!</button></div></div>`);
+                    renderIcons();
+                }, 450);
             }
         }
 
@@ -989,17 +987,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const maintSource = new EventSource(`${LibraryDB.dbUrl}maintenance.json`);
 
             bcSource.addEventListener('put', async (e) => {
-                try {
-                    const parsed = JSON.parse(e.data);
-                    await applyBroadcast(parsed.data);
-                } catch(err) {}
+                try { const parsed = JSON.parse(e.data); await applyBroadcast(parsed.data); } catch(err) {}
             });
 
             maintSource.addEventListener('put', async (e) => {
-                try {
-                    const parsed = JSON.parse(e.data);
-                    await applyMaintenance(parsed.data);
-                } catch(err) {}
+                try { const parsed = JSON.parse(e.data); await applyMaintenance(parsed.data); } catch(err) {}
             });
 
             bcSource.addEventListener('error', () => { bcSource.close(); if (sseRetryTimer) clearTimeout(sseRetryTimer); sseRetryTimer = setTimeout(startAppSSE, 30000); });
@@ -1378,7 +1370,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ra = document.getElementById('results-area'); const fc = document.getElementById('featured-container');
     if (ra) rObs.observe(ra, { childList: true, subtree: false }); if (fc) rObs.observe(fc, { childList: true, subtree: false });
 
-    document.getElementById('maint-admin-login-btn')?.addEventListener('click', async () => { if (LibraryDB.currentUser) { const isAdmin = await LibraryDB.isAdmin(); if (isAdmin) { const mo = document.getElementById('maintenance-overlay'); if (mo) mo.style.display = 'none'; } else showAuthModal('login'); } else showAuthModal('login'); });
+    
 
     const showFirst = !localStorage.getItem('libnav_auth_shown');
     if (showFirst) setTimeout(() => { if (!LibraryDB.currentUser) { showAuthModal('login'); localStorage.setItem('libnav_auth_shown', '1'); } }, 3500);
