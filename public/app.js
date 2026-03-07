@@ -857,7 +857,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showPopup('System Control', `Maintenance Mode is now ${newState ? 'ON ⚠️' : 'OFF ✅'}.`, null, false);
                 if (maintModal) maintModal.style.display = 'none';
             } else {
-                showPopup('Error', 'Failed to update maintenance mode. Check your connection or permissions.', null, false);
+                showPopup('Error', 'Failed to update maintenance mode. Make sure you are logged in as admin.', null, false);
             }
         };
     }
@@ -905,25 +905,84 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.removeItem('libnav_seen_broadcast');
                 showUserBroadcast(bcObj);
             } else {
-                showPopup('Error', 'Failed to send. Check your connection.', null, false);
+                showPopup('Error', 'Failed to send. Make sure you are logged in as admin.', null, false);
             }
         };
     }
     if (clearBcBtn) {
         clearBcBtn.onclick = async () => {
             clearBcBtn.disabled = true; clearBcBtn.textContent = 'Clearing...';
-            await LibraryDB.setBroadcast(null);
+            const ok = await LibraryDB.setBroadcast(null);
             clearBcBtn.disabled = false; clearBcBtn.innerHTML = '<i data-lucide="trash-2"></i> Clear Active Broadcast'; renderIcons();
-            const ubModal = document.getElementById('user-broadcast-modal');
-            if (ubModal) ubModal.style.display = 'none';
-            showPopup('Cleared', 'Active broadcast has been removed.', null, false);
-            if (adminBcView) adminBcView.style.display = 'none';
+            if (ok) {
+                const ubModal = document.getElementById('user-broadcast-modal');
+                if (ubModal) ubModal.style.display = 'none';
+                showPopup('Cleared', 'Active broadcast has been removed.', null, false);
+                if (adminBcView) adminBcView.style.display = 'none';
+            } else {
+                showPopup('Error', 'Failed to clear broadcast. Make sure you are logged in as admin.', null, false);
+            }
         };
     }
 
     function startMaintClock() { const el = document.getElementById('maint-live-clock'); if (!el) return; const tick = () => { el.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }; tick(); setInterval(tick, 1000); }
 
     setTimeout(async () => {
+        async function applyBroadcast(activeBc) {
+            const ubModal = document.getElementById('user-broadcast-modal');
+            if (activeBc && activeBc.id) {
+                const seenBc = localStorage.getItem('libnav_seen_broadcast');
+                if (seenBc !== activeBc.id) {
+                    showUserBroadcast(activeBc);
+                    if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+                        navigator.serviceWorker.ready.then(reg => {
+                            reg.showNotification(activeBc.title || 'LibNav', {
+                                body: activeBc.message || '',
+                                icon: 'https://i.imgur.com/gmJh9bn.jpe',
+                                badge: 'https://i.imgur.com/gmJh9bn.jpe',
+                                tag: 'libnav-broadcast',
+                                renotify: true
+                            });
+                        }).catch(() => {});
+                    }
+                }
+            } else if (ubModal && ubModal.style.display === 'flex') {
+                ubModal.style.animation = 'sectionFadeOut 0.3s ease both';
+                setTimeout(() => { ubModal.style.display = 'none'; ubModal.style.animation = ''; }, 300);
+            }
+        }
+
+        async function applyMaintenance(isMaint) {
+            const isVIP = LibraryDB.currentUser ? await LibraryDB.isAdmin() : false;
+            const maintOverlay = document.getElementById('maintenance-overlay');
+            if (!maintOverlay) return;
+            if (isMaint && !isVIP) {
+                if (maintOverlay.style.display !== 'flex') {
+                    maintOverlay.style.display = 'flex';
+                    maintOverlay.style.animation = 'fadeIn 0.4s ease';
+                    renderIcons(); startMaintClock();
+                }
+            } else {
+                if (maintOverlay.style.display === 'flex') {
+                    maintOverlay.style.animation = 'sectionFadeOut 0.5s ease both';
+                    setTimeout(() => {
+                        maintOverlay.style.display = 'none'; maintOverlay.style.animation = '';
+                        launchConfetti();
+                        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                        document.body.insertAdjacentHTML('beforeend', `<div id="welcome-back-modal" class="modal-overlay" style="display:flex;z-index:999999;animation:fadeIn 0.3s ease;"><div class="popup-box" style="border:2px solid var(--primary);"><div class="success-icon" style="color:var(--primary);"><i data-lucide="sparkles" style="width:45px;height:45px;"></i></div><h2 style="font-family:var(--font-head);font-size:2.2rem;">We're Back!</h2><p style="color:var(--text-muted);margin-bottom:25px;">The system update is complete. Thank you!</p><button class="btn-primary full-width" onclick="document.getElementById('welcome-back-modal').remove()">Let's Go!</button></div></div>`);
+                        renderIcons();
+                    }, 450);
+                }
+            }
+        }
+
+        const [initBc, initMaint] = await Promise.all([
+            LibraryDB.getBroadcast(),
+            LibraryDB.getMaintenance()
+        ]);
+        await applyBroadcast(initBc);
+        await applyMaintenance(initMaint);
+
         let sseRetryTimer = null;
         function startAppSSE() {
             const bcSource = new EventSource(`${LibraryDB.dbUrl}broadcast.json`);
@@ -932,55 +991,14 @@ document.addEventListener('DOMContentLoaded', () => {
             bcSource.addEventListener('put', async (e) => {
                 try {
                     const parsed = JSON.parse(e.data);
-                    const activeBc = parsed.data;
-                    const ubModal = document.getElementById('user-broadcast-modal');
-                    if (activeBc?.id) {
-                        const seenBc = localStorage.getItem('libnav_seen_broadcast');
-                        if (seenBc !== activeBc.id) {
-                            showUserBroadcast(activeBc);
-                            if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
-                                navigator.serviceWorker.ready.then(reg => {
-                                    reg.showNotification(activeBc.title || 'LibNav', {
-                                        body: activeBc.message || '',
-                                        icon: 'https://i.imgur.com/gmJh9bn.jpe',
-                                        badge: 'https://i.imgur.com/gmJh9bn.jpe',
-                                        tag: 'libnav-broadcast',
-                                        renotify: true
-                                    });
-                                }).catch(() => {});
-                            }
-                        }
-                    } else if (ubModal?.style.display === 'flex') {
-                        ubModal.style.animation = 'sectionFadeOut 0.3s ease both';
-                        setTimeout(() => { ubModal.style.display = 'none'; ubModal.style.animation = ''; }, 300);
-                    }
+                    await applyBroadcast(parsed.data);
                 } catch(err) {}
             });
 
             maintSource.addEventListener('put', async (e) => {
                 try {
                     const parsed = JSON.parse(e.data);
-                    const isMaint = parsed.data;
-                    const isVIP = LibraryDB.currentUser && (await LibraryDB.isAdmin());
-                    const maintOverlay = document.getElementById('maintenance-overlay');
-                    if (isMaint && !isVIP) {
-                        if (maintOverlay && maintOverlay.style.display !== 'flex') {
-                            maintOverlay.style.display = 'flex';
-                            maintOverlay.style.animation = 'fadeIn 0.4s ease';
-                            renderIcons(); startMaintClock();
-                        }
-                    } else {
-                        if (maintOverlay && maintOverlay.style.display === 'flex') {
-                            maintOverlay.style.animation = 'sectionFadeOut 0.5s ease both';
-                            setTimeout(() => {
-                                maintOverlay.style.display = 'none'; maintOverlay.style.animation = '';
-                                launchConfetti();
-                                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                                document.body.insertAdjacentHTML('beforeend', `<div id="welcome-back-modal" class="modal-overlay" style="display:flex;z-index:999999;animation:fadeIn 0.3s ease;"><div class="popup-box" style="border:2px solid var(--primary);"><div class="success-icon" style="color:var(--primary);"><i data-lucide="sparkles" style="width:45px;height:45px;"></i></div><h2 style="font-family:var(--font-head);font-size:2.2rem;">We're Back!</h2><p style="color:var(--text-muted);margin-bottom:25px;">The system update is complete. Thank you!</p><button class="btn-primary full-width" onclick="document.getElementById('welcome-back-modal').remove()">Let's Go!</button></div></div>`);
-                                renderIcons();
-                            }, 450);
-                        }
-                    }
+                    await applyMaintenance(parsed.data);
                 } catch(err) {}
             });
 
