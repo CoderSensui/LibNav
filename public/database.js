@@ -32,9 +32,13 @@ const LibraryDB = {
     currentUserData: null,
     _authStateListeners: [],
     _sdkLoaded: false,
+    _sdkLoading: null,
 
+    // ─── LOAD SCRIPTS ONE AT A TIME (order matters for Firebase compat) ───────
     _loadScript: function(src) {
         return new Promise((resolve, reject) => {
+            const existing = document.querySelector(`script[src="${src}"]`);
+            if (existing) { resolve(); return; }
             const s = document.createElement('script');
             s.src = src;
             s.onload = resolve;
@@ -43,8 +47,8 @@ const LibraryDB = {
         });
     },
 
-    _loadSDK: async function() {
-        if (this._sdkLoaded) return;
+    _loadSDK: function() {
+        if (this._sdkLoaded) return Promise.resolve();
         if (this._sdkLoading) return this._sdkLoading;
         this._sdkLoading = (async () => {
             await this._loadScript("https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js");
@@ -56,10 +60,12 @@ const LibraryDB = {
         return this._sdkLoading;
     },
 
-    _db: function() {
-        return firebase.database();
+    // Shorthand to get db ref
+    _ref: function(path) {
+        return firebase.database().ref(path);
     },
 
+    // ─── AUTH ─────────────────────────────────────────────────────────────────
     _initAuth: async function() {
         try {
             await this._loadSDK();
@@ -91,28 +97,31 @@ const LibraryDB = {
         this._authStateListeners.push(cb);
     },
 
+    _getAuthToken: async function() {
+        try {
+            if (this.currentUser) return await this.currentUser.getIdToken(true);
+        } catch(e) {}
+        return null;
+    },
+
+    // ─── USER DATA ────────────────────────────────────────────────────────────
     _loadUserData: async function(uid) {
         try {
-            const snap = await this._db().ref(`users/${uid}`).once('value');
+            const snap = await this._ref(`users/${uid}`).once('value');
             const data = snap.val();
             if (data) {
                 if (data.helpedCount === undefined) data.helpedCount = 0;
                 if (data.backpack === undefined) data.backpack = [];
                 if (data.bookmarkCount === undefined) data.bookmarkCount = 0;
                 this.currentUserData = data;
-                if (data.helpedCount === undefined || data.backpack === undefined) {
-                    this._db().ref(`users/${uid}`).update({ helpedCount: 0, backpack: data.backpack || [], bookmarkCount: data.bookmarkCount || 0 }).catch(() => {});
-                }
             } else {
                 const fresh = {
                     displayName: this.currentUser?.displayName || 'Student',
                     email: this.currentUser?.email || '',
-                    bookmarkCount: 0,
-                    helpedCount: 0,
-                    backpack: [],
+                    bookmarkCount: 0, helpedCount: 0, backpack: [],
                     createdAt: Date.now()
                 };
-                await this._db().ref(`users/${uid}`).set(fresh).catch(() => {});
+                await this._ref(`users/${uid}`).set(fresh).catch(() => {});
                 this.currentUserData = fresh;
             }
         } catch(e) {
@@ -126,7 +135,7 @@ const LibraryDB = {
         await cred.user.updateProfile({ displayName });
         await cred.user.sendEmailVerification();
         const fresh = { displayName, email, bookmarkCount: 0, helpedCount: 0, backpack: [], createdAt: Date.now() };
-        try { await this._db().ref(`users/${cred.user.uid}`).set(fresh); } catch(e) {}
+        try { await this._ref(`users/${cred.user.uid}`).set(fresh); } catch(e) {}
         this.currentUserData = fresh;
         return cred.user;
     },
@@ -163,9 +172,8 @@ const LibraryDB = {
     },
 
     sendVerificationEmail: async function() {
-        if (this.currentUser && !this.currentUser.emailVerified) {
+        if (this.currentUser && !this.currentUser.emailVerified)
             await this.currentUser.sendEmailVerification();
-        }
     },
 
     sendPasswordReset: async function(email) {
@@ -176,11 +184,12 @@ const LibraryDB = {
     isAdmin: async function() {
         if (!this.currentUser) return false;
         try {
-            const snap = await this._db().ref(`admins/${this.currentUser.uid}`).once('value');
+            const snap = await this._ref(`admins/${this.currentUser.uid}`).once('value');
             return snap.val() === true;
         } catch(e) { return false; }
     },
 
+    // ─── BACKPACK ─────────────────────────────────────────────────────────────
     getBackpack: function() {
         return (this.currentUserData?.backpack) || [];
     },
@@ -194,7 +203,7 @@ const LibraryDB = {
         const newCount = (this.currentUserData.bookmarkCount || 0) + 1;
         this.currentUserData.bookmarkCount = newCount;
         try {
-            await this._db().ref(`users/${this.currentUser.uid}`).update({ backpack: bp, bookmarkCount: newCount });
+            await this._ref(`users/${this.currentUser.uid}`).update({ backpack: bp, bookmarkCount: newCount });
             return true;
         } catch(e) { return false; }
     },
@@ -206,7 +215,7 @@ const LibraryDB = {
         const newCount = Math.max(0, (this.currentUserData.bookmarkCount || 0) - 1);
         this.currentUserData.bookmarkCount = newCount;
         try {
-            await this._db().ref(`users/${this.currentUser.uid}`).update({ backpack: bp, bookmarkCount: newCount });
+            await this._ref(`users/${this.currentUser.uid}`).update({ backpack: bp, bookmarkCount: newCount });
             return true;
         } catch(e) { return false; }
     },
@@ -216,22 +225,44 @@ const LibraryDB = {
         const newCount = (this.currentUserData.helpedCount || 0) + 1;
         this.currentUserData.helpedCount = newCount;
         try {
-            await this._db().ref(`users/${this.currentUser.uid}`).update({ helpedCount: newCount });
+            await this._ref(`users/${this.currentUser.uid}`).update({ helpedCount: newCount });
             return newCount;
         } catch(e) { return false; }
     },
 
-    _getAuthToken: async function() {
+    _patchUser: async function(updates) {
+        if (!this.currentUser) return false;
         try {
-            if (this.currentUser) return await this.currentUser.getIdToken(true);
-        } catch(e) {}
-        return null;
+            await this._ref(`users/${this.currentUser.uid}`).update(updates);
+            return true;
+        } catch(e) { return false; }
     },
 
+    updateUserProfile: async function(displayName, avatarStyle) {
+        if (!this.currentUser || !this.currentUserData) return false;
+        const updates = {};
+        if (displayName && displayName.trim()) {
+            updates.displayName = displayName.trim();
+            this.currentUserData.displayName = displayName.trim();
+            try { await this.currentUser.updateProfile({ displayName: displayName.trim() }); } catch(e) {}
+        }
+        if (avatarStyle !== undefined) {
+            updates.avatarStyle = avatarStyle;
+            this.currentUserData.avatarStyle = avatarStyle;
+            updates.avatarUrl = null;
+            this.currentUserData.avatarUrl = null;
+        }
+        try {
+            await this._ref(`users/${this.currentUser.uid}`).update(updates);
+            return true;
+        } catch(e) { return false; }
+    },
+
+    // ─── LEADERBOARD ──────────────────────────────────────────────────────────
     getLeaderboard: async function() {
         try {
             if (!this.currentUser) return null;
-            const snap = await this._db().ref('users').orderByChild('helpedCount').limitToLast(10).once('value');
+            const snap = await this._ref('users').orderByChild('helpedCount').limitToLast(10).once('value');
             const data = snap.val();
             if (!data) return [];
             return Object.entries(data)
@@ -248,10 +279,9 @@ const LibraryDB = {
         } catch(e) { return []; }
     },
 
-    getBookSocialProof: async function() {
-        return {};
-    },
+    getBookSocialProof: async function() { return {}; },
 
+    // ─── INIT & GLOBAL STATS ──────────────────────────────────────────────────
     init: async function() {
         await this._initAuth();
         await this.fetchGlobalStats();
@@ -280,61 +310,16 @@ const LibraryDB = {
         } catch(e) { return false; }
     },
 
+    // ─── BOOKS ────────────────────────────────────────────────────────────────
     saveToCloud: async function() {
         try {
-            await this._db().ref('books').set(this.books);
+            await this._ref('books').set(this.books);
             return true;
         } catch(e) { return false; }
     },
 
     getBooks: function() { return this.books; },
     getHelpedCount: function() { return this.helpedCount || 0; },
-
-    _patchUser: async function(updates) {
-        if (!this.currentUser) return false;
-        try {
-            await this._db().ref(`users/${this.currentUser.uid}`).update(updates);
-            return true;
-        } catch(e) { return false; }
-    },
-
-    fetchReviews: async function() {
-        try {
-            const res = await fetch(`${this.dbUrl}reviews.json`);
-            if (!res.ok) return {};
-            const data = await res.json();
-            return (data && typeof data === 'object') ? data : {};
-        } catch(e) { return {}; }
-    },
-
-    submitReview: async function(stars, message) {
-        if (!this.currentUser) throw new Error('Not logged in');
-        const uid = this.currentUser.uid;
-        const displayName = this.currentUserData?.displayName || this.currentUser.displayName || 'Student';
-        const avatarStyle = this.currentUserData?.avatarStyle || null;
-        const email = this.currentUser.email || '';
-        const review = { uid, displayName, email, avatarStyle, stars: parseInt(stars), message: message.trim(), updatedAt: Date.now() };
-        await this._db().ref(`reviews/${uid}`).set(review);
-        return review;
-    },
-
-    deleteReview: async function() {
-        if (!this.currentUser) return false;
-        await this._db().ref(`reviews/${this.currentUser.uid}`).remove();
-        return true;
-    },
-
-    incrementHelped: async function() {
-        try {
-            const ref = this._db().ref('globalStats/helpedCount');
-            const snap = await ref.once('value');
-            const current = typeof snap.val() === 'number' ? snap.val() : 0;
-            const newCount = current + 1;
-            await ref.set(newCount);
-            this.helpedCount = newCount;
-            return true;
-        } catch(e) { return false; }
-    },
 
     addBook: async function(book) {
         this.books.push(book);
@@ -350,39 +335,65 @@ const LibraryDB = {
         const book = this.books.find(b => String(b.id) === String(id));
         if (book) {
             book.views = (book.views || 0) + 1;
-            this._db().ref('books').set(this.books).catch(() => {});
+            this._ref('books').set(this.books).catch(() => {});
         }
+    },
+
+    // ─── REVIEWS ──────────────────────────────────────────────────────────────
+    fetchReviews: async function() {
+        try {
+            const res = await fetch(`${this.dbUrl}reviews.json`);
+            if (!res.ok) return {};
+            const data = await res.json();
+            return (data && typeof data === 'object') ? data : {};
+        } catch(e) { return {}; }
+    },
+
+    submitReview: async function(stars, message) {
+        if (!this.currentUser) throw new Error('Not logged in');
+        const uid = this.currentUser.uid;
+        const review = {
+            uid,
+            displayName: this.currentUserData?.displayName || this.currentUser.displayName || 'Student',
+            email: this.currentUser.email || '',
+            avatarStyle: this.currentUserData?.avatarStyle || null,
+            stars: parseInt(stars),
+            message: message.trim(),
+            updatedAt: Date.now()
+        };
+        await this._ref(`reviews/${uid}`).set(review);
+        return review;
+    },
+
+    deleteReview: async function() {
+        if (!this.currentUser) return false;
+        await this._ref(`reviews/${this.currentUser.uid}`).remove();
+        return true;
+    },
+
+    // ─── GLOBAL HELPED COUNT ──────────────────────────────────────────────────
+    incrementHelped: async function() {
+        try {
+            const ref = this._ref('globalStats/helpedCount');
+            const snap = await ref.once('value');
+            const current = typeof snap.val() === 'number' ? snap.val() : 0;
+            const newCount = current + 1;
+            await ref.set(newCount);
+            this.helpedCount = newCount;
+            return true;
+        } catch(e) { return false; }
     },
 
     factoryReset: async function() {
         this.books.forEach(b => b.views = 0);
         await this.saveToCloud();
-        await this._db().ref('reviews').remove();
-        await this._db().ref('globalStats/helpedCount').set(0);
+        await this._ref('reviews').remove();
+        await this._ref('globalStats/helpedCount').set(0);
         this.helpedCount = 0;
         return true;
     },
 
-    updateUserProfile: async function(displayName, avatarStyle) {
-        if (!this.currentUser || !this.currentUserData) return false;
-        const updates = {};
-        if (displayName && displayName.trim()) {
-            updates.displayName = displayName.trim();
-            this.currentUserData.displayName = displayName.trim();
-            try { await this.currentUser.updateProfile({ displayName: displayName.trim() }); } catch(e) {}
-        }
-        if (avatarStyle !== undefined) {
-            updates.avatarStyle = avatarStyle;
-            this.currentUserData.avatarStyle = avatarStyle;
-            updates.avatarUrl = null;
-            this.currentUserData.avatarUrl = null;
-        }
-        try {
-            await this._db().ref(`users/${this.currentUser.uid}`).update(updates);
-            return true;
-        } catch(e) { return false; }
-    },
-
+    // ─── BROADCAST & MAINTENANCE ──────────────────────────────────────────────
     getBroadcast: async function() {
         try {
             const res = await fetch(`${this.dbUrl}broadcast.json`);
@@ -392,7 +403,7 @@ const LibraryDB = {
 
     setBroadcast: async function(obj) {
         try {
-            await this._db().ref('broadcast').set(obj);
+            await this._ref('broadcast').set(obj);
             return true;
         } catch(e) { return false; }
     },
@@ -406,7 +417,7 @@ const LibraryDB = {
 
     setMaintenance: async function(status) {
         try {
-            await this._db().ref('maintenance').set(status);
+            await this._ref('maintenance').set(status);
             return true;
         } catch(e) { return false; }
     }
