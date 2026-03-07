@@ -273,7 +273,7 @@ const LibraryDB = {
     _getAuthToken: async function() {
         try {
             if (this.currentUser) {
-                return await this.currentUser.getIdToken();
+                return await this.currentUser.getIdToken(true);
             }
         } catch(e) {}
         return null;
@@ -491,7 +491,7 @@ const LibraryDB = {
     },
 
     getBroadcast: async function() {
-        try { const res = await fetch(`${this.dbUrl}broadcast.json`); return await res.json(); } catch(e) { return null; }
+        try { const res = await fetch(`${this.dbUrl}broadcast.json?t=${Date.now()}`); return await res.json(); } catch(e) { return null; }
     },
 
     setBroadcast: async function(obj) {
@@ -506,7 +506,7 @@ const LibraryDB = {
             return res.ok;
         } catch(e) { return false; }
     },
-    
+
     getMaintenance: async function() {
         try { const res = await fetch(`${this.dbUrl}maintenance.json?t=${Date.now()}`); return await res.json(); } catch(e) { return false; }
     },
