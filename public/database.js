@@ -98,9 +98,7 @@ const LibraryDB = {
     _loadUserData: async function(uid) {
         try {
             
-            const token = this.currentUser ? await this.currentUser.getIdToken(true).catch(() => null) : null;
-            const authParam = token ? `?auth=${token}` : '';
-            const res = await fetch(`${this.dbUrl}users/${uid}.json${authParam}`);
+            const res = await fetch(`${this.dbUrl}users/${uid}.json`);
             const data = res.ok ? await res.json() : null;
             if (data) {
                 
@@ -110,12 +108,8 @@ const LibraryDB = {
                 this.currentUserData = data;
                 
                 const needsPatch = (data.helpedCount === 0 && data.backpack !== undefined);
-                if (token && (data.helpedCount === undefined || data.backpack === undefined)) {
-                    fetch(`${this.dbUrl}users/${uid}.json${authParam}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ helpedCount: 0, backpack: data.backpack || [], bookmarkCount: data.bookmarkCount || 0 })
-                    }).catch(() => {});
+                if (data.helpedCount === undefined || data.backpack === undefined) {
+                    firebase.database().ref(`users/${uid}`).update({ helpedCount: 0, backpack: data.backpack || [], bookmarkCount: data.bookmarkCount || 0 }).catch(() => {});
                 }
             } else {
                 
@@ -127,13 +121,7 @@ const LibraryDB = {
                     backpack: [],
                     createdAt: Date.now()
                 };
-                if (token) {
-                    await fetch(`${this.dbUrl}users/${uid}.json${authParam}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(fresh)
-                    });
-                }
+                await firebase.database().ref(`users/${uid}`).set(fresh).catch(() => {});
                 this.currentUserData = fresh;
             }
         } catch(e) {
@@ -149,12 +137,7 @@ const LibraryDB = {
         await cred.user.sendEmailVerification();
         const fresh = { displayName, email, bookmarkCount: 0, helpedCount: 0, backpack: [], createdAt: Date.now() };
         try {
-            const token = await cred.user.getIdToken();
-            await fetch(`${this.dbUrl}users/${cred.user.uid}.json?auth=${token}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(fresh)
-            });
+            await firebase.database().ref(`users/${cred.user.uid}`).set(fresh);
         } catch(e) {}
         this.currentUserData = fresh;
         return cred.user;
@@ -225,13 +208,7 @@ const LibraryDB = {
         const newCount = (this.currentUserData.bookmarkCount || 0) + 1;
         this.currentUserData.bookmarkCount = newCount;
         try {
-            const token = await this._getAuthToken();
-            const authParam = token ? `?auth=${token}` : '';
-            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json${authParam}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ backpack: bp, bookmarkCount: newCount })
-            });
+            await firebase.database().ref(`users/${this.currentUser.uid}`).update({ backpack: bp, bookmarkCount: newCount });
             return true;
         } catch(e) { return false; }
     },
@@ -243,13 +220,7 @@ const LibraryDB = {
         const newCount = Math.max(0, (this.currentUserData.bookmarkCount || 0) - 1);
         this.currentUserData.bookmarkCount = newCount;
         try {
-            const token = await this._getAuthToken();
-            const authParam = token ? `?auth=${token}` : '';
-            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json${authParam}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ backpack: bp, bookmarkCount: newCount })
-            });
+            await firebase.database().ref(`users/${this.currentUser.uid}`).update({ backpack: bp, bookmarkCount: newCount });
             return true;
         } catch(e) { return false; }
     },
@@ -259,13 +230,7 @@ const LibraryDB = {
         const newCount = (this.currentUserData.helpedCount || 0) + 1;
         this.currentUserData.helpedCount = newCount;
         try {
-            const token = await this._getAuthToken();
-            const authParam = token ? `?auth=${token}` : '';
-            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json${authParam}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ helpedCount: newCount })
-            });
+            await firebase.database().ref(`users/${this.currentUser.uid}`).update({ helpedCount: newCount });
             return newCount;
         } catch(e) { return false; }
     },
@@ -345,13 +310,7 @@ const LibraryDB = {
 
     saveToCloud: async function() {
         try {
-            const token = await this._getAuthToken();
-            if (!token) return false;
-            await fetch(`${this.dbUrl}books.json?auth=${token}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.books)
-            });
+            await firebase.database().ref('books').set(this.books);
             return true;
         } catch(e) { return false; }
     },
@@ -362,13 +321,7 @@ const LibraryDB = {
     _patchUser: async function(updates) {
         if (!this.currentUser) return false;
         try {
-            const token = await this._getAuthToken();
-            const auth = token ? `?auth=${token}` : '';
-            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json${auth}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updates)
-            });
+            await firebase.database().ref(`users/${this.currentUser.uid}`).update(updates);
             return true;
         } catch(e) { return false; }
     },
@@ -391,11 +344,7 @@ const LibraryDB = {
         const avatarStyle = this.currentUserData?.avatarStyle || null;
         const email = this.currentUser.email || '';
         const review = { uid, displayName, email, avatarStyle, stars: parseInt(stars), message: message.trim(), updatedAt: Date.now() };
-        await fetch(`${this.dbUrl}reviews/${uid}.json?auth=${token}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(review)
-        });
+        await firebase.database().ref(`reviews/${uid}`).set(review);
         return review;
     },
 
@@ -403,23 +352,17 @@ const LibraryDB = {
         if (!this.currentUser) return false;
         const token = await this._getAuthToken();
         if (!token) return false;
-        await fetch(`${this.dbUrl}reviews/${this.currentUser.uid}.json?auth=${token}`, { method: 'DELETE' });
+        await firebase.database().ref(`reviews/${this.currentUser.uid}`).remove();
         return true;
     },
 
     incrementHelped: async function() {
         try {
-            const res = await fetch(`${this.dbUrl}globalStats/helpedCount.json?t=${Date.now()}`);
-            let current = await res.json();
-            if (typeof current !== 'number') current = 0;
+            const ref = firebase.database().ref('globalStats/helpedCount');
+            const snap = await ref.once('value');
+            const current = (typeof snap.val() === 'number') ? snap.val() : 0;
             const newCount = current + 1;
-            const token = await this._getAuthToken();
-            const authParam = token ? `?auth=${token}` : '';
-            await fetch(`${this.dbUrl}globalStats/helpedCount.json${authParam}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newCount)
-            });
+            await ref.set(newCount);
             this.helpedCount = newCount;
             return true;
         } catch(e) { return false; }
@@ -439,27 +382,15 @@ const LibraryDB = {
         const book = this.books.find(b => String(b.id) === String(id));
         if (book) {
             book.views = (book.views || 0) + 1;
-            const token = await this._getAuthToken();
-            const authParam = token ? `?auth=${token}` : '';
-            fetch(`${this.dbUrl}books.json${authParam}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.books)
-            });
+            firebase.database().ref('books').set(this.books).catch(() => {});
         }
     },
 
     factoryReset: async function() {
         this.books.forEach(b => b.views = 0);
         await this.saveToCloud();
-        const token = await this._getAuthToken();
-        const authParam = token ? `?auth=${token}` : '';
-        await fetch(`${this.dbUrl}reviews.json${authParam}`, { method: 'DELETE' });
-        await fetch(`${this.dbUrl}globalStats/helpedCount.json${authParam}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(0)
-        });
+        await firebase.database().ref('reviews').remove();
+        await firebase.database().ref('globalStats/helpedCount').set(0);
         this.helpedCount = 0;
         return true;
     },
@@ -473,21 +404,13 @@ const LibraryDB = {
             try { await this.currentUser.updateProfile({ displayName: displayName.trim() }); } catch(e) {}
         }
         if (avatarStyle !== undefined) {
-            
             updates.avatarStyle = avatarStyle;
             this.currentUserData.avatarStyle = avatarStyle;
-            
             updates.avatarUrl = null;
             this.currentUserData.avatarUrl = null;
         }
         try {
-            const token = await this._getAuthToken();
-            const authParam = token ? `?auth=${token}` : '';
-            await fetch(`${this.dbUrl}users/${this.currentUser.uid}.json${authParam}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updates)
-            });
+            await firebase.database().ref(`users/${this.currentUser.uid}`).update(updates);
             return true;
         } catch(e) { return false; }
     },
@@ -498,14 +421,8 @@ const LibraryDB = {
 
     setBroadcast: async function(obj) {
         try {
-            const token = await this._getAuthToken();
-            if (!token) return false;
-            const res = await fetch(`${this.dbUrl}broadcast.json?auth=${token}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(obj)
-            });
-            return res.ok;
+            await firebase.database().ref('broadcast').set(obj);
+            return true;
         } catch(e) { return false; }
     },
     
@@ -515,14 +432,8 @@ const LibraryDB = {
 
     setMaintenance: async function(status) {
         try {
-            const token = await this._getAuthToken();
-            if (!token) return false;
-            const res = await fetch(`${this.dbUrl}maintenance.json?auth=${token}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(status)
-            });
-            return res.ok;
+            await firebase.database().ref('maintenance').set(status);
+            return true;
         } catch(e) { return false; }
     }
 };
