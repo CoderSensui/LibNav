@@ -413,7 +413,9 @@ const LibraryDB = {
             let current = await res.json();
             if (typeof current !== 'number') current = 0;
             const newCount = current + 1;
-            await fetch(`${this.dbUrl}globalStats/helpedCount.json`, {
+            const token = await this._getAuthToken();
+            const authParam = token ? `?auth=${token}` : '';
+            await fetch(`${this.dbUrl}globalStats/helpedCount.json${authParam}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newCount)
