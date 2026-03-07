@@ -393,32 +393,41 @@ const LibraryDB = {
         return true;
     },
 
-    // ─── BROADCAST & MAINTENANCE ──────────────────────────────────────────────
     getBroadcast: async function() {
         try {
-            const res = await fetch(`${this.dbUrl}broadcast.json`);
-            return await res.json();
+            await this._loadSDK();
+            const snap = await firebase.database().ref('broadcast').once('value');
+            return snap.val();
         } catch(e) { return null; }
     },
 
     setBroadcast: async function(obj) {
         try {
-            await this._ref('broadcast').set(obj);
+            await this._loadSDK();
+            await firebase.database().ref('broadcast').set(obj);
             return true;
-        } catch(e) { return false; }
+        } catch(e) {
+            console.error('setBroadcast error:', e.message);
+            return false;
+        }
     },
 
     getMaintenance: async function() {
         try {
-            const res = await fetch(`${this.dbUrl}maintenance.json?t=${Date.now()}`);
-            return await res.json();
+            await this._loadSDK();
+            const snap = await firebase.database().ref('maintenance').once('value');
+            return snap.val();
         } catch(e) { return false; }
     },
 
     setMaintenance: async function(status) {
         try {
-            await this._ref('maintenance').set(status);
+            await this._loadSDK();
+            await firebase.database().ref('maintenance').set(status);
             return true;
-        } catch(e) { return false; }
+        } catch(e) {
+            console.error('setMaintenance error:', e.message);
+            return false;
+        }
     }
 };
